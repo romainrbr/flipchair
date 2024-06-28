@@ -43,6 +43,7 @@ import android.graphics.Canvas;
 import android.graphics.Insets;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Looper;
@@ -310,6 +311,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mFooter = findViewById(R.id.folder_footer);
         mFooterHeight = dp.folderFooterHeightPx;
         mFolderName = findViewById(R.id.folder_name);
+        if (Flags.enableLauncherVisualRefresh()) {
+            mFolderName.setTypeface(Typeface.create("google-sans-flex", Typeface.NORMAL));
+        }
         mFolderName.setTextSize(TypedValue.COMPLEX_UNIT_PX, dp.folderLabelTextSizePx);
         mFolderName.setOnBackKeyListener(this);
         mFolderName.setOnEditorActionListener(this);

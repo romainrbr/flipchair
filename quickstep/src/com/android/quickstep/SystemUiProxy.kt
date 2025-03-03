@@ -18,6 +18,7 @@ package com.android.quickstep
 import android.app.ActivityManager
 import android.app.ActivityManager.RunningTaskInfo
 import android.app.ActivityOptions
+import android.app.ActivityTaskManager.INVALID_TASK_ID
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
@@ -1109,11 +1110,18 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
 
     /**
      * Calls shell to activate the desk whose ID is `deskId` on whatever display it exists on. This
-     * will bring all tasks on this desk to the front.
+     * will show all tasks on this desk and bring [taskIdToReorderToFront] to the front if it's
+     * provided and already on the given desk. If the provided [taskIdToReorderToFront]'s value is
+     * null, do not change the windows' activation on the desk.
      */
-    fun activateDesk(deskId: Int, transition: RemoteTransition?) =
+    @JvmOverloads
+    fun activateDesk(
+        deskId: Int,
+        transition: RemoteTransition?,
+        taskIdToReorderToFront: Int? = null,
+    ) =
         executeWithErrorLog({ "Failed call activateDesk" }) {
-            desktopMode?.activateDesk(deskId, transition)
+            desktopMode?.activateDesk(deskId, transition, taskIdToReorderToFront ?: INVALID_TASK_ID)
         }
 
     /** Calls shell to remove the desk whose ID is `deskId`. */
@@ -1124,10 +1132,23 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     fun removeAllDesks() =
         executeWithErrorLog({ "Failed call removeAllDesks" }) { desktopMode?.removeAllDesks() }
 
-    /** Call shell to show all apps active on the desktop */
-    fun showDesktopApps(displayId: Int, transition: RemoteTransition?) =
+    /**
+     * Call shell to show all apps active on the desktop and bring [taskIdToReorderToFront] to front
+     * if it's valid on the default desk on the given display. If the provided
+     * [taskIdToReorderToFront]'s value is null, do not change the windows' activation on the desk.
+     */
+    @JvmOverloads
+    fun showDesktopApps(
+        displayId: Int,
+        transition: RemoteTransition? = null,
+        taskIdToReorderToFront: Int? = null,
+    ) =
         executeWithErrorLog({ "Failed call showDesktopApps" }) {
-            desktopMode?.showDesktopApps(displayId, transition)
+            desktopMode?.showDesktopApps(
+                displayId,
+                transition,
+                taskIdToReorderToFront ?: INVALID_TASK_ID,
+            )
         }
 
     /** If task with the given id is on the desktop, bring it to front */

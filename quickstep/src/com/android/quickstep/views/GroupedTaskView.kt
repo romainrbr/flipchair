@@ -38,6 +38,7 @@ import com.android.quickstep.util.SplitSelectStateController
 import com.android.quickstep.util.SplitTask
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
 import com.android.wm.shell.Flags.enableFlexibleTwoAppSplit
+import com.android.wm.shell.shared.split.SplitBounds
 import com.android.wm.shell.shared.split.SplitScreenConstants.PersistentSnapPosition
 
 /**
@@ -62,7 +63,7 @@ class GroupedTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         get() = taskContainers[1]
 
     // TODO(b/336612373): Support new TTV for GroupedTaskView
-    var splitBoundsConfig: SplitConfigurationOptions.SplitBounds? = null
+    var splitBoundsConfig: SplitBounds? = null
         private set
 
     @get:PersistentSnapPosition
@@ -255,7 +256,7 @@ class GroupedTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         }
     }
 
-    fun updateSplitBoundsConfig(splitBounds: SplitConfigurationOptions.SplitBounds?) {
+    fun updateSplitBoundsConfig(splitBounds: SplitBounds?) {
         splitBoundsConfig = splitBounds
         taskContainers.forEach {
             it.digitalWellBeingToast?.splitBounds = splitBoundsConfig

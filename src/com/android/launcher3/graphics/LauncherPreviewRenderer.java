@@ -84,6 +84,8 @@ import com.android.launcher3.dagger.AppModule;
 import com.android.launcher3.dagger.LauncherAppComponent;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.dagger.LauncherComponentProvider;
+import com.android.launcher3.dagger.LauncherConcurrencyModule;
+import com.android.launcher3.dagger.PerDisplayModule;
 import com.android.launcher3.dagger.PluginManagerWrapperModule;
 import com.android.launcher3.dagger.StaticObjectModule;
 import com.android.launcher3.dagger.WindowManagerProxyModule;
@@ -670,7 +672,10 @@ public class LauncherPreviewRenderer extends BaseContext
             ApiWrapperModule.class,
             PluginManagerWrapperModule.class,
             StaticObjectModule.class,
-            AppModule.class})
+            AppModule.class,
+            PerDisplayModule.class,
+            LauncherConcurrencyModule.class,
+    })
     public interface PreviewAppComponent extends LauncherAppComponent {
 
         LoaderTaskFactory getLoaderTaskFactory();

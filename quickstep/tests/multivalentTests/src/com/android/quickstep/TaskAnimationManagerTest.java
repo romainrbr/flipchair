@@ -54,8 +54,7 @@ public class TaskAnimationManagerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mTaskAnimationManager = new TaskAnimationManager(mContext,
-                RecentsAnimationDeviceState.INSTANCE.get(mContext), Display.DEFAULT_DISPLAY) {
+        mTaskAnimationManager = new TaskAnimationManager(mContext, Display.DEFAULT_DISPLAY) {
             @Override
             SystemUiProxy getSystemUiProxy() {
                 return mSystemUiProxy;

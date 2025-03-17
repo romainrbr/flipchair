@@ -380,12 +380,12 @@ public abstract class AbsSwipeUpHandler<
     private final MSDLPlayerWrapper mMSDLPlayerWrapper;
 
     public AbsSwipeUpHandler(Context context,
-            TaskAnimationManager taskAnimationManager, GestureState gestureState,
+            TaskAnimationManager taskAnimationManager, RecentsAnimationDeviceState deviceState,
+            GestureState gestureState,
             long touchTimeMs, boolean continuingLastGesture,
             InputConsumerController inputConsumer,
             MSDLPlayerWrapper msdlPlayerWrapper) {
         super(context, gestureState);
-        mDeviceState = RecentsAnimationDeviceState.INSTANCE.get(mContext);
         mContainerInterface = gestureState.getContainerInterface();
         mContextInitListener =
                 mContainerInterface.createActivityInitListener(this::onActivityInit);
@@ -400,6 +400,7 @@ public abstract class AbsSwipeUpHandler<
                     endLauncherTransitionController();
                 }, new InputProxyHandlerFactory(mContainerInterface, mGestureState));
         mTaskAnimationManager = taskAnimationManager;
+        mDeviceState = deviceState;
         mTouchTimeMs = touchTimeMs;
         mContinuingLastGesture = continuingLastGesture;
 
@@ -2787,6 +2788,7 @@ public abstract class AbsSwipeUpHandler<
     }
 
     public interface Factory {
-        AbsSwipeUpHandler newHandler(GestureState gestureState, long touchTimeMs);
+        @Nullable
+        AbsSwipeUpHandler<?, ?, ?> newHandler(GestureState gestureState, long touchTimeMs);
     }
 }

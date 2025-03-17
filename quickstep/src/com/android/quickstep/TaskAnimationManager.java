@@ -41,11 +41,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
+import com.android.app.displaylib.PerDisplayRepository;
 import com.android.internal.util.ArrayUtils;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.taskbar.TaskbarUIController;
+import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DisplayController;
+import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
@@ -61,6 +65,10 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Locale;
 
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedFactory;
+import dagger.assisted.AssistedInject;
+
 public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAnimationListener {
     public static final boolean SHELL_TRANSITIONS_ROTATION =
             SystemProperties.getBoolean("persist.wm.debug.shell_transit_rotate", false);
@@ -69,7 +77,6 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     private RecentsAnimationCallbacks mCallbacks;
     private RecentsAnimationTargets mTargets;
     private TransitionInfo mTransitionInfo;
-    private RecentsAnimationDeviceState mDeviceState;
 
     // Temporary until we can hook into gesture state events
     private GestureState mLastGestureState;
@@ -79,6 +86,10 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     private boolean mRecentsAnimationStartPending = false;
     private boolean mShouldIgnoreMotionEvents = false;
     private final int mDisplayId;
+
+    public static final DaggerSingletonObject<PerDisplayRepository<TaskAnimationManager>>
+            REPOSITORY_INSTANCE = new DaggerSingletonObject<>(
+            QuickstepBaseAppComponent::getTaskAnimationManagerRepository);
 
     private final TaskStackChangeListener mLiveTileRestartListener = new TaskStackChangeListener() {
         @Override
@@ -103,10 +114,11 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         }
     };
 
-    public TaskAnimationManager(Context ctx, RecentsAnimationDeviceState deviceState,
-            int displayId) {
+    @AssistedInject
+    public TaskAnimationManager(
+            @ApplicationContext Context ctx,
+            @Assisted int displayId) {
         mCtx = ctx;
-        mDeviceState = deviceState;
         mDisplayId = displayId;
     }
 
@@ -524,4 +536,11 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             mLastGestureState.dump(prefix + '\t', pw);
         }
     }
+
+    @AssistedFactory
+    public interface Factory {
+        /** Creates a new instance of [TaskAnimationManager] for a given [displayId]. */
+        TaskAnimationManager create(int displayId);
+    }
+
 }

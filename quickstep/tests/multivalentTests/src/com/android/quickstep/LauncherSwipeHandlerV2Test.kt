@@ -53,6 +53,8 @@ class LauncherSwipeHandlerV2Test {
 
     @Mock private lateinit var taskAnimationManager: TaskAnimationManager
 
+    @Mock private lateinit var deviceState: RecentsAnimationDeviceState
+
     private lateinit var gestureState: GestureState
     @Mock private lateinit var inputConsumerController: InputConsumerController
 
@@ -89,7 +91,6 @@ class LauncherSwipeHandlerV2Test {
             DaggerTestComponent.builder()
                 .bindSystemUiProxy(systemUiProxy)
                 .bindRotationHelper(mock(RotationTouchHelper::class.java))
-                .bindRecentsState(mock(RecentsAnimationDeviceState::class.java))
         )
         gestureState =
             spy(
@@ -104,6 +105,7 @@ class LauncherSwipeHandlerV2Test {
             LauncherSwipeHandlerV2(
                 sandboxContext,
                 taskAnimationManager,
+                deviceState,
                 gestureState,
                 0,
                 false,
@@ -137,8 +139,6 @@ interface TestComponent : LauncherAppComponent {
         @BindsInstance fun bindSystemUiProxy(proxy: SystemUiProxy): Builder
 
         @BindsInstance fun bindRotationHelper(helper: RotationTouchHelper): Builder
-
-        @BindsInstance fun bindRecentsState(state: RecentsAnimationDeviceState): Builder
 
         override fun build(): TestComponent
     }

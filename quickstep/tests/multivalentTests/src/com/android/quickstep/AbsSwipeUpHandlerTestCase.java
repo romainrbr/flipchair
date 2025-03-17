@@ -51,7 +51,6 @@ import android.os.SystemClock;
 import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
-import android.view.Display;
 import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl;
 import android.view.ViewTreeObserver;
@@ -136,6 +135,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     @Mock protected SystemUiController mSystemUiController;
     @Mock protected GestureState mGestureState;
     @Mock protected MSDLPlayerWrapper mMSDLPlayerWrapper;
+    @Mock protected RecentsAnimationDeviceState mDeviceState;
 
     @Rule
     public final MockitoRule mMockitoRule = MockitoJUnit.rule();
@@ -192,8 +192,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Before
     public void setUpRecentsContainer() {
-        mTaskAnimationManager = new TaskAnimationManager(mContext,
-                RecentsAnimationDeviceState.INSTANCE.get(mContext), DEFAULT_DISPLAY);
+        mTaskAnimationManager = new TaskAnimationManager(mContext, DEFAULT_DISPLAY);
         RecentsViewContainer recentsContainer = getRecentsContainer();
         RECENTS_VIEW recentsView = getRecentsView();
 

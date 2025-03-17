@@ -561,6 +561,15 @@ public class ActiveGestureProtoLogProxy {
                 displayId);
     }
 
+    public static void logOnAbsSwipeUpHandlerNotAvailable(int displayId) {
+        ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
+                "AbsSwipeUpHandler not available for displayId=%d",
+                displayId));
+        if (!enableActiveGestureProtoLog() || !isProtoLogInitialized()) return;
+        ProtoLog.d(ACTIVE_GESTURE_LOG, "AbsSwipeUpHandler not available for displayId=%d",
+                displayId);
+    }
+
     public static void logGestureStartSwipeHandler(@NonNull String interactionHandler) {
         ActiveGestureLog.INSTANCE.addLog(new ActiveGestureLog.CompoundString(
                 "OtherActivityInputConsumer.startTouchTrackingForWindowAnimation: "

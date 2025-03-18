@@ -224,8 +224,10 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
      */
     @Override
     public void onLauncherVisibilityChanged(boolean isVisible) {
+        final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
         if (DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(mLauncher)
-                && mControllers.taskbarActivityContext.isPrimaryDisplay()) {
+                && !taskbarContext.showDesktopTaskbarForFreeformDisplay()
+                && taskbarContext.isPrimaryDisplay()) {
             DisplayController.INSTANCE.get(mLauncher).notifyConfigChange();
         }
 

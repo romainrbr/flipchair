@@ -554,8 +554,7 @@ public class TaskbarManager {
      */
     private void showTaskbarFromBroadcast(Intent intent) {
         debugPrimaryTaskbar("destroyTaskbarForDisplay");
-        // TODO: make this code displayId specific
-        TaskbarActivityContext taskbar = getTaskbarForDisplay(getDefaultDisplayId());
+        TaskbarActivityContext taskbar = getTaskbarForDisplay(getFocusedDisplayId());
         if (ACTION_SHOW_TASKBAR.equals(intent.getAction()) && taskbar != null) {
             taskbar.showTaskbarFromBroadcast();
         }
@@ -575,7 +574,7 @@ public class TaskbarManager {
      * Toggles All Apps for Taskbar or Launcher depending on the current state.
      */
     public void toggleAllAppsSearch() {
-        TaskbarActivityContext taskbar = getTaskbarForDisplay(getDefaultDisplayId());
+        TaskbarActivityContext taskbar = getTaskbarForDisplay(getFocusedDisplayId());
         if (taskbar == null) {
             // Home All Apps should be toggled from this class, because the controllers are not
             // initialized when Taskbar is disabled (i.e. TaskbarActivityContext is null).
@@ -1668,6 +1667,10 @@ public class TaskbarManager {
 
     private int getDefaultDisplayId() {
         return mBaseContext.getDisplayId();
+    }
+
+    private int getFocusedDisplayId() {
+        return SystemUiProxy.INSTANCE.get(mBaseContext).getFocusState().getFocusedDisplayId();
     }
 
     /**

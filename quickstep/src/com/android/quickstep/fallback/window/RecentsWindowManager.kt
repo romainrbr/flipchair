@@ -37,6 +37,7 @@ import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.BaseActivity
 import com.android.launcher3.LauncherAnimationRunner
 import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory
+import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.compat.AccessibilityManagerCompat
 import com.android.launcher3.statemanager.StateManager
@@ -66,7 +67,7 @@ import com.android.quickstep.fallback.RecentsState
 import com.android.quickstep.fallback.RecentsState.BACKGROUND_APP
 import com.android.quickstep.fallback.RecentsState.BG_LAUNCHER
 import com.android.quickstep.fallback.RecentsState.DEFAULT
-import com.android.quickstep.fallback.RecentsState.HOME
+import com.android.quickstep.fallback.toLauncherState
 import com.android.quickstep.fallback.toLauncherStateOrdinal
 import com.android.quickstep.util.RecentsAtomicAnimationFactory
 import com.android.quickstep.util.RecentsWindowProtoLogProxy
@@ -361,7 +362,7 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
     override fun onStateSetEnd(state: RecentsState) {
         super.onStateSetEnd(state)
         RecentsWindowProtoLogProxy.logOnStateSetEnd(state.toString())
-        if (state == HOME || state == BG_LAUNCHER) {
+        if (state.toLauncherState() == LauncherState.NORMAL) {
             cleanupRecentsWindow()
         }
         AccessibilityManagerCompat.sendStateEventToTest(baseContext, state.toLauncherStateOrdinal())

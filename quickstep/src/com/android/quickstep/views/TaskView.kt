@@ -784,6 +784,10 @@ constructor(
                     else R.layout.icon_view
             }
             ?.inflate()
+
+        findViewById<ViewStub>(R.id.digital_wellbeing_toast)
+            ?.apply { layoutResource = R.layout.digital_wellbeing_toast }
+            ?.inflate()
     }
 
     override fun onAttachedToWindow() =

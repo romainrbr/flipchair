@@ -443,6 +443,11 @@ public final class LauncherInstrumentation {
                 .getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
+    int getBubbleBarDropTargetSize() {
+        return getTestInfo(TestProtocol.REQUEST_GET_BUBBLE_BAR_DROP_TARGET_SIZE)
+                .getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD);
+    }
+
     public int getOverviewCurrentPageIndex() {
         return getTestInfo(TestProtocol.REQUEST_GET_OVERVIEW_CURRENT_PAGE_INDEX)
                 .getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD);
@@ -1439,6 +1444,12 @@ public final class LauncherInstrumentation {
                 Until.findObject(selector), WAIT_TIME_MS);
         assertNotNull("Can't find a systemui object with selector: " + selector, object);
         return object;
+    }
+
+    void waitUntilSystemUiObjectGone(String resId) {
+        BySelector systemObjectSelector = By.res(SYSTEMUI_PACKAGE, resId);
+        assertTrue("Unexpected system object visible: " + systemObjectSelector,
+                mDevice.wait(Until.gone(systemObjectSelector), WAIT_TIME_MS));
     }
 
     @NonNull

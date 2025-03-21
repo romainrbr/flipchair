@@ -184,10 +184,8 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
             return super.shouldAddStubTaskView(groupedTaskInfo);
         }
 
-        Task runningTask = Task.from(groupedTaskInfo.getTaskInfo1());
-        if (mHomeTask != null && runningTask != null
-                && mHomeTask.key.id == runningTask.key.id
-                && !hasTaskViews() && mLoadPlanEverApplied) {
+        if (mHomeTask != null && groupedTaskInfo.containsTask(mHomeTask.key.id) && !hasTaskViews()
+                && mLoadPlanEverApplied) {
             // Do not add a stub task if we are running over home with empty recents, so that we
             // show the empty recents message instead of showing a stub task and later removing it.
             // Ignore empty task signal if applyLoadPlan has never run.

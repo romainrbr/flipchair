@@ -42,6 +42,7 @@ import com.android.quickstep.views.RecentsView.RUNNING_TASK_ATTACH_ALPHA
 import com.android.systemui.shared.recents.model.Task
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.wm.shell.shared.GroupedTaskInfo
+import com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops
 import java.util.function.BiConsumer
 import kotlin.math.min
 import kotlin.reflect.KMutableProperty1
@@ -112,16 +113,19 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) {
         taskViews.filter { recentsView.mTopRowIdSet.contains(it.taskViewId) }
 
     /** Returns all the task Ids in the top row, without the focused task */
-    fun getTopRowIdArray(): IntArray = getTopRowTaskViews().map { it.taskViewId }.toIntArray()
+    fun getTopRowIdArray(): IntArray =
+        getTopRowTaskViews().map { it.taskViewId }.toLauncher3IntArray()
 
     /** Returns all the TaskViews in the bottom row, without the focused task */
     fun getBottomRowTaskViews(): List<TaskView> =
         taskViews.filter { !recentsView.mTopRowIdSet.contains(it.taskViewId) && !it.isLargeTile }
 
     /** Returns all the task Ids in the bottom row, without the focused task */
-    fun getBottomRowIdArray(): IntArray = getBottomRowTaskViews().map { it.taskViewId }.toIntArray()
+    fun getBottomRowIdArray(): IntArray =
+        getBottomRowTaskViews().map { it.taskViewId }.toLauncher3IntArray()
 
-    private fun List<Int>.toIntArray() = IntArray(size).apply { this@toIntArray.forEach(::add) }
+    private fun List<Int>.toLauncher3IntArray() =
+        IntArray(size).apply { this@toLauncher3IntArray.forEach(::add) }
 
     /** Counts [TaskView]s that are large tiles. */
     fun getLargeTileCount(): Int = taskViews.count { it.isLargeTile }
@@ -475,6 +479,26 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) {
             recentsView.mTaskOverlayFactory,
         )
         return desktopTaskView
+    }
+
+    fun shouldAddStubTaskView(groupedTaskInfo: GroupedTaskInfo): Boolean {
+        val matchingTaskView =
+            when {
+                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
+                    enableMultipleDesktops(recentsView.context) ->
+                    getDesktopTaskViewForDeskId(groupedTaskInfo.deskDisplayId)
+
+                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
+                    groupedTaskInfo.taskInfoList.size == 1 ->
+                    recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
+                        as? DesktopTaskView
+
+                else -> {
+                    val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                    recentsView.getTaskViewByTaskIds(runningTaskIds)
+                }
+            }
+        return matchingTaskView == null
     }
 
     companion object {

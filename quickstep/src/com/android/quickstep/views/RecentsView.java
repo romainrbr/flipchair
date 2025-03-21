@@ -685,7 +685,8 @@ public abstract class RecentsView<
                                 if (taskRemoved) {
                                     dismissTask(taskId, /*animate=*/true, /*removeTask=*/false);
                                 }
-                            }, RecentsFilterState.getFilter(mFilterState.getPackageNameToFilter()));
+                            }, RecentsFilterState.getFilter(mFilterState.getPackageNameToFilter(),
+                                    mContainer.getDisplayId()));
                         }
                     }));
         }
@@ -2883,7 +2884,7 @@ public abstract class RecentsView<
     public void reloadIfNeeded() {
         if (!mModel.isTaskListValid(mTaskListChangeId)) {
             mTaskListChangeId = mModel.getTasks(this::applyLoadPlan, RecentsFilterState
-                    .getFilter(mFilterState.getPackageNameToFilter()));
+                    .getFilter(mFilterState.getPackageNameToFilter(), mContainer.getDisplayId()));
             Log.d(TAG, "reloadIfNeeded - getTasks: " + mTaskListChangeId);
             if (enableRefactorTaskThumbnail()) {
                 mRecentsViewModel.refreshAllTaskData();

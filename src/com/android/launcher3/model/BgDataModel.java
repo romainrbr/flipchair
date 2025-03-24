@@ -44,6 +44,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.BuildConfig;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.LauncherAppSingleton;
@@ -52,6 +53,10 @@ import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.model.repository.HomeScreenRepository;
+import com.android.launcher3.model.repository.HomeScreenRepository.WorkspaceData.ChangeEvent.AddEvent;
+import com.android.launcher3.model.repository.HomeScreenRepository.WorkspaceData.ChangeEvent.RemoveEvent;
+import com.android.launcher3.model.repository.HomeScreenRepository.WorkspaceData.ChangeEvent.UpdateEvent;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
@@ -69,6 +74,7 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -81,6 +87,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 /**
  * All the data stored in-memory and managed by the LauncherModel
@@ -119,6 +126,9 @@ public class BgDataModel {
      */
     public final StringCache stringCache = new StringCache();
 
+    @Nullable
+    private final HomeScreenRepository mRepo;
+
     /**
      * Id when the model was last bound
      */
@@ -132,8 +142,9 @@ public class BgDataModel {
             && !enableSmartspaceRemovalToggle();
 
     @Inject
-    public BgDataModel(WidgetsModel widgetsModel) {
+    public BgDataModel(WidgetsModel widgetsModel, Provider<HomeScreenRepository> homeDataProvider) {
         this.widgetsModel = widgetsModel;
+        mRepo = Flags.modelRepository() ? homeDataProvider.get() : null;
     }
 
     /**
@@ -188,13 +199,19 @@ public class BgDataModel {
         removeItem(context, Arrays.asList(items));
     }
 
-    public synchronized void removeItem(Context context, List<? extends ItemInfo> items) {
+    public synchronized void removeItem(Context context, Collection<? extends ItemInfo> items) {
+        removeItem(context, items, null);
+    }
+
+    public synchronized void removeItem(Context context, Collection<? extends ItemInfo> items,
+            @Nullable Object owner) {
         if (BuildConfig.IS_STUDIO_BUILD) {
             items.stream()
                     .filter(item -> item.itemType == ITEM_TYPE_FOLDER
                             || item.itemType == ITEM_TYPE_APP_PAIR)
                     .forEach(item -> itemsIdMap.stream()
                             .filter(info -> info.container == item.id)
+                            .filter(info -> !items.contains(info))
                             // We are deleting a collection which still contains items that
                             // think they are contained by that collection.
                             .forEach(info -> Log.e(TAG,
@@ -205,13 +222,25 @@ public class BgDataModel {
         items.forEach(item -> itemsIdMap.remove(item.id));
         items.stream().map(info -> info.user).distinct().forEach(
                 user -> updateShortcutPinnedState(context, user));
+        if (Flags.modelRepository() && mRepo != null) {
+            mRepo.dispatchChange(this, new RemoveEvent(new ArrayList<>(items), owner));
+        }
     }
 
     public synchronized void addItem(Context context, ItemInfo item, boolean newItem) {
+        addItem(context, item, newItem, null);
+    }
+
+    public synchronized void addItem(Context context, ItemInfo item, boolean newItem,
+            @Nullable Object owner) {
         itemsIdMap.put(item.id, item);
         if (newItem && item.itemType == ITEM_TYPE_DEEP_SHORTCUT) {
             updateShortcutPinnedState(context, item.user);
         }
+        if (Flags.modelRepository() && mRepo != null) {
+            mRepo.dispatchChange(this, new AddEvent(Collections.singletonList(item), owner));
+        }
+
         if (BuildConfig.IS_DEBUG_DEVICE
                 && newItem
                 && item.container != CONTAINER_DESKTOP
@@ -220,6 +249,16 @@ public class BgDataModel {
             // Adding an item to a nonexistent collection.
             Log.e(TAG, "attempted to add item: " + item + " to a nonexistent app collection");
         }
+    }
+
+    public synchronized void updateItems(List<ItemInfo> items, @Nullable Object owner) {
+        if (Flags.modelRepository() && mRepo != null) {
+            mRepo.dispatchChange(this, new UpdateEvent(items, owner));
+        }
+    }
+
+    public synchronized void dataLoadComplete() {
+        if (Flags.modelRepository() && mRepo != null) mRepo.onNewBind(this);
     }
 
     /**

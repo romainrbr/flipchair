@@ -65,7 +65,7 @@ class QuickstepModelDelegateTest {
         underTest.mHotseatState.predictor = hotseatPredictor
         underTest.mWidgetsRecommendationState.predictor = widgetRecommendationPredictor
         underTest.mModel = LauncherAppState.getInstance(context).model
-        underTest.mDataModel = BgDataModel(WidgetsModel(context))
+        underTest.mDataModel = BgDataModel(WidgetsModel(context), { null })
     }
 
     @Test

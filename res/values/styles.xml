@@ -457,4 +457,22 @@
             variable-title-small
         </item>
     </style>
+
+    <style name="AllAppsPersonalWorkTabStyle" parent="@style/Widget.AppCompat.Button.Borderless">
+        <item name="android:fontFamily" android:featureFlag="com.android.launcher3.gsf_res">
+            variable-title-small
+        </item>
+    </style>
+
+    <style name="WorkModeFabTextStyle" parent="TextHeadline">
+        <item name="android:fontFamily" android:featureFlag="com.android.launcher3.gsf_res">
+            variable-title-small
+        </item>
+    </style>
+
+    <style name="WorkPausedBodyTextStyle">
+        <item name="android:fontFamily" android:featureFlag="com.android.launcher3.gsf_res">
+            variable-title-small
+        </item>
+    </style>
 </resources>

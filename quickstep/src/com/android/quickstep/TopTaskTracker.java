@@ -366,17 +366,21 @@ public class TopTaskTracker extends ISplitScreenListener.Stub implements TaskSta
                 Collections.addAll(mOrderedTaskList, tasks);
             }
 
-            ArrayList<TaskInfo> tasks = new ArrayList<>(mOrderedTaskList);
-            // Strip the pinned task and recents task
-            tasks.removeIf(t -> t.taskId == mPinnedTaskId || isRecentsTask(t)
-                    ||  DesksUtils.isDesktopWallpaperTask(t));
+            List<TaskInfo> tasks = new ArrayList<>(mOrderedTaskList);
+            // Strip the pinned task and recents task.
+            tasks.removeIf(t -> t.taskId == mPinnedTaskId || isRecentsTask(t));
             if (enableOverviewOnConnectedDisplays()) {
-                return new CachedTaskInfo(tasks.stream().filter(
-                        info -> ExternalDisplaysKt.getSafeDisplayId(info) == displayId).toList(),
-                        mContext, displayId);
-            } else {
-                return new CachedTaskInfo(tasks, mContext, displayId);
+                tasks = tasks.stream().filter(
+                        info -> ExternalDisplaysKt.getSafeDisplayId(info) == displayId).toList();
             }
+            if (enableMultipleDesktops(mContext)) {
+                tasks = tasks.stream().takeWhile(
+                        taskInfo -> !DesksUtils.isDesktopWallpaperTask(taskInfo)).toList();
+            } else {
+                tasks.removeIf(taskInfo -> DesksUtils.isDesktopWallpaperTask(taskInfo));
+            }
+
+            return new CachedTaskInfo(tasks, mContext, displayId);
         }
     }
 

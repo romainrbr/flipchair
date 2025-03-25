@@ -429,6 +429,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
 
         var additionalTranslationX = 0f
         if (
+            taskView.pagedOrientationHandler.isLayoutNaturalToLauncher &&
             taskContainer.stagePosition == SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
         ) {
             // Animate menu and icon when split task would display off the side of the screen.

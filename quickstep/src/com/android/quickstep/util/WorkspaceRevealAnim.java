@@ -91,9 +91,7 @@ public class WorkspaceRevealAnim {
             PendingAnimation depthBuilder = new PendingAnimation(DURATION_MS);
             DepthController depth = ((QuickstepLauncher) launcher).getDepthController();
             depth.setStateWithAnimation(NORMAL, new StateAnimationConfig(), depthBuilder);
-            AnimatorSet animatorSet = depthBuilder.buildAnim();
-            launcher.getStateManager().setCurrentAnimation(animatorSet, NORMAL);
-            mAnimators.play(animatorSet);
+            mAnimators.play(depthBuilder.buildAnim());
         }
 
         // Add sysui scrim animation.

@@ -25,6 +25,7 @@ import android.graphics.RectF
 import android.util.Log
 import android.view.View
 import android.view.animation.PathInterpolator
+import androidx.core.animation.doOnStart
 import androidx.core.graphics.transform
 import com.android.app.animation.Animations
 import com.android.app.animation.Interpolators
@@ -241,7 +242,11 @@ class ScalingWorkspaceRevealAnim(
     }
 
     fun getAnimators(): AnimatorSet {
-        return animation.buildAnim()
+        val animatorSet = animation.buildAnim()
+        animatorSet.doOnStart {
+            launcher.stateManager.setCurrentAnimation(animatorSet, LauncherState.NORMAL)
+        }
+        return animatorSet
     }
 
     fun start() {

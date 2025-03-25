@@ -892,17 +892,21 @@ constructor(
             return thumbnailPosition
         }
 
-    override fun onDetachedFromWindow() =
-        traceSection("TaskView.onDetachedFromWindow") {
-            super.onDetachedFromWindow()
-            if (enableRefactorTaskThumbnail()) {
-                // The jobs are being cancelled in the background thread. So we make a copy of the
-                // list to prevent cleaning a new job that might be added to this list during
-                // onAttach or another moment in the lifecycle.
-                val coroutineJobsToCancel = coroutineJobs.toList()
-                coroutineJobs.clear()
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cancelJobs()
+    }
+
+    fun cancelJobs() =
+        traceSection("TaskView.cancelJobs") {
+            // The jobs are being cancelled in the background thread. So we make a copy of the
+            // list to prevent cleaning a new job that might be added to this list during
+            // onAttach or another moment in the lifecycle.
+            val coroutineJobsToCancel = coroutineJobs.toList()
+            coroutineJobs.clear()
+            if (coroutineJobsToCancel.isNotEmpty()) {
                 coroutineScope.launch(dispatcherProvider.background) {
-                    traceSection("TaskView.onDetachedFromWindow.cancellingJobs") {
+                    traceSection("TaskView.cancelJobs.cancellingJobs") {
                         coroutineJobsToCancel.forEach {
                             it.cancel("TaskView detaching from window")
                         }

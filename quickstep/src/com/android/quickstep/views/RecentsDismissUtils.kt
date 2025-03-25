@@ -472,31 +472,6 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
     }
 
     private fun getDismissedTaskGapForReflow(dismissedTaskView: TaskView): Float {
-        val screenStart = recentsView.pagedOrientationHandler.getPrimaryScroll(recentsView)
-        val screenEnd =
-            screenStart + recentsView.pagedOrientationHandler.getMeasuredSize(recentsView)
-        val taskStart =
-            recentsView.pagedOrientationHandler.getChildStart(dismissedTaskView) +
-                dismissedTaskView.getOffsetAdjustment(recentsView.showAsGrid())
-        val taskSize =
-            recentsView.pagedOrientationHandler.getMeasuredSize(dismissedTaskView) *
-                dismissedTaskView.getSizeAdjustment(recentsView.showAsFullscreen())
-        val taskEnd = taskStart + taskSize
-
-        val isDismissedTaskBeyondEndOfScreen =
-            if (recentsView.isRtl) taskEnd > screenEnd else taskStart < screenStart
-        if (
-            dismissedTaskView.isLargeTile &&
-                isDismissedTaskBeyondEndOfScreen &&
-                recentsView.mUtils.getLargeTileCount() == 1
-        ) {
-            return with(recentsView) {
-                    pagedOrientationHandler.getPrimaryScroll(this) -
-                        getScrollForPage(indexOfChild(mUtils.getFirstNonDesktopTaskView()))
-                }
-                .toFloat()
-        }
-
         // If current page is beyond last TaskView's index, use last TaskView to calculate offset.
         val lastTaskViewIndex = recentsView.indexOfChild(recentsView.mUtils.getLastTaskView())
         val currentPage = recentsView.currentPage.coerceAtMost(lastTaskViewIndex)

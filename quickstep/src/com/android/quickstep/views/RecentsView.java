@@ -183,7 +183,6 @@ import com.android.launcher3.util.TranslateEdgeEffect;
 import com.android.launcher3.util.VibratorWrapper;
 import com.android.launcher3.util.ViewPool;
 import com.android.launcher3.util.coroutines.DispatcherProvider;
-import com.android.launcher3.util.window.WindowManagerProxy.DesktopVisibilityListener;
 import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.HighResLoadingState;
@@ -258,7 +257,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -273,7 +271,7 @@ public abstract class RecentsView<
         CONTAINER_TYPE extends Context & RecentsViewContainer & StatefulContainer<STATE_TYPE>,
         STATE_TYPE extends BaseState<STATE_TYPE>> extends PagedView implements Insettable,
         HighResLoadingState.HighResLoadingStateChangedCallback,
-        TaskVisualsChangeListener, DesktopVisibilityListener {
+        TaskVisualsChangeListener {
 
     protected static final String TAG = "RecentsView";
     private static final boolean DEBUG = false;
@@ -1250,7 +1248,7 @@ public abstract class RecentsView<
         mTaskOverlayFactory.initListeners();
         mSplitSelectStateController.registerSplitListener(mSplitSelectionListener);
         if (mDesktopVisibilityController != null) {
-            mDesktopVisibilityController.registerDesktopVisibilityListener(this);
+            mDesktopVisibilityController.registerDesktopVisibilityListener(mUtils);
         }
     }
 
@@ -1273,7 +1271,7 @@ public abstract class RecentsView<
         mTaskOverlayFactory.removeListeners();
         mSplitSelectStateController.unregisterSplitListener(mSplitSelectionListener);
         if (mDesktopVisibilityController != null) {
-            mDesktopVisibilityController.unregisterDesktopVisibilityListener(this);
+            mDesktopVisibilityController.unregisterDesktopVisibilityListener(mUtils);
         }
         reset();
     }
@@ -2387,7 +2385,7 @@ public abstract class RecentsView<
     /**
      * Updates TaskView scaling and translation required to support variable width.
      */
-    private void updateTaskSize() {
+    protected void updateTaskSize() {
         if (!hasTaskViews()) {
             return;
         }
@@ -7001,68 +6999,6 @@ public abstract class RecentsView<
                 mRecentsView.mSizeStrategy.getTaskbarController().onExpandPip();
             });
         }
-    }
-
-    @Override
-    public void onCanCreateDesksChanged(boolean canCreateDesks) {
-        // TODO: b/389209338 - update the AddDesktopButton's visibility on this.
-    }
-
-    @Override
-    public void onDeskAdded(int displayId, int deskId) {
-        // Ignore desk changes that don't belong to this display.
-        if (displayId != mContainer.getDisplay().getDisplayId()) {
-            return;
-        }
-
-        if (mUtils.getDesktopTaskViewForDeskId(deskId) != null) {
-            Log.e(TAG, "A task view for this desk has already been added.");
-            return;
-        }
-
-        TaskView currentTaskView = getTaskViewAt(mCurrentPage);
-
-        // We assume that a newly added desk is always empty and gets added to the left of the
-        // `AddNewDesktopButton`.
-        DesktopTaskView desktopTaskView =
-                (DesktopTaskView) getTaskViewFromPool(TaskViewType.DESKTOP);
-        desktopTaskView.bind(new DesktopTask(deskId, displayId, new ArrayList<>()),
-                mOrientationState, mTaskOverlayFactory);
-
-        Objects.requireNonNull(mAddDesktopButton);
-        final int insertionIndex = 1 + indexOfChild(mAddDesktopButton);
-        addView(desktopTaskView, insertionIndex);
-
-        updateTaskSize();
-        mUtils.updateChildTaskOrientations();
-        updateScrollSynchronously();
-
-        // Set Current Page based on the stored TaskView.
-        if (currentTaskView != null) {
-            setCurrentPage(indexOfChild(currentTaskView));
-        }
-    }
-
-    @Override
-    public void onDeskRemoved(int displayId, int deskId) {
-        // Ignore desk changes that don't belong to this display.
-        if (displayId != mContainer.getDisplay().getDisplayId()) {
-            return;
-        }
-
-        // We need to distinguish between desk removals that are triggered from outside of overview
-        // vs. the ones that were initiated from overview by dismissing the corresponding desktop
-        // task view.
-        var taskView = mUtils.getDesktopTaskViewForDeskId(deskId);
-        if (taskView != null) {
-            dismissTaskView(taskView, true, true);
-        }
-    }
-
-    @Override
-    public void onActiveDeskChanged(int displayId, int newActiveDesk, int oldActiveDesk) {
-        // TODO: b/400870600 - We may need to add code here to special case when an empty desk gets
-        // activated, since `RemoteDesktopLaunchTransitionRunner` doesn't always get triggered.
     }
 
     /** Get the color used for foreground scrimming the RecentsView for sharing. */

@@ -18,6 +18,7 @@ package com.android.launcher3.shapes
 
 import androidx.annotation.VisibleForTesting
 import com.android.launcher3.Flags as LauncherFlags
+import com.android.launcher3.R
 import com.android.systemui.shared.Flags
 
 object ShapesProvider {
@@ -44,43 +45,49 @@ object ShapesProvider {
     @VisibleForTesting const val SEVEN_SIDED_COOKIE_KEY = "seven_sided_cookie"
     @VisibleForTesting const val ARCH_KEY = "arch"
 
-    val iconShapes =
+    val iconShapes: Array<IconShapeModel> =
         if (Flags.newCustomizationPickerUi() && LauncherFlags.enableLauncherIconShapes()) {
             arrayOf(
                 IconShapeModel(
                     key = CIRCLE_KEY,
-                    title = "circle",
+                    titleId = R.string.circle_shape_title,
                     pathString = CIRCLE_PATH,
                     folderPathString = FOLDER_CLOVER_PATH,
                 ),
                 IconShapeModel(
                     key = SQUARE_KEY,
-                    title = "square",
+                    titleId = R.string.square_shape_title,
                     pathString = SQUARE_PATH,
                     folderPathString = FOLDER_SQUARE_PATH,
                 ),
                 IconShapeModel(
                     key = FOUR_SIDED_COOKIE_KEY,
-                    title = "4 sided cookie",
+                    titleId = R.string.four_sided_cookie_shape_title,
                     pathString = FOUR_SIDED_COOKIE_PATH,
                     folderPathString = FOLDER_COMPLEX_CLOVER_PATH,
                     iconScale = 72f / 83.4f,
                 ),
                 IconShapeModel(
                     key = SEVEN_SIDED_COOKIE_KEY,
-                    title = "7 sided cookie",
+                    titleId = R.string.seven_sided_cookie_shape_title,
                     pathString = SEVEN_SIDED_COOKIE_PATH,
                     folderPathString = FOLDER_CLOVER_PATH,
                     iconScale = 72f / 80f,
                 ),
                 IconShapeModel(
                     key = ARCH_KEY,
-                    title = "arch",
+                    titleId = R.string.arch_shape_title,
                     pathString = ARCH_PATH,
                     folderPathString = FOLDER_ARCH_PATH,
                 ),
             )
         } else {
-            arrayOf(IconShapeModel(key = CIRCLE_KEY, title = "circle", pathString = CIRCLE_PATH))
+            arrayOf(
+                IconShapeModel(
+                    key = CIRCLE_KEY,
+                    titleId = R.string.circle_shape_title,
+                    pathString = CIRCLE_PATH,
+                )
+            )
         }
 }

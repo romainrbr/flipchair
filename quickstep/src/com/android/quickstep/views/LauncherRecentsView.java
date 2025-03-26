@@ -184,7 +184,7 @@ public class LauncherRecentsView extends RecentsView<QuickstepLauncher, Launcher
             }
         }
 
-        if (!finalState.isRecentsViewVisible) {
+        if (mContainer.isRecentsViewVisible() && !finalState.isRecentsViewVisible) {
             // Clean-up logic that occurs when recents is no longer in use/visible.
             reset();
         }

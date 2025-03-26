@@ -293,7 +293,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
                 setOverviewGridEnabled(false);
             }
         }
-        if (!finalState.isRecentsViewVisible()) {
+        if (mContainer.isRecentsViewVisible() && !finalState.isRecentsViewVisible()) {
             // Clean-up logic that occurs when recents is no longer in use/visible.
             reset();
         }

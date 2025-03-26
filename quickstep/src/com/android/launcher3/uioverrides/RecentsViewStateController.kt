@@ -210,7 +210,7 @@ class RecentsViewStateController(private val launcher: QuickstepLauncher) :
         )
 
         builder.addEndListener { success: Boolean ->
-            if (!success && !toState.isRecentsViewVisible) {
+            if (!success && fromState.isRecentsViewVisible && !toState.isRecentsViewVisible) {
                 recentsView.reset()
             }
         }

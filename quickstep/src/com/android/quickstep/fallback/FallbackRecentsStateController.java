@@ -87,8 +87,7 @@ public class FallbackRecentsStateController implements StateHandler<RecentsState
         // While animating into recents, update the visible task data as needed
         setter.addOnFrameCallback(() -> mRecentsView.loadVisibleTaskData(FLAG_UPDATE_ALL));
         setter.addEndListener(success -> {
-            if (!success && mRecentsViewContainer.isRecentsViewVisible()
-                    && !toState.isRecentsViewVisible()) {
+            if (!success && !toState.isRecentsViewVisible()) {
                 mRecentsView.reset();
             }
         });

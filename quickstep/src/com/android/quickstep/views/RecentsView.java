@@ -1825,11 +1825,13 @@ public abstract class RecentsView<
                     return;
                 }
                 TaskView taskView = getTaskViewAt(mNextPage);
-                boolean shouldSnapToLargeTask = taskView != null && taskView.isLargeTile()
-                        && !mUtils.isAnySmallTaskFullyVisible();
+                boolean shouldSnapToLargeTask = taskView != null && taskView.isLargeTile();
+                boolean shouldSnapToSmallTask = enableGridOnlyOverview() && taskView != null
+                        && taskView == mUtils.getFirstSmallTaskView();
                 boolean shouldSnapToClearAll = mNextPage == indexOfChild(mClearAllButton);
-                // Snap to large tile when grid tasks aren't fully visible or the clear all button.
-                if (!shouldSnapToLargeTask && !shouldSnapToClearAll) {
+                boolean shouldSnap =
+                        shouldSnapToLargeTask || shouldSnapToClearAll || shouldSnapToSmallTask;
+                if (!shouldSnap) {
                     return;
                 }
             }

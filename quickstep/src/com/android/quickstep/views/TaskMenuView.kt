@@ -74,9 +74,9 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
             recentsViewContainer.deviceProfile.overviewActionsClaimedSpaceBelow
     }
     private val minMenuTop by lazy { taskContainer.iconView.height.toFloat() }
-    // TODO(b/401476868): Replace overviewRowSpacing with correct margin to the taskbarTop.
     private val maxMenuBottom by lazy {
-        (taskbarTop - recentsViewContainer.deviceProfile.overviewRowSpacing).toFloat()
+        (taskbarTop - resources.getDimensionPixelSize(R.dimen.overview_app_chip_menu_bottom_margin))
+            .toFloat()
     }
 
     init {
@@ -430,7 +430,8 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
         var additionalTranslationX = 0f
         if (
             taskView.pagedOrientationHandler.isLayoutNaturalToLauncher &&
-            taskContainer.stagePosition == SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
+                taskContainer.stagePosition ==
+                    SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT
         ) {
             // Animate menu and icon when split task would display off the side of the screen.
             additionalTranslationX =

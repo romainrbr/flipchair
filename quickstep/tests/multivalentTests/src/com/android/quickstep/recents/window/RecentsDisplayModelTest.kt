@@ -28,7 +28,7 @@ import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.Flags.FLAG_ENABLE_FALLBACK_OVERVIEW_IN_WINDOW
 import com.android.launcher3.Flags.FLAG_ENABLE_LAUNCHER_OVERVIEW_IN_WINDOW
-import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.LauncherModelHelper
 import com.android.launcher3.util.window.CachedDisplayInfo
 import com.android.quickstep.fallback.window.RecentsDisplayModel
 import org.junit.Assert
@@ -38,6 +38,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.spy
 import org.mockito.kotlin.whenever
 
 @SmallTest
@@ -45,9 +46,10 @@ import org.mockito.kotlin.whenever
 @EnableFlags(FLAG_ENABLE_LAUNCHER_OVERVIEW_IN_WINDOW, FLAG_ENABLE_FALLBACK_OVERVIEW_IN_WINDOW)
 class RecentsDisplayModelTest {
     @get:Rule val setFlagsRule = SetFlagsRule()
-    @get:Rule val context = SandboxApplication()
 
     // initiate dagger components for injection
+    private val launcherModelHelper = LauncherModelHelper()
+    private val context = spy(launcherModelHelper.sandboxContext)
     private val displayManager: DisplayManager = context.spyService(DisplayManager::class.java)
     private val display: Display = mock()
 
@@ -62,6 +64,7 @@ class RecentsDisplayModelTest {
         val displayInfo = CachedDisplayInfo(Point(width, height), Surface.ROTATION_0)
         whenever(display.rotation).thenReturn(displayInfo.rotation)
         whenever(display.displayAdjustments).thenReturn(DisplayAdjustments())
+        whenever(context.display).thenReturn(display)
 
         // Mock displayManager
         whenever(displayManager.getDisplay(anyInt())).thenReturn(display)

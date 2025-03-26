@@ -51,7 +51,6 @@ import android.os.SystemClock;
 import android.platform.test.annotations.DisableFlags;
 import android.platform.test.annotations.EnableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
-import android.view.Display;
 import android.view.RemoteAnimationTarget;
 import android.view.SurfaceControl;
 import android.view.ViewTreeObserver;
@@ -104,8 +103,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
             new ActivityManager.RunningTaskInfo();
     protected final TopTaskTracker.CachedTaskInfo mCachedTaskInfo =
             new TopTaskTracker.CachedTaskInfo(
-                    Collections.singletonList(mRunningTaskInfo), /* canEnterDesktop = */ false,
-                    DEFAULT_DISPLAY);
+                    Collections.singletonList(mRunningTaskInfo), mContext, DEFAULT_DISPLAY);
     protected final RemoteAnimationTarget mRemoteAnimationTarget = new RemoteAnimationTarget(
             /* taskId= */ 0,
             /* mode= */ RemoteAnimationTarget.MODE_CLOSING,

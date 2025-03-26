@@ -3087,26 +3087,7 @@ public abstract class RecentsView<
      * Returns true if we should add a stub taskView for the running task id
      */
     protected boolean shouldAddStubTaskView(GroupedTaskInfo groupedTaskInfo) {
-        int[] runningTaskIds;
-        if (groupedTaskInfo != null) {
-            runningTaskIds = groupedTaskInfo.getTaskInfoList().stream().mapToInt(
-                    taskInfo -> taskInfo.taskId).toArray();
-        } else {
-            runningTaskIds = new int[0];
-        }
-        TaskView matchingTaskView = null;
-        if (groupedTaskInfo != null && groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)
-                && runningTaskIds.length == 1) {
-            // TODO(b/342635213): Unsure if it's expected, desktop runningTasks only have a single
-            // taskId, therefore we match any DesktopTaskView that contains the runningTaskId.
-            TaskView taskview = getTaskViewByTaskId(runningTaskIds[0]);
-            if (taskview instanceof DesktopTaskView) {
-                matchingTaskView = taskview;
-            }
-        } else {
-            matchingTaskView = getTaskViewByTaskIds(runningTaskIds);
-        }
-        return matchingTaskView == null;
+        return mUtils.shouldAddStubTaskView(groupedTaskInfo);
     }
 
     /**
@@ -3156,7 +3137,13 @@ public abstract class RecentsView<
                     makeMeasureSpec(getMeasuredHeight(), EXACTLY));
             layout(getLeft(), getTop(), getRight(), getBottom());
         } else {
-            var runningTaskView = getTaskViewByTaskId(groupedTaskInfo.getTaskInfo1().taskId);
+            TaskView runningTaskView;
+            if (DesktopModeStatus.enableMultipleDesktops(mContext) && groupedTaskInfo.isBaseType(
+                    GroupedTaskInfo.TYPE_DESK)) {
+                runningTaskView = mUtils.getDesktopTaskViewForDeskId(groupedTaskInfo.getDeskId());
+            } else {
+                runningTaskView = getTaskViewByTaskId(groupedTaskInfo.getTaskInfo1().taskId);
+            }
             if (runningTaskView != null) {
                 runningTaskViewId = runningTaskView.getTaskViewId();
             }

@@ -82,7 +82,7 @@ class AsyncBindingTest {
                 View(modelHelper.sandboxContext)
             }
             .whenever(itemInflater)
-            .inflateItem(any(), any(), isNull())
+            .inflateItem(any(), isNull())
 
         // Set up the workspace with 3 pages of apps
         modelHelper.setupDefaultLayoutProvider(

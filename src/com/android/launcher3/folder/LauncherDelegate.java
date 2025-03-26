@@ -24,17 +24,14 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.CellLayout;
 import com.android.launcher3.DragSource;
-import com.android.launcher3.DropTarget;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.dragndrop.DragOptions;
-import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -46,11 +43,6 @@ public class LauncherDelegate {
 
     private LauncherDelegate(Launcher launcher) {
         mLauncher = launcher;
-    }
-
-    void init(Folder folder, FolderIcon icon) {
-        folder.setDragController(mLauncher.getDragController());
-        icon.setOnFocusChangeListener(mLauncher.getFocusHandler());
     }
 
     boolean isDraggingEnabled() {
@@ -87,8 +79,7 @@ public class LauncherDelegate {
                         CellLayout cellLayout = mLauncher.getCellLayout(info.container,
                                 mLauncher.getCellPosMapper().mapModelToPresenter(info).screenId);
                         finalItem =  info.getContents().remove(0);
-                        newIcon = mLauncher.getItemInflater().inflateItem(
-                                finalItem, mLauncher.getModelWriter(), cellLayout);
+                        newIcon = mLauncher.getItemInflater().inflateItem(finalItem, cellLayout);
                         mLauncher.getModelWriter().addOrMoveItemInDatabase(finalItem,
                                 info.container, info.screenId, info.cellX, info.cellY);
                     }
@@ -96,9 +87,6 @@ public class LauncherDelegate {
                     // Remove the folder
                     mLauncher.removeItem(folder.mFolderIcon, info, true /* deleteFromDb */,
                             "folder removed because there's only 1 item in it");
-                    if (folder.mFolderIcon instanceof DropTarget) {
-                        folder.mDragController.removeDropTarget((DropTarget) folder.mFolderIcon);
-                    }
 
                     if (newIcon != null) {
                         // We add the child after removing the folder to prevent both from existing
@@ -112,7 +100,7 @@ public class LauncherDelegate {
                     if (finalItem != null) {
                         StatsLogger logger = mLauncher.getStatsLogManager().logger()
                                 .withItemInfo(finalItem);
-                        ((Optional<InstanceId>) folder.mDragController.getLogInstanceId())
+                        mLauncher.getDragController().getLogInstanceId()
                                 .map(logger::withInstanceId)
                                 .orElse(logger)
                                 .log(LAUNCHER_FOLDER_CONVERTED_TO_ICON);
@@ -128,7 +116,6 @@ public class LauncherDelegate {
         }
         return true;
     }
-
 
     boolean interceptOutsideTouch(MotionEvent ev, BaseDragLayer dl, Folder folder) {
         if (mLauncher.getAccessibilityDelegate().isInAccessibleDrag()) {
@@ -151,11 +138,6 @@ public class LauncherDelegate {
         FallbackDelegate(ActivityContext context) {
             super(null);
             mContext = context;
-        }
-
-        @Override
-        void init(Folder folder, FolderIcon icon) {
-            folder.setDragController(mContext.getDragController());
         }
 
         @Override

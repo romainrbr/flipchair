@@ -58,6 +58,7 @@ import android.animation.ObjectAnimator;
 import android.annotation.DrawableRes;
 import android.annotation.IdRes;
 import android.annotation.LayoutRes;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ActivityInfo.Config;
 import android.content.res.ColorStateList;
@@ -876,6 +877,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 R.layout.taskbar_nav_button);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private ImageView addButton(@DrawableRes int drawableId, @TaskbarButton int buttonType,
             ViewGroup parent, TaskbarNavButtonController navButtonController, @IdRes int id,
             @LayoutRes int layoutId) {
@@ -895,6 +897,12 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                     navButtonController.onButtonClick(buttonType, view));
             buttonView.setOnLongClickListener(view ->
                     navButtonController.onButtonLongClick(buttonType, view));
+            buttonView.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    buttonView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                }
+                return false;
+            });
         }
         return buttonView;
     }
@@ -935,6 +943,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                 hasSentDownEvent.set(false);
                 mHandler.postDelayed(longPressTimeout, PREDICTIVE_BACK_TIMEOUT_MS);
                 rect.set(0, 0, v.getWidth(), v.getHeight());
+                buttonView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
             }
             boolean isCancelled = motionEventAction == MotionEvent.ACTION_CANCEL
                     || (!rect.contains(event.getX(), event.getY())
@@ -956,7 +965,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             navButtonController.sendBackKeyEvent(KeyEvent.ACTION_UP, isCancelled);
             if (motionEventAction == MotionEvent.ACTION_UP && !isCancelled) {
                 buttonView.performClick();
-                buttonView.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
             }
             return false;
         });

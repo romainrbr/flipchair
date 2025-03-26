@@ -131,7 +131,7 @@ public class WindowManagerProxy {
     /**
      * Returns if the home is visible.
      */
-    public boolean isHomeVisible() {
+    public boolean isHomeVisible(Context context) {
         return false;
     }
 

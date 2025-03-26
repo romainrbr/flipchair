@@ -19,7 +19,6 @@ package com.android.launcher3.model
 import android.app.blob.BlobHandle
 import android.app.blob.BlobStoreManager
 import android.content.Context
-import android.content.res.Resources
 import android.os.ParcelFileDescriptor.AutoCloseInputStream
 import android.provider.Settings.Secure
 import android.text.TextUtils
@@ -149,7 +148,7 @@ constructor(@ApplicationContext private val context: Context) {
         widgetHolder: LauncherWidgetHolder,
         openHelper: DatabaseHelper,
         xml: String,
-        res: SourceResources = SourceResources.wrap(Resources.getSystem()),
+        res: SourceResources = object : SourceResources {},
     ): AutoInstallsLayout {
         val parser = Xml.newPullParser()
         parser.setInput(StringReader(xml))

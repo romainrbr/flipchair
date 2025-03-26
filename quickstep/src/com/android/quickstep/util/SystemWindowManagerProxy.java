@@ -48,15 +48,12 @@ import javax.inject.Inject;
 public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     private final DesktopVisibilityController mDesktopVisibilityController;
-    private final SystemUiProxy mSystemUiProxy;
+
 
     @Inject
-    public SystemWindowManagerProxy(
-            DesktopVisibilityController desktopVisibilityController,
-            SystemUiProxy systemUiProxy) {
+    public SystemWindowManagerProxy(DesktopVisibilityController desktopVisibilityController) {
         super(true);
         mDesktopVisibilityController = desktopVisibilityController;
-        mSystemUiProxy = systemUiProxy;
     }
 
     @Override
@@ -113,8 +110,8 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
     }
 
     @Override
-    public boolean isHomeVisible() {
-        return mSystemUiProxy.getHomeVisibilityState().isHomeVisible();
+    public boolean isHomeVisible(Context context) {
+        return SystemUiProxy.INSTANCE.get(context).getHomeVisibilityState().isHomeVisible();
     }
 
     @Override

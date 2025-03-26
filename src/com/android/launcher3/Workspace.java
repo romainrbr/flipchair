@@ -3318,8 +3318,10 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * Removes items that match the {@param matcher}. When applications are removed
      * as a part of an update, this is called to ensure that other widgets and application
      * shortcuts are not removed.
+     *
+     * @param persistChanges if true, any dependent changes will be persisted to the DB
      */
-    public void removeItemsByMatcher(final Predicate<ItemInfo> matcher) {
+    public void removeItemsByMatcher(final Predicate<ItemInfo> matcher, boolean persistChanges) {
         for (CellLayout layout : getWorkspaceAndHotseatCellLayouts()) {
             ShortcutAndWidgetContainer container = layout.getShortcutsAndWidgets();
             // Iterate in reverse order as we are removing items
@@ -3346,14 +3348,15 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
                 } else if (info instanceof AppPairInfo api) {
                     // If an app pair's member apps are being removed, delete the whole app pair.
                     if (api.anyMatch(matcher)) {
-                        mLauncher.removeItem(child, info, true);
+                        mLauncher.removeItem(child, info, persistChanges);
                     }
                 }
             }
         }
 
-        // Strip all the empty screens
-        stripEmptyScreens();
+        if (persistChanges) {
+            stripEmptyScreens();
+        }
     }
 
     @Override
@@ -3390,7 +3393,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     public void persistRemoveItemsByMatcher(Predicate<ItemInfo> matcher,
                                             @Nullable final String reason) {
         mLauncher.getModelWriter().deleteItemsFromDatabase(matcher, reason);
-        removeItemsByMatcher(matcher);
+        removeItemsByMatcher(matcher, true);
     }
 
     public boolean isOverlayShown() {

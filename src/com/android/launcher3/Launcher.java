@@ -2534,6 +2534,11 @@ public class Launcher extends StatefulActivity<LauncherState>
         mModelCallbacks.bindWorkspaceComponentsRemoved(matcher);
     }
 
+    @Override
+    public void bindItemsModified(List<ItemInfo> items) {
+        mModelCallbacks.bindItemsModified(items);
+    }
+
     /**
      * See {@code LauncherBindingDelegate}
      */
@@ -2983,9 +2988,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         return mModel;
     }
 
-    /**
-     * Returns the ModelWriter writer, make sure to call the function every time you want to use it.
-     */
+    @Override
     public ModelWriter getModelWriter() {
         return mModelWriter;
     }

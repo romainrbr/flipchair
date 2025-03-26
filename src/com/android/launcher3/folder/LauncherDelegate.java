@@ -17,7 +17,6 @@ package com.android.launcher3.folder;
 
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_CONVERTED_TO_ICON;
 
-import android.content.Context;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -27,11 +26,9 @@ import com.android.launcher3.CellLayout;
 import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget;
 import com.android.launcher3.Launcher;
-import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.dragndrop.DragOptions;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.StatsLogManager.StatsLogger;
-import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.views.ActivityContext;
@@ -62,10 +59,6 @@ public class LauncherDelegate {
 
     void beginDragShared(View child, DragSource source, DragOptions options) {
         mLauncher.getWorkspace().beginDragShared(child, source, options);
-    }
-
-    ModelWriter getModelWriter() {
-        return mLauncher.getModelWriter();
     }
 
     void forEachVisibleWorkspacePage(Consumer<View> callback) {
@@ -154,7 +147,6 @@ public class LauncherDelegate {
     private static class FallbackDelegate extends LauncherDelegate {
 
         private final ActivityContext mContext;
-        private ModelWriter mWriter;
 
         FallbackDelegate(ActivityContext context) {
             super(null);
@@ -173,15 +165,6 @@ public class LauncherDelegate {
 
         @Override
         void beginDragShared(View child, DragSource source, DragOptions options) { }
-
-        @Override
-        ModelWriter getModelWriter() {
-            if (mWriter == null) {
-                mWriter = LauncherAppState.getInstance((Context) mContext).getModel().getWriter(
-                        false, mContext.getCellPosMapper(), null);
-            }
-            return mWriter;
-        }
 
         @Override
         void forEachVisibleWorkspacePage(Consumer<View> callback) { }
@@ -204,8 +187,8 @@ public class LauncherDelegate {
     }
 
     static LauncherDelegate from(ActivityContext context) {
-        return context instanceof Launcher
-                ? new LauncherDelegate((Launcher) context)
+        return context instanceof Launcher l
+                ? new LauncherDelegate(l)
                 : new FallbackDelegate(context);
     }
 }

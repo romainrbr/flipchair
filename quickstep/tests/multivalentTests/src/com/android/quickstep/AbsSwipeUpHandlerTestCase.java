@@ -63,8 +63,8 @@ import com.android.launcher3.LauncherRootView;
 import com.android.launcher3.dragndrop.DragLayer;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
-import com.android.launcher3.util.LauncherModelHelper;
 import com.android.launcher3.util.MSDLPlayerWrapper;
+import com.android.launcher3.util.SandboxApplication;
 import com.android.launcher3.util.SystemUiController;
 import com.android.quickstep.util.ContextInitListener;
 import com.android.quickstep.util.MotionPauseDetector;
@@ -94,9 +94,6 @@ public abstract class AbsSwipeUpHandlerTestCase<
         SWIPE_HANDLER extends AbsSwipeUpHandler<RECENTS_CONTAINER, RECENTS_VIEW, STATE_TYPE>,
         CONTAINER_INTERFACE extends BaseContainerInterface<STATE_TYPE, RECENTS_CONTAINER>> {
 
-    protected final LauncherModelHelper mLauncherModelHelper = new LauncherModelHelper();
-    protected final LauncherModelHelper.SandboxModelContext mContext =
-            mLauncherModelHelper.sandboxContext;
     protected final InputConsumerController mInputConsumerController =
             InputConsumerController.getRecentsAnimationInputConsumer();
     protected final ActivityManager.RunningTaskInfo mRunningTaskInfo =
@@ -141,6 +138,9 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Rule
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
+
+    @Rule
+    public final SandboxApplication mContext = new SandboxApplication();
 
     @Before
     public void setUpAnimationTargets() {

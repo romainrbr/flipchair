@@ -61,6 +61,7 @@ constructor(
     private var menuAnchorView: View? = null
     // Two textview so we can ellipsize the collapsed view and crossfade on expand to the full name.
     private var appTitle: TextView? = null
+    private var isLayoutNaturalToLauncher = true
 
     private val backgroundRelativeLtrLocation = Rect()
     private val backgroundAnimationRectEvaluator = RectEvaluator(backgroundRelativeLtrLocation)
@@ -156,6 +157,7 @@ constructor(
 
     override fun setIconOrientation(orientationState: RecentsOrientedState, isGridTask: Boolean) {
         val orientationHandler = orientationState.orientationHandler
+        isLayoutNaturalToLauncher = orientationHandler.isLayoutNaturalToLauncher
         // Layout params for anchor view
         val anchorLayoutParams = menuAnchorView!!.layoutParams as LayoutParams
         anchorLayoutParams.topMargin = expandedMenuDefaultHeight + menuToChipGap
@@ -163,7 +165,7 @@ constructor(
 
         // Layout Params for the Menu View (this)
         val iconMenuParams = layoutParams as LayoutParams
-        iconMenuParams.width = expandedMenuDefaultWidth
+        iconMenuParams.width = getChipWidth()
         iconMenuParams.height = expandedMenuDefaultHeight
         orientationHandler.setIconAppChipMenuParams(
             this,
@@ -412,14 +414,13 @@ constructor(
         animator!!.addListener(
             onStart = {
                 appTitle!!.isSelected = false
-                if (status == AppChipStatus.Expanded) updateTitleSize()
+                if (status == AppChipStatus.Expanded) updateChipSize()
             },
             onEnd = {
-                if (status == AppChipStatus.Collapsed) updateTitleSize()
+                if (status == AppChipStatus.Collapsed) updateChipSize()
                 appTitle!!.isSelected = true
             },
         )
-
         animator!!.start()
     }
 
@@ -435,17 +436,21 @@ constructor(
      *   collapsed chip boundaries. The width is then determined by calling
      *   [calculateCollapsedTextWidth].
      */
-    private fun updateTitleSize() {
-        val appTitleWidth =
-            when (status) {
-                AppChipStatus.Expanded -> expandedMaxTextWidth
-                AppChipStatus.Collapsed -> {
-                    val collapsedBackgroundWidth = getCollapsedBackgroundLtrBounds().width()
-                    calculateCollapsedTextWidth(collapsedBackgroundWidth)
-                }
+    private fun updateChipSize() {
+        val chipWidth = getChipWidth()
+        when (status) {
+            AppChipStatus.Expanded -> {
+                updateLayoutParams { width = chipWidth }
+                appTitle!!.updateLayoutParams { width = expandedMaxTextWidth }
             }
-
-        appTitle!!.updateLayoutParams { width = appTitleWidth }
+            AppChipStatus.Collapsed -> {
+                appTitle!!.updateLayoutParams {
+                    val collapsedBackgroundWidth = getCollapsedBackgroundLtrBounds().width()
+                    width = calculateCollapsedTextWidth(collapsedBackgroundWidth)
+                }
+                updateLayoutParams { width = chipWidth }
+            }
+        }
     }
 
     private fun getCollapsedBackgroundLtrBounds(): Rect {
@@ -457,6 +462,18 @@ constructor(
 
     private fun getExpandedBackgroundLtrBounds() =
         Rect(0, 0, expandedMenuDefaultWidth, expandedMenuDefaultHeight)
+
+    private fun getCollapsedBackgroundWidth() = getCollapsedBackgroundLtrBounds().right
+
+    private fun getChipWidth(): Int {
+        // TODO(b/292269949): When in fake orientation, the width of the chip remains expanded
+        //  to prevent wrong translation due to chip rotation and anchor.
+        if (!isLayoutNaturalToLauncher) return expandedMenuDefaultWidth
+        return when (status) {
+            AppChipStatus.Expanded -> expandedMenuDefaultWidth
+            AppChipStatus.Collapsed -> getCollapsedBackgroundWidth()
+        }
+    }
 
     private fun cancelInProgressAnimations() {
         // We null the `AnimatorSet` because it holds references to the `Animators` which aren't

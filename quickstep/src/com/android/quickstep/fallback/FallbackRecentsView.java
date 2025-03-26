@@ -23,6 +23,7 @@ import static com.android.quickstep.fallback.RecentsState.DEFAULT;
 import static com.android.quickstep.fallback.RecentsState.MODAL_TASK;
 import static com.android.quickstep.fallback.RecentsState.OVERVIEW_SPLIT_SELECT;
 
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.util.AttributeSet;
@@ -136,17 +137,22 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
             @Nullable AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
             RemoteTargetHandle[] remoteTargetHandles) {
         super.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles);
-        if (mHomeTask != null && endTarget == RECENTS && animatorSet != null) {
-            TaskView tv = getTaskViewByTaskId(mHomeTask.key.id);
-            if (tv != null) {
-                PendingAnimation pa = new PendingAnimation(TASK_DISMISS_DURATION);
-                createTaskDismissAnimation(pa, tv, true, false,
+        if (mHomeTask != null && endTarget == RECENTS) {
+            TaskView homeTaskView = getTaskViewByTaskId(mHomeTask.key.id);
+            if (homeTaskView != null) {
+                PendingAnimation pendingAnimation = new PendingAnimation(TASK_DISMISS_DURATION);
+                createTaskDismissAnimation(pendingAnimation, homeTaskView, true, false,
                         TASK_DISMISS_DURATION, false /* dismissingForSplitSelection*/,
                         false /* isExpressiveDismiss */);
-                pa.addEndListener(e -> setCurrentTask(-1));
-                AnimatorPlaybackController controller = pa.createPlaybackController();
+                pendingAnimation.addEndListener(e -> setCurrentTask(-1));
+                AnimatorPlaybackController controller = pendingAnimation.createPlaybackController();
                 controller.dispatchOnStart();
-                animatorSet.play(controller.getAnimationPlayer());
+                Animator homeDismissAnimator = controller.getAnimationPlayer();
+                if (animatorSet != null) {
+                    animatorSet.play(homeDismissAnimator);
+                } else {
+                    homeDismissAnimator.setDuration(0).start();
+                }
             }
         }
     }

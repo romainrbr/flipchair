@@ -237,7 +237,6 @@ public class BaseDepthController {
     public void setBaseSurfaceOverride(@Nullable SurfaceControl baseSurfaceOverride) {
         this.mBaseSurfaceOverride = baseSurfaceOverride;
         SurfaceControl.Transaction transaction = createTransaction();
-        Log.d(TAG, "setBaseSurfaceOverride: applying blur behind leash " + baseSurfaceOverride);
         updateBlurSurfaceOrder(transaction);
         applyDepthAndBlur(transaction);
     }
@@ -258,14 +257,11 @@ public class BaseDepthController {
                                 .setName("Overview Blur")
                                 .setHidden(false)
                                 .build();
-                        Log.d(TAG,
-                                "setBaseSurface: creating Overview Blur surface " + mBlurSurface);
                     }
                     updateBlurSurfaceParent(transaction);
                     updateBlurSurfaceOrder(transaction);
                 } else {
                     if (mBlurSurface != null) {
-                        Log.d(TAG, "setBaseSurface: removing base surface " + mBlurSurface);
                         transaction.remove(mBlurSurface);
                         mBlurSurface = null;
                     }
@@ -279,10 +275,8 @@ public class BaseDepthController {
     private void updateBlurSurfaceOrder(SurfaceControl.Transaction transaction) {
         SurfaceControl baseSurface = null;
         if (mBaseSurfaceOverride != null && mBaseSurfaceOverride.isValid()) {
-            Log.d(TAG, "updateBlurSurfaceOrder: relayering to leash " + mBaseSurfaceOverride);
             baseSurface = mBaseSurfaceOverride;
         } else if (mBaseSurface != null && mBaseSurface.isValid()) {
-            Log.d(TAG, "updateBlurSurfaceOrder: relayering to base " + mBaseSurface);
             baseSurface = mBaseSurface;
         }
         if (baseSurface != null && mBlurSurface != null) {
@@ -294,8 +288,6 @@ public class BaseDepthController {
     private void updateBlurSurfaceParent(SurfaceControl.Transaction transaction) {
         if (mBlurSurface != null) {
             // Reparent to launcher for full screen blur.
-            Log.d(TAG,
-                    "updateBlurSurfaceParent: reparenting " + mBlurSurface + " to " + mBaseSurface);
             transaction.reparent(mBlurSurface, mBaseSurface);
         }
     }

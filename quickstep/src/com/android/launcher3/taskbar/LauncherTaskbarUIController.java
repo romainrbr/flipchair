@@ -273,8 +273,8 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         }
 
         if (!ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVITY.isTrue()
-                && mControllers.taskbarDesktopModeController
-                    .isInDesktopModeAndNotInOverview(mLauncher.getDisplayId())) {
+                && mControllers.taskbarDesktopModeController.isInDesktopModeAndNotInOverview(
+                mControllers.taskbarActivityContext.getDisplayId())) {
             // TODO: b/333533253 - Remove after flag rollout
             isVisible = false;
         }

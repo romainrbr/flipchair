@@ -30,6 +30,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
+import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.model.ModelUtils.currentScreenContentFilter;
 import static com.android.launcher3.widget.LauncherWidgetHolder.APPWIDGET_HOST_ID;
 
@@ -154,12 +155,13 @@ public class LauncherPreviewRenderer extends BaseContext
 
         private final File mDbDir;
 
-        public PreviewContext(Context base, String gridName, String shapeKey) {
-            this(base, gridName, shapeKey, APPWIDGET_HOST_ID, null);
+        public PreviewContext(Context base, String gridName, String shapeKey,
+                boolean isMonoThemeEnabled) {
+            this(base, gridName, shapeKey, APPWIDGET_HOST_ID, null, isMonoThemeEnabled);
         }
 
         public PreviewContext(Context base, String gridName, String shapeKey,
-                int widgetHostId, @Nullable String layoutXml) {
+                int widgetHostId, @Nullable String layoutXml, boolean isMonoThemeEnabled) {
             super(base);
             String randomUid = UUID.randomUUID().toString();
             mPrefName = "preview-" + randomUid;
@@ -167,6 +169,7 @@ public class LauncherPreviewRenderer extends BaseContext
                     new ProxyPrefs(this, getSharedPreferences(mPrefName, MODE_PRIVATE));
             prefs.put(GRID_NAME, gridName);
             prefs.put(PREF_ICON_SHAPE, shapeKey);
+            prefs.put(THEMED_ICONS, isMonoThemeEnabled);
 
             PreviewAppComponent.Builder builder =
                     DaggerLauncherPreviewRenderer_PreviewAppComponent.builder().bindPrefs(prefs);

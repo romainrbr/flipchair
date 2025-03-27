@@ -81,6 +81,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.RevealOutlineAnimation;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.model.ModelWriter;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.TaskItemInfo;
 import com.android.launcher3.taskbar.bubbles.BubbleBarController;
@@ -410,6 +411,12 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
 
     public MultiPropertyFactory<View> getTaskbarIconAlpha() {
         return mTaskbarIconAlpha;
+    }
+
+    /** Creates a ModelWriter for updating model properties */
+    public ModelWriter getModelWriter() {
+        return LauncherAppState.getInstance(mActivity).getModel()
+                .getWriter(false, mActivity.getCellPosMapper(), mModelCallbacks);
     }
 
     /**

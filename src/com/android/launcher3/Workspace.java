@@ -2916,8 +2916,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         } else {
             // This is for other drag/drop cases, like dragging from All Apps
             mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
-            View view = mLauncher.getItemInflater()
-                    .inflateItem(info, mLauncher.getModelWriter(), cellLayout);
+            View view = mLauncher.getItemInflater().inflateItem(info, cellLayout);
             d.dragInfo = info = (ItemInfo) view.getTag();
 
             // First we find the cell nearest to point at which the item is

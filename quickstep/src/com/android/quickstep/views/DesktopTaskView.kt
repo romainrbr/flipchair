@@ -259,24 +259,28 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     leftMargin = overviewTaskLeft.toInt()
                     topMargin = overviewTaskTop.toInt()
                 }
+            }
 
-                if (
-                    enableDesktopRecentsTransitionsCornersBugfix() && enableRefactorTaskThumbnail()
-                ) {
-                    taskContainer.thumbnailView.outlineBounds =
-                        if (intersects(overviewTaskBounds, screenRect))
-                            Rect(overviewTaskBounds).apply {
-                                intersectUnchecked(screenRect)
-                                // Offset to 0,0 to transform into TaskThumbnailView's coordinate
-                                // system.
-                                offset(-overviewTaskBounds.left, -overviewTaskBounds.top)
-                                left = (left * scaleWidth).roundToInt()
-                                top = (top * scaleHeight).roundToInt()
-                                right = (right * scaleWidth).roundToInt()
-                                bottom = (bottom * scaleHeight).roundToInt()
-                            }
-                        else null
-                }
+            if (enableDesktopRecentsTransitionsCornersBugfix() && enableRefactorTaskThumbnail()) {
+                // When exploded view is disabled, these scale factors will be 1.0. This secondary
+                // scale factor is needed because a scale transform is applied to the thumbnail.
+                val thumbnailScaleWidth =
+                    overviewTaskBounds.width().toFloat() / currentTaskBounds.width()
+                val thumbnailScaleHeight =
+                    overviewTaskBounds.height().toFloat() / currentTaskBounds.height()
+                taskContainer.thumbnailView.outlineBounds =
+                    if (intersects(currentTaskBounds, screenRect))
+                        Rect(currentTaskBounds).apply {
+                            intersectUnchecked(screenRect)
+                            // Offset to 0,0 to transform into TaskThumbnailView's coordinate
+                            // system.
+                            offset(-currentTaskBounds.left, -currentTaskBounds.top)
+                            left = (left * scaleWidth * thumbnailScaleWidth).roundToInt()
+                            top = (top * scaleHeight * thumbnailScaleHeight).roundToInt()
+                            right = (right * scaleWidth * thumbnailScaleWidth).roundToInt()
+                            bottom = (bottom * scaleHeight * thumbnailScaleHeight).roundToInt()
+                        }
+                    else null
             }
 
             val currentTaskLeft = currentTaskBounds.left * scaleWidth

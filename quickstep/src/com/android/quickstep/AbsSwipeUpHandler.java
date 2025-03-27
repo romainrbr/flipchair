@@ -961,7 +961,21 @@ public abstract class AbsSwipeUpHandler<
     public void onRecentsAnimationStart(RecentsAnimationController controller,
             RecentsAnimationTargets targets, @Nullable TransitionInfo transitionInfo) {
         super.onRecentsAnimationStart(controller, targets, transitionInfo);
-        if (targets.hasDesktopTasks(mContext)) {
+        boolean forDesktop;
+        if (DesktopModeStatus.enableMultipleDesktops(mContext)) {
+            GroupedTaskInfo groupedTaskInfo;
+            if (mGestureState.getRunningTask() != null
+                    && (groupedTaskInfo =
+                    mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
+                            /* splitTaskIds = */ null)) != null) {
+                forDesktop = groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK);
+            } else {
+                forDesktop = false;
+            }
+        } else {
+            forDesktop = targets.hasDesktopTasks(mContext);
+        }
+        if (forDesktop) {
             mRemoteTargetHandles = mTargetGluer.assignTargetsForDesktop(targets, transitionInfo);
         } else {
             int untrimmedAppCount = mRemoteTargetHandles.length;

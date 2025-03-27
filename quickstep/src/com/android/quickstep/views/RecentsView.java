@@ -1912,6 +1912,14 @@ public abstract class RecentsView<
     }
 
     protected void applyLoadPlan(List<GroupTask> taskGroups) {
+        if (enableRefactorTaskThumbnail() && !(isAttachedToWindow()
+                && RecentsDependencies.Companion.hasScope(mContext))) {
+            // This can happen if a TaskView callback is triggered after the view is destroyed
+            // (b/404920951). Prevent crashes by returning immediately.
+            Log.d(TAG, "applyLoadPlan - view invalid, isAttachedToWindow: " + isAttachedToWindow()
+                    + ", hasScope: " + RecentsDependencies.Companion.hasScope(mContext));
+            return;
+        }
         if (mPendingAnimation != null) {
             final List<GroupTask> finalTaskGroups = taskGroups;
             mPendingAnimation.addEndListener(success -> applyLoadPlan(finalTaskGroups));

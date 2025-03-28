@@ -33,7 +33,6 @@ import static com.android.launcher3.widget.LauncherWidgetHolder.APPWIDGET_HOST_I
 
 import android.app.WallpaperColors;
 import android.appwidget.AppWidgetHost;
-import android.appwidget.AppWidgetProviderInfo;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -72,14 +71,11 @@ import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.LoaderTask;
 import com.android.launcher3.model.ModelDbController;
 import com.android.launcher3.model.UserManagerState;
-import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.widget.LocalColorExtractor;
 import com.android.systemui.shared.Flags;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /** Render preview using surface view. */
@@ -122,6 +118,8 @@ public class PreviewSurfaceRenderer {
     private final WallpaperColors mWallpaperColors;
     private final RunnableList mLifeCycleTracker;
     private final SurfaceControlViewHost mSurfaceControlViewHost;
+
+    private LauncherPreviewRenderer mCurrentRenderer;
 
     public PreviewSurfaceRenderer(Context context, RunnableList lifecycleTracker, Bundle bundle,
             int callingPid) throws Exception {
@@ -174,8 +172,16 @@ public class PreviewSurfaceRenderer {
         return mSurfaceControlViewHost.getSurfacePackage();
     }
 
+    private void setCurrentRenderer(LauncherPreviewRenderer renderer) {
+        if (mCurrentRenderer != null) {
+            mCurrentRenderer.onViewDestroyed();
+        }
+        mCurrentRenderer = renderer;
+    }
+
     private void destroy() {
         mDestroyed = true;
+        setCurrentRenderer(null);
     }
 
     /**
@@ -396,20 +402,17 @@ public class PreviewSurfaceRenderer {
             String query = deviceProfile.isTwoPanels
                     ? selectionForWorkspaceScreen(FIRST_SCREEN_ID, SECOND_SCREEN_ID)
                     : selectionForWorkspaceScreen(FIRST_SCREEN_ID);
-            Map<ComponentKey, AppWidgetProviderInfo> widgetProviderInfoMap = new HashMap<>();
-            task.loadWorkspaceForPreview(query, widgetProviderInfoMap);
+            task.loadWorkspaceForPreview(query);
             final SparseArray<Size> spanInfo = getLoadedLauncherWidgetInfo();
             MAIN_EXECUTOR.execute(() -> {
-                renderView(previewContext, appComponent.getDataModel(), widgetHostId,
-                        widgetProviderInfoMap, spanInfo, idp);
+                renderView(previewContext, appComponent.getDataModel(), spanInfo, idp);
                 mLifeCycleTracker.add(previewContext::onDestroy);
             });
         } else {
             LauncherAppState.getInstance(inflationContext).getModel().loadAsync(dataModel -> {
                 if (dataModel != null) {
                     MAIN_EXECUTOR.execute(() -> renderView(inflationContext, dataModel,
-                            APPWIDGET_HOST_ID, null, null,
-                            LauncherAppState.getIDP(inflationContext)));
+                            null, LauncherAppState.getIDP(inflationContext)));
                 } else {
                     Log.e(TAG, "Model loading failed");
                 }
@@ -418,22 +421,24 @@ public class PreviewSurfaceRenderer {
     }
 
     @UiThread
-    private void renderView(Context inflationContext, BgDataModel dataModel, int widgetHostId,
-            Map<ComponentKey, AppWidgetProviderInfo> widgetProviderInfoMap,
+    private void renderView(Context inflationContext, BgDataModel dataModel,
             @Nullable final SparseArray<Size> launcherWidgetSpanInfo, InvariantDeviceProfile idp) {
         if (mDestroyed) {
             return;
         }
         LauncherPreviewRenderer renderer;
         if (Flags.newCustomizationPickerUi()) {
-            renderer = new LauncherPreviewRenderer(inflationContext, idp, widgetHostId,
+            renderer = new LauncherPreviewRenderer(inflationContext, idp,
                     mPreviewColorOverride, mWallpaperColors, launcherWidgetSpanInfo);
         } else {
-            renderer = new LauncherPreviewRenderer(inflationContext, idp, widgetHostId,
+            renderer = new LauncherPreviewRenderer(inflationContext, idp,
                     mWallpaperColors, launcherWidgetSpanInfo);
         }
         renderer.hideBottomRow(mHideQsb);
-        View view = renderer.getRenderedView(dataModel, widgetProviderInfoMap);
+        renderer.populate(dataModel);
+
+        View view = renderer.getRootView();
+        setCurrentRenderer(renderer);
 
         view.setPivotX(0);
         view.setPivotY(0);

@@ -147,8 +147,11 @@ constructor(
 
     override fun getDrawable(): Drawable? = iconView?.drawable
 
+    private var currentIconDrawableHash: Int = 0
     override fun setDrawable(icon: Drawable?) {
+        if (icon.hashCode() == currentIconDrawableHash) return
         iconView?.drawable = icon
+        currentIconDrawableHash = icon.hashCode()
     }
 
     override fun setDrawableSize(iconWidth: Int, iconHeight: Int) {
@@ -498,6 +501,7 @@ constructor(
     fun reset() {
         setText(null)
         setDrawable(null)
+        currentIconDrawableHash = 0
     }
 
     override fun asView(): View = this

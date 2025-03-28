@@ -23,7 +23,6 @@ import static com.android.quickstep.fallback.RecentsState.DEFAULT;
 import static com.android.quickstep.fallback.RecentsState.MODAL_TASK;
 import static com.android.quickstep.fallback.RecentsState.OVERVIEW_SPLIT_SELECT;
 
-import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.util.AttributeSet;
@@ -134,9 +133,10 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
      */
     @Override
     public void onPrepareGestureEndAnimation(
-            @Nullable AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
-            RemoteTargetHandle[] remoteTargetHandles) {
-        super.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles);
+            AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
+            RemoteTargetHandle[] remoteTargetHandles, boolean isHandlingAtomicEvent) {
+        super.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles,
+                isHandlingAtomicEvent);
         if (mHomeTask != null && endTarget == RECENTS) {
             TaskView homeTaskView = getTaskViewByTaskId(mHomeTask.key.id);
             if (homeTaskView != null) {
@@ -147,12 +147,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
                 pendingAnimation.addEndListener(e -> setCurrentTask(-1));
                 AnimatorPlaybackController controller = pendingAnimation.createPlaybackController();
                 controller.dispatchOnStart();
-                Animator homeDismissAnimator = controller.getAnimationPlayer();
-                if (animatorSet != null) {
-                    animatorSet.play(homeDismissAnimator);
-                } else {
-                    homeDismissAnimator.setDuration(0).start();
-                }
+                animatorSet.play(controller.getAnimationPlayer());
             }
         }
     }

@@ -25,6 +25,7 @@ import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID;
 import static com.android.launcher3.WorkspaceLayoutManager.SECOND_SCREEN_ID;
 import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
+import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.provider.LauncherDbUtils.selectionForWorkspaceScreen;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
@@ -103,6 +104,7 @@ public class PreviewSurfaceRenderer {
     private String mGridName;
     private String mShapeKey;
     private String mLayoutXml;
+    private boolean mIsMonoThemeEnabled;
 
     @Nullable private Boolean mDarkMode;
     private boolean mDestroyed = false;
@@ -132,6 +134,7 @@ public class PreviewSurfaceRenderer {
             mGridName = LauncherPrefs.get(context).get(GRID_NAME);
         }
         mShapeKey = LauncherPrefs.get(context).get(PREF_ICON_SHAPE);
+        mIsMonoThemeEnabled = LauncherPrefs.get(context).get(THEMED_ICONS);
         mWallpaperColors = bundle.getParcelable(KEY_COLORS);
         if (Flags.newCustomizationPickerUi()) {
             updateColorOverrides(bundle);
@@ -249,6 +252,19 @@ public class PreviewSurfaceRenderer {
     }
 
     /**
+     * Update whether to enable monochrome themed icon
+     *
+     * @param isMonoThemeEnabled True if enabling mono themed icons
+     */
+    public void updateTheme(boolean isMonoThemeEnabled) {
+        if (mIsMonoThemeEnabled == isMonoThemeEnabled) {
+            return;
+        }
+        mIsMonoThemeEnabled = isMonoThemeEnabled;
+        loadAsync();
+    }
+
+    /**
      * Hides the components in the bottom row.
      *
      * @param hide True to hide and false to show.
@@ -347,6 +363,7 @@ public class PreviewSurfaceRenderer {
         final Context inflationContext = getPreviewContext();
         if (!mGridName.equals(LauncherPrefs.INSTANCE.get(mContext).get(GRID_NAME))
                 || !mShapeKey.equals(LauncherPrefs.INSTANCE.get(mContext).get(PREF_ICON_SHAPE))
+                || mIsMonoThemeEnabled != LauncherPrefs.INSTANCE.get(mContext).get(THEMED_ICONS)
                 || !TextUtils.isEmpty(mLayoutXml)) {
 
             boolean isCustomLayout = extendibleThemeManager() &&  !TextUtils.isEmpty(mLayoutXml);
@@ -354,7 +371,8 @@ public class PreviewSurfaceRenderer {
 
             // Start the migration
             PreviewContext previewContext = new PreviewContext(
-                    inflationContext, mGridName, mShapeKey, widgetHostId, mLayoutXml);
+                    inflationContext, mGridName, mShapeKey, widgetHostId, mLayoutXml,
+                    mIsMonoThemeEnabled);
             PreviewAppComponent appComponent =
                     (PreviewAppComponent) LauncherComponentProvider.get(previewContext);
 

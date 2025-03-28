@@ -463,6 +463,20 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         super.showAllAppsFromIntent(alreadyOnHome);
     }
 
+    @Override
+    public boolean isBackgroundBlurEnabled() {
+        return mDepthController != null && mDepthController.areBlursEnabled();
+    }
+
+    @Override
+    public void updateBlurStyle() {
+        if (!Flags.allAppsBlur()) {
+            return;
+        }
+        getTheme().applyStyle(getBlurStyleResId(), true);
+        getAppsView().onThemeChanged();
+    }
+
     protected void onItemClicked(View view) {
         if (!mSplitToWorkspaceController.handleSecondAppSelectionForSplit(view)) {
             super.getItemOnClickListener().onClick(view);

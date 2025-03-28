@@ -418,6 +418,7 @@ constructor(
             )
             animator!!.duration = MENU_BACKGROUND_HIDE_DURATION.toLong()
             status = AppChipStatus.Collapsed
+            sendToBack()
         }
 
         if (!animated) animator!!.duration = 0
@@ -504,6 +505,24 @@ constructor(
         }
     }
 
+    override fun bringToFront() {
+        super.bringToFront()
+        z += Z_INDEX_FRONT
+        updateParentZIndex(Z_INDEX_FRONT)
+    }
+
+    private fun sendToBack() {
+        z -= Z_INDEX_FRONT
+        updateParentZIndex(-Z_INDEX_FRONT)
+    }
+
+    private fun updateParentZIndex(zIndex: Float) {
+        val parentView = parent as? TaskView
+        if (parentView?.isOnGridBottomRow == true) {
+            parentView.z += zIndex
+        }
+    }
+
     override fun focusSearch(direction: Int): View? {
         if (mParent == null) return null
         return when (direction) {
@@ -532,6 +551,8 @@ constructor(
 
         private const val MENU_BACKGROUND_REVEAL_DURATION = 417
         private const val MENU_BACKGROUND_HIDE_DURATION = 333
+
+        private const val Z_INDEX_FRONT = 10f
 
         private const val NUM_ALPHA_CHANNELS = 4
         private const val INDEX_CONTENT_ALPHA = 0

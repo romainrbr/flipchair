@@ -4812,6 +4812,8 @@ public abstract class RecentsView<
         if (alpha == mContentAlpha) {
             return;
         }
+
+        traceBegin(Trace.TRACE_TAG_APP, "RecentsView.setContentAlpha");
         alpha = Utilities.boundToRange(alpha, 0, 1);
         mContentAlpha = alpha;
 
@@ -4833,6 +4835,7 @@ public abstract class RecentsView<
         } else if (!mFreezeViewVisibility) {
             setVisibility(INVISIBLE);
         }
+        traceEnd(Trace.TRACE_TAG_APP);
     }
 
     /**

@@ -303,11 +303,6 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         }
     }
 
-    override fun onActiveDeskChanged(displayId: Int, newActiveDesk: Int, oldActiveDesk: Int) {
-        // TODO: b/400870600 - We may need to add code here to special case when an empty desk gets
-        // activated, since `RemoteDesktopLaunchTransitionRunner` doesn't always get triggered.
-    }
-
     /**
      * Gets the list of accessibility children. Currently all the children of RecentsViews are
      * added, and in the reverse order to the list.

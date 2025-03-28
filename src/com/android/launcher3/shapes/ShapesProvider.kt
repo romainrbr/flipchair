@@ -64,14 +64,12 @@ object ShapesProvider {
                     title = "4 sided cookie",
                     pathString = FOUR_SIDED_COOKIE_PATH,
                     folderPathString = FOLDER_COMPLEX_CLOVER_PATH,
-                    iconScale = 72f / 83.4f,
                 ),
                 IconShapeModel(
                     key = SEVEN_SIDED_COOKIE_KEY,
                     title = "7 sided cookie",
                     pathString = SEVEN_SIDED_COOKIE_PATH,
                     folderPathString = FOLDER_CLOVER_PATH,
-                    iconScale = 72f / 80f,
                 ),
                 IconShapeModel(
                     key = ARCH_KEY,

@@ -21,5 +21,4 @@ data class IconShapeModel(
     val title: String,
     val pathString: String,
     val folderPathString: String = pathString,
-    val iconScale: Float = 1f,
 )

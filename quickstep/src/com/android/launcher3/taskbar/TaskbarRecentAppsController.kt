@@ -330,7 +330,14 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
                 shownTasks
                     .filter {
                         it is SingleTask &&
-                            it.task.key.id in deduplicatedDesktopTasks.map { it.task.key.id }
+                            it.task.key.id in deduplicatedDesktopTasks.map { it.task.key.id } &&
+                            (!Flags.enablePinningAppWithContextMenu() ||
+                                shownHotseatItems.none { hotseatItem ->
+                                    it.containsPackage(
+                                        hotseatItem.targetPackage,
+                                        hotseatItem.user.identifier,
+                                    )
+                                })
                     }
                     .toMutableList()
                     .apply {

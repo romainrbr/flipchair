@@ -889,8 +889,8 @@ public abstract class RecentsView<
 
         // Start Recents Dependency graph
         if (enableRefactorTaskThumbnail()) {
-            RecentsDependencies recentsDependencies = RecentsDependencies.Companion.maybeInitialize(
-                    context, ProductionDispatchers.INSTANCE);
+            RecentsDependencies recentsDependencies =
+                    RecentsDependencies.maybeInitialize(context, ProductionDispatchers.INSTANCE);
             String scopeId = recentsDependencies.createRecentsViewScope(context);
             mRecentsViewModel = new RecentsViewModel(
                     recentsDependencies.inject(RecentTasksRepository.class, scopeId),

@@ -110,7 +110,7 @@ public class BaseDepthController {
 
     public BaseDepthController(Launcher activity) {
         mLauncher = activity;
-        if (Flags.allAppsBlur()) {
+        if (Flags.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
             mMaxBlurRadius = activity.getResources().getDimensionPixelSize(
                     R.dimen.max_depth_blur_radius_enhanced);
         } else {

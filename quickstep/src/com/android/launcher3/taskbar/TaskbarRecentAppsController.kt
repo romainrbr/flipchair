@@ -31,6 +31,7 @@ import com.android.quickstep.RecentsModel
 import com.android.quickstep.util.DesktopTask
 import com.android.quickstep.util.GroupTask
 import com.android.quickstep.util.SingleTask
+import com.android.window.flags.Flags.enablePinningAppWithContextMenu
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus
 import java.io.PrintWriter
 
@@ -331,7 +332,7 @@ class TaskbarRecentAppsController(context: Context, private val recentsModel: Re
                     .filter {
                         it is SingleTask &&
                             it.task.key.id in deduplicatedDesktopTasks.map { it.task.key.id } &&
-                            (!Flags.enablePinningAppWithContextMenu() ||
+                            (!enablePinningAppWithContextMenu() ||
                                 shownHotseatItems.none { hotseatItem ->
                                     it.containsPackage(
                                         hotseatItem.targetPackage,

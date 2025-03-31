@@ -426,7 +426,7 @@ constructor(
         }
 
     // The following grid translations scales with mGridProgress.
-    protected var gridTranslationX = 0f
+    var gridTranslationX = 0f
         set(value) {
             field = value
             applyTranslationX()
@@ -447,7 +447,7 @@ constructor(
 
     // Applied as a complement to gridTranslation, for adjusting the carousel overview and quick
     // switch.
-    protected var nonGridTranslationX = 0f
+    var nonGridTranslationX = 0f
         set(value) {
             field = value
             applyTranslationX()

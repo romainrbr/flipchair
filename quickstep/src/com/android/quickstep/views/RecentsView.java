@@ -2970,87 +2970,10 @@ public abstract class RecentsView<
      * Called when a gesture from an app has finished, and an end target has been determined.
      */
     public void onPrepareGestureEndAnimation(
-            @Nullable AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
-            RemoteTargetHandle[] remoteTargetHandles) {
-        Log.d(TAG, "onPrepareGestureEndAnimation - endTarget: " + endTarget);
-        mCurrentGestureEndTarget = endTarget;
-        boolean isOverviewEndTarget = endTarget == GestureState.GestureEndTarget.RECENTS;
-        if (isOverviewEndTarget) {
-            updateGridProperties();
-        }
-
-        BaseState<?> endState = mSizeStrategy.stateFromGestureEndTarget(endTarget);
-        // Starting the desk exploded animation when the gesture from an app is released.
-        if (enableDesktopExplodedView()) {
-            if (animatorSet == null) {
-                mUtils.setDeskExplodeProgress(endState.showExplodedDesktopView() ? 1f : 0f);
-            } else {
-                animatorSet.play(
-                        ObjectAnimator.ofFloat(this, DESK_EXPLODE_PROGRESS,
-                                endState.showExplodedDesktopView() ? 1f : 0f));
-            }
-
-            for (TaskView taskView : getTaskViews()) {
-                if (taskView instanceof DesktopTaskView desktopTaskView) {
-                    desktopTaskView.setRemoteTargetHandles(remoteTargetHandles);
-                }
-            }
-        }
-
-        if (endState.displayOverviewTasksAsGrid(mContainer.getDeviceProfile())) {
-            TaskView runningTaskView = getRunningTaskView();
-            float runningTaskGridTranslationX = 0;
-            float runningTaskGridTranslationY = 0;
-            if (runningTaskView != null) {
-                // Apply the grid translation to running task unless it's being snapped to
-                // and removes the current translation applied to the running task.
-                runningTaskGridTranslationX = runningTaskView.getGridTranslationX()
-                        - runningTaskView.getNonGridTranslationX();
-                runningTaskGridTranslationY = runningTaskView.getGridTranslationY();
-            }
-            for (RemoteTargetHandle remoteTargetHandle : remoteTargetHandles) {
-                TaskViewSimulator tvs = remoteTargetHandle.getTaskViewSimulator();
-                if (animatorSet == null) {
-                    setGridProgress(1);
-                    if (enableGridOnlyOverview()) {
-                        tvs.taskGridTranslationX.value = runningTaskGridTranslationX;
-                        tvs.taskGridTranslationY.value = runningTaskGridTranslationY;
-                    } else {
-                        tvs.taskPrimaryTranslation.value = runningTaskGridTranslationX;
-                        tvs.taskSecondaryTranslation.value = runningTaskGridTranslationY;
-                    }
-                } else {
-                    animatorSet.play(ObjectAnimator.ofFloat(this, RECENTS_GRID_PROGRESS, 1));
-                    if (enableGridOnlyOverview()) {
-                        animatorSet.play(tvs.carouselScale.animateToValue(1));
-                        animatorSet.play(tvs.taskGridTranslationX.animateToValue(
-                                runningTaskGridTranslationX));
-                        animatorSet.play(tvs.taskGridTranslationY.animateToValue(
-                                runningTaskGridTranslationY));
-                    } else {
-                        animatorSet.play(tvs.taskPrimaryTranslation.animateToValue(
-                                runningTaskGridTranslationX));
-                        animatorSet.play(tvs.taskSecondaryTranslation.animateToValue(
-                                runningTaskGridTranslationY));
-                    }
-                }
-            }
-        }
-        int splashAlpha = endState.showTaskThumbnailSplash() ? 1 : 0;
-        if (animatorSet == null) {
-            setTaskThumbnailSplashAlpha(splashAlpha);
-        } else {
-            animatorSet.play(
-                    ObjectAnimator.ofFloat(this, TASK_THUMBNAIL_SPLASH_ALPHA, splashAlpha));
-        }
-        if (enableLargeDesktopWindowingTile()) {
-            if (animatorSet != null) {
-                animatorSet.play(
-                        ObjectAnimator.ofFloat(this, DESKTOP_CAROUSEL_DETACH_PROGRESS, 0f));
-            } else {
-                DESKTOP_CAROUSEL_DETACH_PROGRESS.set(this, 0f);
-            }
-        }
+            AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
+            RemoteTargetHandle[] remoteTargetHandles, boolean isHandlingAtomicEvent) {
+        mUtils.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles,
+                isHandlingAtomicEvent);
     }
 
     /**
@@ -3299,7 +3222,7 @@ public abstract class RecentsView<
      *
      * Skips rebalance.
      */
-    private void updateGridProperties() {
+    protected void updateGridProperties() {
         updateGridProperties(null);
     }
 
@@ -4707,7 +4630,7 @@ public abstract class RecentsView<
 
     /** Dismisses the entire [taskView]. */
     public void dismissTaskView(TaskView taskView, boolean animateTaskView, boolean removeTask) {
-        if (enableExpressiveDismissTaskMotion()) {
+        if (enableExpressiveDismissTaskMotion() && (!showAsGrid() || enableGridOnlyOverview())) {
             mDismissUtils.createTaskDismissSettlingSpringAnimation(taskView);
         } else {
             PendingAnimation pa = new PendingAnimation(DISMISS_TASK_DURATION);
@@ -4813,6 +4736,8 @@ public abstract class RecentsView<
         if (alpha == mContentAlpha) {
             return;
         }
+
+        traceBegin(Trace.TRACE_TAG_APP, "RecentsView.setContentAlpha");
         alpha = Utilities.boundToRange(alpha, 0, 1);
         mContentAlpha = alpha;
 
@@ -4834,6 +4759,7 @@ public abstract class RecentsView<
         } else if (!mFreezeViewVisibility) {
             setVisibility(INVISIBLE);
         }
+        traceEnd(Trace.TRACE_TAG_APP);
     }
 
     /**

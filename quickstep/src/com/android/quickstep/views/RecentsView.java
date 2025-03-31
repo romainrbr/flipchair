@@ -4630,7 +4630,7 @@ public abstract class RecentsView<
 
     /** Dismisses the entire [taskView]. */
     public void dismissTaskView(TaskView taskView, boolean animateTaskView, boolean removeTask) {
-        if (enableExpressiveDismissTaskMotion()) {
+        if (enableExpressiveDismissTaskMotion() && (!showAsGrid() || enableGridOnlyOverview())) {
             mDismissUtils.createTaskDismissSettlingSpringAnimation(taskView);
         } else {
             PendingAnimation pa = new PendingAnimation(DISMISS_TASK_DURATION);

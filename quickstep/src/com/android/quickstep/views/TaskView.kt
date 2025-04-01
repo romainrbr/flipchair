@@ -536,7 +536,18 @@ constructor(
     private var settledProgressDismiss by
         MultiPropertyDelegate(settledProgressPropertyFactory, SettledProgress.Dismiss)
 
-    private var viewModel: TaskViewModel? = null
+    private val viewModel =
+        if (enableRefactorTaskThumbnail()) {
+            TaskViewModel(
+                taskViewType = type,
+                recentsViewData = RecentsDependencies.get(context),
+                getTaskUseCase = RecentsDependencies.get(context),
+                getSysUiStatusNavFlagsUseCase = RecentsDependencies.get(context),
+                isThumbnailValidUseCase = RecentsDependencies.get(context),
+                getThumbnailPositionUseCase = RecentsDependencies.get(context),
+                dispatcherProvider = RecentsDependencies.get(context),
+            )
+        } else null
     private val dispatcherProvider: DispatcherProvider by RecentsDependencies.inject()
     private val coroutineScope: CoroutineScope by RecentsDependencies.inject()
     private val coroutineJobs = mutableListOf<Job>()
@@ -682,7 +693,8 @@ constructor(
     override fun onRecycle() {
         resetPersistentViewTransforms()
 
-        viewModel = null
+        // Bind ViewModel to no taskIds
+        viewModel?.bind()
         attachAlpha = 1f
         splitAlpha = 1f
         splitSplashAlpha = 0f
@@ -793,9 +805,9 @@ constructor(
         traceSection("TaskView.onAttachedToWindow") {
             super.onAttachedToWindow()
             if (enableRefactorTaskThumbnail()) {
-                // The TaskView lifecycle is starts the ViewModel during onBind, and cleans it in
-                // onRecycle. So it should be initialized at this point. TaskView Lifecycle:
-                // `bind` -> `onBind` ->  onAttachedToWindow() -> onDetachFromWindow -> onRecycle
+                // TaskView binds the ViewModel during onBind, and unbinds it in onRecycle. So it
+                // should start listening here.
+                // TV Lifecycle: onBind -> onAttachedToWindow -> onDetachFromWindow -> onRecycle
                 coroutineJobs +=
                     coroutineScope.launch(dispatcherProvider.main) {
                         viewModel!!.state.collectLatest(::updateTaskViewState)
@@ -842,10 +854,7 @@ constructor(
                 container.setOverlayEnabled(state.taskOverlayEnabled, thumbnailPosition)
                 if (state.isCentralTask) {
                     this.container.actionsView.let {
-                        it.updateDisabledFlags(
-                            DISABLED_ROTATED,
-                            thumbnailPosition?.isRotated ?: false,
-                        )
+                        it.updateDisabledFlags(DISABLED_ROTATED, thumbnailPosition.isRotated)
                         it.updateDisabledFlags(
                             DISABLED_NO_THUMBNAIL,
                             state.tasks.any { taskData ->
@@ -870,11 +879,11 @@ constructor(
 
     private fun updateThumbnailValidity(container: TaskContainer) {
         container.isThumbnailValid =
-            viewModel?.isThumbnailValid(
+            viewModel!!.isThumbnailValid(
                 thumbnail = container.thumbnailData,
                 width = container.thumbnailView.width,
                 height = container.thumbnailView.height,
-            ) ?: return
+            )
         applyThumbnailSplashAlpha()
     }
 
@@ -893,11 +902,15 @@ constructor(
         container: TaskContainer,
         width: Int,
         height: Int,
-    ): ThumbnailPosition? =
+    ): ThumbnailPosition =
         traceSection("TaskView.updateThumbnailMatrix") {
             val thumbnailPosition =
-                viewModel?.getThumbnailPosition(container.thumbnailData, width, height, isLayoutRtl)
-                    ?: return null
+                viewModel!!.getThumbnailPosition(
+                    container.thumbnailData,
+                    width,
+                    height,
+                    isLayoutRtl,
+                )
             container.updateThumbnailMatrix(thumbnailPosition.matrix)
             return thumbnailPosition
         }
@@ -950,21 +963,10 @@ constructor(
 
     protected open fun onBind(orientedState: RecentsOrientedState) =
         traceSection("TaskView.onBind") {
-            traceSection("TaskView.onBind.createViewModel") {
+            traceSection("TaskView.onBind.bindViewModel") {
                 if (enableRefactorTaskThumbnail()) {
-                    val scopeId = context
-                    Log.d(TAG, "onBind $scopeId ${orientedState.containerInterface}")
-                    viewModel =
-                        TaskViewModel(
-                                taskViewType = type,
-                                recentsViewData = RecentsDependencies.get(scopeId),
-                                getTaskUseCase = RecentsDependencies.get(scopeId),
-                                getSysUiStatusNavFlagsUseCase = RecentsDependencies.get(scopeId),
-                                isThumbnailValidUseCase = RecentsDependencies.get(scopeId),
-                                getThumbnailPositionUseCase = RecentsDependencies.get(scopeId),
-                                dispatcherProvider = RecentsDependencies.get(scopeId),
-                            )
-                            .apply { bind(*taskIds) }
+                    Log.d(TAG, "onBind $context ${orientedState.containerInterface}")
+                    viewModel!!.bind(*taskIds)
                 }
             }
 

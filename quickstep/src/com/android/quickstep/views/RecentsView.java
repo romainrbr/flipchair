@@ -757,6 +757,7 @@ public abstract class RecentsView<
     /**
      * Placeholder view indicating where the first split screen selected app will be placed
      */
+    @Nullable
     protected SplitSelectStateController mSplitSelectStateController;
 
     /**
@@ -1220,7 +1221,8 @@ public abstract class RecentsView<
     }
 
     public boolean isSplitSelectionActive() {
-        return mSplitSelectStateController.isSplitSelectActive();
+        return mSplitSelectStateController != null
+                && mSplitSelectStateController.isSplitSelectActive();
     }
 
     /**
@@ -4302,12 +4304,14 @@ public abstract class RecentsView<
                     mTopRowIdSet.remove(dismissedTaskViewId);
 
                     if (taskCount == 1) {
-                        removeViewInLayout(mClearAllButton);
-                        removeViewInLayout(mAddDesktopButton);
-                        if (isHomeTaskDismissed) {
-                            updateEmptyMessage();
-                        } else if (!mSplitSelectStateController.isSplitSelectActive()) {
-                            startHome();
+                        if (!isSplitSelectionActive()) {
+                            removeViewInLayout(mClearAllButton);
+                            removeViewInLayout(mAddDesktopButton);
+                            if (isHomeTaskDismissed) {
+                                updateEmptyMessage();
+                            } else {
+                                startHome();
+                            }
                         }
                     } else {
                         // Update focus task and its size.
@@ -4957,7 +4961,7 @@ public abstract class RecentsView<
     }
 
     public void updateEmptyMessage() {
-        boolean isEmpty = !hasTaskViews();
+        boolean isEmpty = !hasTaskViews() && !isSplitSelectionActive();
         boolean hasSizeChanged = mLastMeasureSize.x != getWidth()
                 || mLastMeasureSize.y != getHeight();
         if (isEmpty == mShowEmptyMessage && !hasSizeChanged) {

@@ -179,20 +179,20 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     }
 
     @Override
-    protected boolean shouldAddStubTaskView(GroupedTaskInfo groupedTaskInfo) {
+    protected boolean shouldAvoidAddingStubTaskView(GroupedTaskInfo groupedTaskInfo) {
         if (!groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_FULLSCREEN)) {
             // can't be in split screen w/ home task
-            return super.shouldAddStubTaskView(groupedTaskInfo);
+            return super.shouldAvoidAddingStubTaskView(groupedTaskInfo);
         }
 
         if (mHomeTask != null && groupedTaskInfo.containsTask(mHomeTask.key.id) && !hasTaskViews()
                 && mLoadPlanEverApplied) {
             // Do not add a stub task if we are running over home with empty recents, so that we
             // show the empty recents message instead of showing a stub task and later removing it.
-            // Ignore empty task signal if applyLoadPlan has never run.
-            return false;
+            // Ignore empty task signal if [applyLoadPlan] has never run.
+            return true;
         }
-        return super.shouldAddStubTaskView(groupedTaskInfo);
+        return super.shouldAvoidAddingStubTaskView(groupedTaskInfo);
     }
 
     @Override

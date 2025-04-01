@@ -207,6 +207,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     private static final String WINDOW_TITLE = "Taskbar";
 
+    public static final String SIMPLE_VIEW_SETTINGS_KEY = "matcha_enable";
+
     protected static final DesktopModeFlag ENABLE_TASKBAR_BEHIND_SHADE = new DesktopModeFlag(
             Flags::enableTaskbarBehindShade, false);
 
@@ -2015,6 +2017,18 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     public boolean isUserSetupComplete() {
         return mIsUserSetupComplete;
+    }
+
+    /**
+     * Checks if the simple view mode is enabled.
+     *
+     * Since Simple View puts the device in 3 button nav mode, we use that as a precursor to
+     * checking the actual value in Settings to avoid extra calls to Settings.
+     */
+    public boolean isSimpleViewEnabled() {
+        return isThreeButtonNav()
+                && Settings.Secure.getInt(getContentResolver(), SIMPLE_VIEW_SETTINGS_KEY, 0)
+                > 0;
     }
 
     public boolean isNavBarKidsModeActive() {

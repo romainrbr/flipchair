@@ -109,9 +109,9 @@ class TaskbarInsetsController(val context: TaskbarActivityContext) : LoggableTas
             val taskbarStashController = controllers.taskbarStashController
             val tappableHeight = taskbarStashController.tappableHeightToReportToApps
             // We only report tappableElement height for unstashed, persistent taskbar,
-            // which is also when we draw the rounded corners above taskbar.
+            // which is also when we draw the rounded corners above taskbar on tablets.
             val insetsRoundedCornerFlag =
-                if (tappableHeight > 0) {
+                if (tappableHeight > 0 && context.drawsTaskbarBackground()) {
                     FLAG_INSETS_ROUNDED_CORNER
                 } else {
                     0

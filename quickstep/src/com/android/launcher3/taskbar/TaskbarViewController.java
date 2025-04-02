@@ -571,7 +571,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
             sizeDiffTranslationRange *= -1;
         }
 
-        if (mActivity.isThreeButtonNav()) {
+        if (!mTaskbarView.canTransitionToTransientTaskbar()) {
             mTaskbarView.getAllAppsButtonContainer()
                     .setTranslationXForTaskbarAllAppsIcon(allAppIconTranslateRange);
             return;

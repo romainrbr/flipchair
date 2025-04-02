@@ -33,7 +33,6 @@ import android.util.Log
 import android.view.Display
 import android.view.MotionEvent
 import android.view.View
-import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.accessibility.AccessibilityNodeInfo
@@ -1163,7 +1162,10 @@ constructor(
                 }
             }
         }
-        if (needsUpdate(changes, FLAG_UPDATE_ICON) && !enableOverviewIconMenu()) {
+        if (
+            needsUpdate(changes, FLAG_UPDATE_ICON) &&
+                !(enableOverviewIconMenu() && enableRefactorTaskThumbnail())
+        ) {
             taskContainers.forEach {
                 if (visible) {
                     recentsModel.iconCache

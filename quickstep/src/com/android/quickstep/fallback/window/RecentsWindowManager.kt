@@ -67,6 +67,8 @@ import com.android.quickstep.fallback.RecentsState
 import com.android.quickstep.fallback.RecentsState.BACKGROUND_APP
 import com.android.quickstep.fallback.RecentsState.BG_LAUNCHER
 import com.android.quickstep.fallback.RecentsState.DEFAULT
+import com.android.quickstep.fallback.RecentsState.MODAL_TASK
+import com.android.quickstep.fallback.RecentsState.OVERVIEW_SPLIT_SELECT
 import com.android.quickstep.fallback.toLauncherState
 import com.android.quickstep.fallback.toLauncherStateOrdinal
 import com.android.quickstep.util.RecentsAtomicAnimationFactory
@@ -392,13 +394,28 @@ class RecentsWindowManager(context: Context, wallpaperColorHints: Int) :
     }
 
     override fun dispatchGenericMotionEvent(ev: MotionEvent?): Boolean {
-        // TODO(b/368610710)
-        return false
+        return windowView?.dispatchGenericMotionEvent(ev) ?: false
     }
 
     override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
-        // TODO(b/368610710)
-        return false
+        return windowView?.dispatchKeyEvent(ev) ?: false
+    }
+
+    override fun onRootViewDispatchKeyEvent(event: KeyEvent?): Boolean {
+        TestLogging.recordKeyEvent(SEQUENCE_MAIN, "Key event", event)
+        return if (
+            event?.action != KeyEvent.ACTION_DOWN || event.keyCode != KeyEvent.KEYCODE_ESCAPE
+        ) {
+            super<RecentsWindowContext>.onRootViewDispatchKeyEvent(event)
+        } else if (isInState(OVERVIEW_SPLIT_SELECT) || isInState(MODAL_TASK)) {
+            stateManager.goToState(DEFAULT, true)
+            true
+        } else if (isInState(DEFAULT)) {
+            returnToHomescreen()
+            true
+        } else {
+            super<RecentsWindowContext>.onRootViewDispatchKeyEvent(event)
+        }
     }
 
     override fun getActionsView(): OverviewActionsView<*>? {

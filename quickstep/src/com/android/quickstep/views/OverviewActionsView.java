@@ -16,11 +16,14 @@
 
 package com.android.quickstep.views;
 
+import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
+
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -40,6 +43,7 @@ import com.android.launcher3.util.MultiValueAlpha;
 import com.android.launcher3.util.NavigationMode;
 import com.android.quickstep.TaskOverlayFactory.OverlayUICallbacks;
 import com.android.quickstep.util.LayoutUtils;
+import com.android.systemui.shared.system.BlurUtils;
 import com.android.wm.shell.shared.TypefaceUtils;
 import com.android.wm.shell.shared.TypefaceUtils.FontFamily;
 
@@ -148,7 +152,10 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
     }
 
     public OverviewActionsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr, 0);
+        super(new ContextThemeWrapper(context,
+                enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
+                        ? R.style.OverviewActionsContainerBlur
+                        : R.style.OverviewActionsContainer), attrs, defStyleAttr, 0);
     }
 
     @Override

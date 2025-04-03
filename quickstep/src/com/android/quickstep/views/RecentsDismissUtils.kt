@@ -21,11 +21,11 @@ import androidx.dynamicanimation.animation.FloatPropertyCompat
 import androidx.dynamicanimation.animation.FloatValueHolder
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
-import com.android.launcher3.Flags.enableGridOnlyOverview
 import com.android.launcher3.R
 import com.android.launcher3.Utilities.boundToRange
 import com.android.launcher3.util.DynamicResource
 import com.android.launcher3.util.MSDLPlayerWrapper
+import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
 import com.android.launcher3.views.ActivityContext
 import com.android.quickstep.util.TaskGridNavHelper
 import com.android.quickstep.views.RecentsView.RECENTS_SCALE_PROPERTY

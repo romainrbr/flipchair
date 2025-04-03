@@ -17,7 +17,6 @@
 package com.android.launcher3;
 
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.Flags.enableOverviewIconMenu;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_LANDSCAPE;
@@ -30,6 +29,8 @@ import static com.android.launcher3.icons.IconNormalizer.ICON_VISIBLE_AREA_FACTO
 import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURCE_HANDLE;
 import static com.android.launcher3.testing.shared.ResourceUtils.pxFromDp;
 import static com.android.launcher3.testing.shared.ResourceUtils.roundPxValueFromFloat;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu;
 import static com.android.wm.shell.Flags.enableBubbleBar;
 import static com.android.wm.shell.Flags.enableBubbleBarOnPhones;
 import static com.android.wm.shell.Flags.enableTinyTaskbar;
@@ -2126,7 +2127,7 @@ public class DeviceProfile {
 
     /** Gets the space that the overview actions will take, including bottom margin. */
     public int getOverviewActionsClaimedSpace() {
-        int overviewActionsSpace = isTablet && Flags.enableGridOnlyOverview()
+        int overviewActionsSpace = isTablet && enableGridOnlyOverview()
                 ? 0
                 : (overviewActionsTopMarginPx + overviewActionsHeight);
         return overviewActionsSpace + getOverviewActionsClaimedSpaceBelow();

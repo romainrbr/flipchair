@@ -39,7 +39,7 @@ import static com.android.launcher3.Flags.enableAdditionalHomeAnimations;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
 import static com.android.launcher3.Flags.enableDesktopTaskAlphaAnimation;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
-import static com.android.launcher3.Flags.enableGridOnlyOverview;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.launcher3.Flags.enableLargeDesktopWindowingTile;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.Flags.enableRefactorTaskThumbnail;

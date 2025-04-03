@@ -756,8 +756,9 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
     }
 
     private boolean shouldUpdateIconContentDescription(BubbleTextView btv) {
-        boolean isInDesktopMode = mControllers.taskbarDesktopModeController.isInDesktopMode(
-                DEFAULT_DISPLAY);
+        boolean isInDesktopMode =
+                mControllers.taskbarDesktopModeController.shouldShowDesktopTasksInTaskbar(
+                        DEFAULT_DISPLAY);
         boolean isAllAppsButton = btv instanceof TaskbarAllAppsButtonContainer;
         boolean isDividerButton = btv instanceof TaskbarDividerContainer;
         return isInDesktopMode && !isAllAppsButton && !isDividerButton;

@@ -2896,8 +2896,6 @@ public abstract class RecentsView<
     /**
      * Called when a gesture from an app is starting.
      */
-    // TODO: b/401582344 - Implement a way to exclude the `DesktopWallpaperActivity` from being
-    //  considered in Overview.
     public void onGestureAnimationStart(GroupedTaskInfo groupedTaskInfo) {
         Log.d(TAG, "onGestureAnimationStart - groupedTaskInfo: " + groupedTaskInfo);
         mActiveGestureGroupedTaskInfo = groupedTaskInfo;
@@ -3023,10 +3021,11 @@ public abstract class RecentsView<
     }
 
     /**
-     * Returns true if we should add a stub taskView for the running task id
+     * Returns true to avoid adding a stub task even when [getRunningTaskViewFromGroupedTaskInfo]
+     * cannot find a [runningTaskView].
      */
-    protected boolean shouldAddStubTaskView(GroupedTaskInfo groupedTaskInfo) {
-        return mUtils.shouldAddStubTaskView(groupedTaskInfo);
+    protected boolean shouldAvoidAddingStubTaskView(GroupedTaskInfo groupedTaskInfo) {
+        return false;
     }
 
     /**
@@ -3041,8 +3040,11 @@ public abstract class RecentsView<
             return;
         }
 
-        int runningTaskViewId = -1;
-        if (shouldAddStubTaskView(groupedTaskInfo)) {
+        final int runningTaskViewId;
+        TaskView runningTaskView = mUtils.getRunningTaskViewFromGroupTaskInfo(groupedTaskInfo);
+        if (runningTaskView != null) {
+            runningTaskViewId = runningTaskView.getTaskViewId();
+        } else if (!shouldAvoidAddingStubTaskView(groupedTaskInfo)) {
             boolean wasEmpty = getChildCount() == 0;
             // Add an empty view for now until the task plan is loaded and applied
             final TaskView taskView;
@@ -3076,16 +3078,7 @@ public abstract class RecentsView<
                     makeMeasureSpec(getMeasuredHeight(), EXACTLY));
             layout(getLeft(), getTop(), getRight(), getBottom());
         } else {
-            TaskView runningTaskView;
-            if (DesktopModeStatus.enableMultipleDesktops(mContext) && groupedTaskInfo.isBaseType(
-                    GroupedTaskInfo.TYPE_DESK)) {
-                runningTaskView = mUtils.getDesktopTaskViewForDeskId(groupedTaskInfo.getDeskId());
-            } else {
-                runningTaskView = getTaskViewByTaskId(groupedTaskInfo.getTaskInfo1().taskId);
-            }
-            if (runningTaskView != null) {
-                runningTaskViewId = runningTaskView.getTaskViewId();
-            }
+            runningTaskViewId = -1;
         }
 
         boolean runningTaskTileHidden = mRunningTaskTileHidden;

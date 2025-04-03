@@ -548,25 +548,35 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         return desktopTaskView
     }
 
-    fun shouldAddStubTaskView(groupedTaskInfo: GroupedTaskInfo): Boolean {
-        val matchingTaskView =
-            when {
-                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
-                    enableMultipleDesktops(recentsView.context) ->
-                    getDesktopTaskViewForDeskId(groupedTaskInfo.deskId)
-
-                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
-                    groupedTaskInfo.taskInfoList.size == 1 ->
-                    recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
-                        as? DesktopTaskView
-
-                else -> {
-                    val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
-                    recentsView.getTaskViewByTaskIds(runningTaskIds)
-                }
+    fun getRunningTaskViewFromGroupTaskInfo(groupedTaskInfo: GroupedTaskInfo) =
+        if (enableMultipleDesktops(recentsView.context)) {
+            if (groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)) {
+                getDesktopTaskViewForDeskId(groupedTaskInfo.deskId)
+            } else {
+                val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                val taskView = recentsView.getTaskViewByTaskIds(runningTaskIds)
+                if (taskView?.type == groupedTaskInfo.getTaskViewType()) taskView else null
             }
-        return matchingTaskView == null
-    }
+        } else {
+            if (
+                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
+                    groupedTaskInfo.taskInfoList.size == 1
+            ) {
+                recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
+                    as? DesktopTaskView
+            } else {
+                val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                recentsView.getTaskViewByTaskIds(runningTaskIds)
+            }
+        }
+
+    private fun GroupedTaskInfo.getTaskViewType() =
+        when {
+            isBaseType(GroupedTaskInfo.TYPE_FULLSCREEN) -> TaskViewType.SINGLE
+            isBaseType(GroupedTaskInfo.TYPE_SPLIT) -> TaskViewType.GROUPED
+            isBaseType(GroupedTaskInfo.TYPE_DESK) -> TaskViewType.DESKTOP
+            else -> null
+        }
 
     fun onPrepareGestureEndAnimation(
         animatorSet: AnimatorSet,

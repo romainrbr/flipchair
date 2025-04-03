@@ -270,7 +270,6 @@ public class DeviceProfile {
     public int overviewTaskThumbnailTopMarginPx;
     public final int overviewActionsHeight;
     public final int overviewActionsTopMarginPx;
-    public final int overviewActionsButtonSpacing;
     public int overviewPageSpacing;
     public int overviewRowSpacing;
     public int overviewGridSideMargin;
@@ -373,7 +372,6 @@ public class DeviceProfile {
         numShownAllAppsColumns = 0;
         overviewActionsHeight = 0;
         overviewActionsTopMarginPx = 0;
-        overviewActionsButtonSpacing = 0;
         mViewScaleProvider = null;
         mDotRendererWorkSpace = null;
         mDotRendererAllApps = null;
@@ -782,8 +780,6 @@ public class DeviceProfile {
         overviewActionsTopMarginPx = Flags.floatingSearchBar() ? 0
                 : res.getDimensionPixelSize(R.dimen.overview_actions_top_margin);
         overviewPageSpacing = res.getDimensionPixelSize(R.dimen.overview_page_spacing);
-        overviewActionsButtonSpacing = res.getDimensionPixelSize(
-                R.dimen.overview_actions_button_spacing);
         overviewActionsHeight = res.getDimensionPixelSize(R.dimen.overview_actions_height);
         overviewRowSpacing = res.getDimensionPixelSize(R.dimen.overview_grid_row_spacing);
         overviewGridSideMargin = res.getDimensionPixelSize(R.dimen.overview_grid_side_margin);
@@ -2391,8 +2387,6 @@ public class DeviceProfile {
                 overviewActionsHeight));
         writer.println(prefix + pxToDpStr("overviewActionsClaimedSpaceBelow",
                 getOverviewActionsClaimedSpaceBelow()));
-        writer.println(prefix + pxToDpStr("overviewActionsButtonSpacing",
-                overviewActionsButtonSpacing));
         writer.println(prefix + pxToDpStr("overviewPageSpacing", overviewPageSpacing));
         writer.println(prefix + pxToDpStr("overviewRowSpacing", overviewRowSpacing));
         writer.println(prefix + pxToDpStr("overviewGridSideMargin", overviewGridSideMargin));

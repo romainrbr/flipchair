@@ -17,6 +17,7 @@
 package com.android.quickstep.views;
 
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
+import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 
 import android.content.Context;
 import android.content.res.Configuration;
@@ -34,7 +35,6 @@ import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
-import com.android.launcher3.Flags;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.AnimatedFloat;
@@ -390,7 +390,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
             return 0;
         }
 
-        if (mDp.isTablet && Flags.enableGridOnlyOverview()) {
+        if (mDp.isTablet && enableGridOnlyOverview()) {
             return mDp.stashedTaskbarHeight;
         }
 

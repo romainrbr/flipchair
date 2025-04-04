@@ -708,7 +708,8 @@ public class TouchInteractionService extends Service {
             return;
         }
         if (ENABLE_GESTURE_NAV_ON_CONNECTED_DISPLAYS.isTrue()) {
-            mInputMonitorDisplayModel = new InputMonitorDisplayModel(this);
+            mInputMonitorDisplayModel = new InputMonitorDisplayModel(
+                    this, mSystemDecorationChangeObserver);
         } else {
             mInputMonitorCompat = new InputMonitorCompat("swipe-up", DEFAULT_DISPLAY);
             mInputEventReceiver = mInputMonitorCompat.getInputReceiver(Looper.getMainLooper(),
@@ -1346,8 +1347,9 @@ public class TouchInteractionService extends Service {
      */
     private class InputMonitorDisplayModel extends DisplayModel<InputMonitorResource> {
 
-        private InputMonitorDisplayModel(Context context) {
-            super(context);
+        private InputMonitorDisplayModel(
+                Context context, SystemDecorationChangeObserver systemDecorationChangeObserver) {
+            super(context, systemDecorationChangeObserver);
             initializeDisplays();
         }
 

@@ -494,6 +494,7 @@ public class TaskbarManager implements DisplayDecorationListener {
         } else {
             mTaskStackListener = null;
         }
+        addWindowContextToMap(mPrimaryDisplayId, mPrimaryWindowContext);
         recreateTaskbars();
         debugPrimaryTaskbar("TaskbarManager created");
     }
@@ -607,6 +608,14 @@ public class TaskbarManager implements DisplayDecorationListener {
         DisplayController.INSTANCE.get(mPrimaryWindowContext).addChangeListener(
                 mRecreationListener);
         debugPrimaryTaskbar("onUserUnlocked: recreating all taskbars!");
+        // Create DPs for all connected displays if required.
+        for (int i = 0; i < mWindowContexts.size(); i++) {
+            int displayId = mWindowContexts.keyAt(i);
+            if (displayId != mPrimaryDisplayId && !mExternalDeviceProfiles.contains(displayId)) {
+                createExternalDeviceProfile(displayId);
+            }
+        }
+
         recreateTaskbars();
         for (int i = 0; i < mTaskbars.size(); i++) {
             int displayId = mTaskbars.keyAt(i);
@@ -722,17 +731,9 @@ public class TaskbarManager implements DisplayDecorationListener {
      */
     @VisibleForTesting
     public synchronized void recreateTaskbars() {
-        debugPrimaryTaskbar("recreateTaskbars");
-        // Handles initial creation case.
-        if (mTaskbars.size() == 0) {
-            debugTaskbarManager("recreateTaskbars: create primary taskbar", mPrimaryDisplayId);
-            recreateTaskbarForDisplay(mPrimaryDisplayId, 0);
-            return;
-        }
-
-        for (int i = 0; i < mTaskbars.size(); i++) {
-            int displayId = mTaskbars.keyAt(i);
-            debugTaskbarManager("recreateTaskbars: create external taskbar", displayId);
+        for (int i = 0; i < mWindowContexts.size(); i++) {
+            int displayId = mWindowContexts.keyAt(i);
+            debugTaskbarManager("recreateTaskbars", displayId);
             recreateTaskbarForDisplay(displayId, 0);
         }
     }
@@ -1110,6 +1111,7 @@ public class TaskbarManager implements DisplayDecorationListener {
         }
 
         debugPrimaryTaskbar("destroy: destroying all taskbars!");
+        removeWindowContextFromMap(mPrimaryDisplayId);
         destroyAllTaskbars();
         debugPrimaryTaskbar("destroy: finished!");
     }

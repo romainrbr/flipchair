@@ -230,7 +230,8 @@ public class TaskbarManager implements DisplayDecorationListener {
                     }
                     // Only Handles Special Exit Cases for Desktop Mode Taskbar Recreation.
                     if (((flags & CHANGE_TASKBAR_PINNING) != 0) || (taskbarActivityContext != null
-                            && !taskbarActivityContext.showLockedTaskbarOnHome())) {
+                            && !taskbarActivityContext.showLockedTaskbarOnHome()
+                            && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay())) {
                         recreateTaskbars();
                     }
                 } else {
@@ -324,7 +325,8 @@ public class TaskbarManager implements DisplayDecorationListener {
                         TaskbarActivityContext taskbarActivityContext = getTaskbarForDisplay(
                                 displayId);
                         if (taskbarActivityContext != null
-                                && !taskbarActivityContext.isInOverview()) {
+                                && !taskbarActivityContext.isInOverview()
+                                && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
                             mShouldIgnoreNextDesktopModeChangeFromDisplayController = true;
                             AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
                                     TASKBAR_DESTROY_DURATION);
@@ -347,7 +349,8 @@ public class TaskbarManager implements DisplayDecorationListener {
 
                         TaskbarActivityContext taskbarActivityContext = getTaskbarForDisplay(
                                 displayId);
-                        if (taskbarActivityContext != null) {
+                        if (taskbarActivityContext != null
+                                && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()) {
                             mShouldIgnoreNextDesktopModeChangeFromDisplayController = true;
                             AnimatorSet animatorSet = taskbarActivityContext.onDestroyAnimation(
                                     TASKBAR_DESTROY_DURATION);

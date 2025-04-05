@@ -31,15 +31,15 @@ import androidx.core.view.children
 import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
 import com.android.launcher3.Flags.enableDesktopExplodedView
-import com.android.launcher3.Flags.enableGridOnlyOverview
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
-import com.android.launcher3.Flags.enableOverviewIconMenu
 import com.android.launcher3.Flags.enableSeparateExternalDisplayTasks
 import com.android.launcher3.Utilities.getPivotsForScalingRectToRect
 import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.statehandlers.DesktopVisibilityController.Companion.INACTIVE_DESK_ID
 import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.util.IntArray
+import com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview
+import com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu
 import com.android.launcher3.util.window.WindowManagerProxy.DesktopVisibilityListener
 import com.android.quickstep.GestureState
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle
@@ -548,25 +548,35 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         return desktopTaskView
     }
 
-    fun shouldAddStubTaskView(groupedTaskInfo: GroupedTaskInfo): Boolean {
-        val matchingTaskView =
-            when {
-                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
-                    enableMultipleDesktops(recentsView.context) ->
-                    getDesktopTaskViewForDeskId(groupedTaskInfo.deskId)
-
-                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
-                    groupedTaskInfo.taskInfoList.size == 1 ->
-                    recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
-                        as? DesktopTaskView
-
-                else -> {
-                    val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
-                    recentsView.getTaskViewByTaskIds(runningTaskIds)
-                }
+    fun getRunningTaskViewFromGroupTaskInfo(groupedTaskInfo: GroupedTaskInfo) =
+        if (enableMultipleDesktops(recentsView.context)) {
+            if (groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK)) {
+                getDesktopTaskViewForDeskId(groupedTaskInfo.deskId)
+            } else {
+                val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                val taskView = recentsView.getTaskViewByTaskIds(runningTaskIds)
+                if (taskView?.type == groupedTaskInfo.getTaskViewType()) taskView else null
             }
-        return matchingTaskView == null
-    }
+        } else {
+            if (
+                groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK) &&
+                    groupedTaskInfo.taskInfoList.size == 1
+            ) {
+                recentsView.getTaskViewByTaskId(groupedTaskInfo.taskInfo1!!.taskId)
+                    as? DesktopTaskView
+            } else {
+                val runningTaskIds = groupedTaskInfo.taskInfoList.map { it.taskId }.toIntArray()
+                recentsView.getTaskViewByTaskIds(runningTaskIds)
+            }
+        }
+
+    private fun GroupedTaskInfo.getTaskViewType() =
+        when {
+            isBaseType(GroupedTaskInfo.TYPE_FULLSCREEN) -> TaskViewType.SINGLE
+            isBaseType(GroupedTaskInfo.TYPE_SPLIT) -> TaskViewType.GROUPED
+            isBaseType(GroupedTaskInfo.TYPE_DESK) -> TaskViewType.DESKTOP
+            else -> null
+        }
 
     fun onPrepareGestureEndAnimation(
         animatorSet: AnimatorSet,

@@ -25,6 +25,7 @@ import static android.view.MotionEvent.ACTION_UP;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Flags.enableHandleDelayedGestureCallbacks;
+import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
@@ -571,18 +572,30 @@ public class TouchInteractionService extends Service {
 
     private final TaskbarNavButtonCallbacks mNavCallbacks = new TaskbarNavButtonCallbacks() {
         @Override
-        public void onNavigateHome() {
-            mOverviewCommandHelper.addCommand(CommandType.HOME);
+        public void onNavigateHome(int displayId) {
+            if (enableOverviewOnConnectedDisplays()) {
+                mOverviewCommandHelper.addCommand(CommandType.HOME, displayId);
+            } else {
+                mOverviewCommandHelper.addCommand(CommandType.HOME, DEFAULT_DISPLAY);
+            }
         }
 
         @Override
-        public void onToggleOverview() {
-            mOverviewCommandHelper.addCommand(CommandType.TOGGLE);
+        public void onToggleOverview(int displayId) {
+            if (enableOverviewOnConnectedDisplays()) {
+                mOverviewCommandHelper.addCommand(CommandType.TOGGLE, displayId);
+            } else {
+                mOverviewCommandHelper.addCommand(CommandType.TOGGLE, DEFAULT_DISPLAY);
+            }
         }
 
         @Override
-        public void onHideOverview() {
-            mOverviewCommandHelper.addCommand(CommandType.HIDE);
+        public void onHideOverview(int displayId) {
+            if (enableOverviewOnConnectedDisplays()) {
+                mOverviewCommandHelper.addCommand(CommandType.HIDE, displayId);
+            } else {
+                mOverviewCommandHelper.addCommand(CommandType.HIDE, DEFAULT_DISPLAY);
+            }
         }
     };
 

@@ -295,7 +295,8 @@ public class InputConsumerUtilsTest {
     @Test
     public void testNewBaseConsumer_launcherChildActivityResumed_returnsDefaultInputConsumer() {
         when(mRunningTask.isHomeTask()).thenReturn(true);
-        when(mOverviewComponentObserver.isHomeAndOverviewSameActivity()).thenReturn(true);
+        when(mOverviewComponentObserver.isHomeAndOverviewSame()).thenReturn(true);
+        when(mContainerInterface.isLauncherOverlayShowing()).thenReturn(true);
 
         assertEqualsDefaultInputConsumer(this::createBaseInputConsumer);
     }

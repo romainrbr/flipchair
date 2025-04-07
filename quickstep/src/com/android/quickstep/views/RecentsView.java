@@ -4723,9 +4723,12 @@ public abstract class RecentsView<
     }
 
     public void reapplyActiveRotation() {
-        RotationTouchHelper rotationTouchHelper = RotationTouchHelper.INSTANCE.get(getContext());
-        setLayoutRotation(rotationTouchHelper.getCurrentActiveRotation(),
-                rotationTouchHelper.getDisplayRotation());
+        RotationTouchHelper rotationTouchHelper = RotationTouchHelper.REPOSITORY_INSTANCE.get(
+                getContext()).get(mContainer.getDisplayId());
+        if (rotationTouchHelper != null) {
+            setLayoutRotation(rotationTouchHelper.getCurrentActiveRotation(),
+                    rotationTouchHelper.getDisplayRotation());
+        }
     }
 
     public void setLayoutRotation(int touchRotation, int displayRotation) {

@@ -2760,7 +2760,9 @@ public abstract class RecentsView<
         mBlurUtils.setDrawLiveTileBelowRecents(false);
         // These are relatively expensive and don't need to be done this frame (RecentsView isn't
         // visible anyway), so defer by a frame to get off the critical path, e.g. app to home.
-        post(this::onReset);
+        // Defer onto the main thread rather than the view message queue since this will not always
+        // be called in the Recents In Window case.
+        MAIN_EXECUTOR.getHandler().post(this::onReset);
     }
 
     private void onReset() {

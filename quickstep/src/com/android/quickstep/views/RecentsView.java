@@ -1474,8 +1474,7 @@ public abstract class RecentsView<
             anim.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    finishRecentsAnimation(false /* toRecents */, true /*shouldPip*/,
-                            allAppsAreTranslucent(apps), null);
+                    finishRecentsAnimation(false /* toRecents */, true /*shouldPip*/, null);
                 }
             });
         } else {
@@ -1484,18 +1483,6 @@ public abstract class RecentsView<
                     getDepthController(), transitionInfo);
         }
         anim.start();
-    }
-
-    private boolean allAppsAreTranslucent(RemoteAnimationTarget[] apps) {
-        if (apps == null) {
-            return false;
-        }
-        for (int i = apps.length - 1; i >= 0; --i) {
-            if (!apps[i].isTranslucent) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public boolean isTaskViewVisible(TaskView tv) {
@@ -5974,18 +5961,11 @@ public abstract class RecentsView<
     }
 
     /**
-     * Finish recents animation.
-     */
-    public void finishRecentsAnimation(boolean toRecents, boolean shouldPip,
-            @Nullable Runnable onFinishComplete) {
-        finishRecentsAnimation(toRecents, shouldPip, false, onFinishComplete);
-    }
-    /**
      * NOTE: Whatever value gets passed through to the toRecents param may need to also be set on
      * {@link #mRecentsAnimationController#setWillFinishToHome}.
      */
     public void finishRecentsAnimation(boolean toRecents, boolean shouldPip,
-            boolean allAppTargetsAreTranslucent, @Nullable Runnable onFinishComplete) {
+            @Nullable Runnable onFinishComplete) {
         Log.d(TAG, "finishRecentsAnimation - mRecentsAnimationController: "
                 + mRecentsAnimationController);
         // TODO(b/197232424#comment#10) Move this back into onRecentsAnimationComplete(). Maybe?
@@ -6018,7 +5998,7 @@ public abstract class RecentsView<
                         tx, null /* overlay */);
             }
         }
-        mRecentsAnimationController.finish(toRecents, allAppTargetsAreTranslucent, () -> {
+        mRecentsAnimationController.finish(toRecents, () -> {
             if (onFinishComplete != null) {
                 onFinishComplete.run();
             }

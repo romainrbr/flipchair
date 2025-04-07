@@ -6977,13 +6977,11 @@ public abstract class RecentsView<
     }
 
     /**
-     * Sets whether the remote animation targets should draw below the recents view.
+     * Draws the remote animation targets above the recents view.
      *
-     * @param drawBelowRecents  whether the surface should draw below Recents.
      * @param remoteTargetHandles collection of remoteTargetHandles in Recents.
      */
-    public void setDrawBelowRecents(boolean drawBelowRecents,
-            RemoteTargetHandle[] remoteTargetHandles) {
-        mBlurUtils.setDrawBelowRecents(drawBelowRecents, remoteTargetHandles);
+    public void setDrawAboveRecents(RemoteTargetHandle[] remoteTargetHandles) {
+        mBlurUtils.setDrawAboveRecents(remoteTargetHandles);
     }
 }

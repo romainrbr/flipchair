@@ -121,6 +121,9 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     /** Returns a list of all large TaskViews [TaskView]s */
     fun getLargeTaskViews(): List<TaskView> = taskViews.filter { it.isLargeTile }
 
+    /** Returns a list of all non-large TaskViews [TaskView]s */
+    fun getSmallTaskViews(): List<TaskView> = taskViews.filter { !it.isLargeTile }
+
     /** Returns all the TaskViews in the top row, without the focused task */
     fun getTopRowTaskViews(): List<TaskView> =
         taskViews.filter { recentsView.mTopRowIdSet.contains(it.taskViewId) }

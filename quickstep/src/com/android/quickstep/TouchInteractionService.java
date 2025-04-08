@@ -28,6 +28,7 @@ import static com.android.launcher3.Flags.enableHandleDelayedGestureCallbacks;
 import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
+import static com.android.launcher3.taskbar.TaskbarDesktopModeFlags.enableAltTabKqsOnConnectedDisplays;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.OnboardingPrefs.HOME_BOUNCE_SEEN;
@@ -236,7 +237,7 @@ public class TouchInteractionService extends Service {
             executeForTouchInteractionService(tis -> {
                 if (triggeredFromAltTab) {
                     TaskUtils.closeSystemWindowsAsync(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
-                    int displayId = Flags.enableAltTabKqsOnConnectedDisplays()
+                    int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
                             ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
                             : DEFAULT_DISPLAY;
                     tis.mOverviewCommandHelper.addCommand(CommandType.KEYBOARD_INPUT, displayId);
@@ -252,7 +253,7 @@ public class TouchInteractionService extends Service {
             executeForTouchInteractionService(tis -> {
                 if (triggeredFromAltTab && !triggeredFromHomeKey) {
                     // onOverviewShownFromAltTab hides the overview and ends at the target app
-                    int displayId = Flags.enableAltTabKqsOnConnectedDisplays()
+                    int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
                             ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
                             : DEFAULT_DISPLAY;
                     tis.mOverviewCommandHelper.addCommand(CommandType.HIDE, displayId);

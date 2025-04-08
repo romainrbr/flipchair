@@ -2040,10 +2040,7 @@ public abstract class RecentsView<
             traceEnd(Trace.TRACE_TAG_APP);
             traceBegin(Trace.TRACE_TAG_APP, "RecentsView.applyLoadPlan.forLoop.bind");
             if (taskView instanceof GroupedTaskView groupedTaskView) {
-                var splitTask = (SplitTask) groupTask;
-                groupedTaskView.bind(splitTask.getTopLeftTask(),
-                        splitTask.getBottomRightTask(), mOrientationState,
-                        mTaskOverlayFactory, splitTask.getSplitBounds());
+                groupedTaskView.bind((SplitTask) groupTask, mOrientationState, mTaskOverlayFactory);
             } else if (taskView instanceof DesktopTaskView desktopTaskView) {
                 desktopTaskView.bind((DesktopTask) groupTask, mOrientationState,
                         mTaskOverlayFactory);
@@ -2051,10 +2048,9 @@ public abstract class RecentsView<
                 Task task = splitTask.getTopLeftTask().key.id == stagedTaskIdToBeRemoved
                         ? splitTask.getBottomRightTask()
                         : splitTask.getTopLeftTask();
-                taskView.bind(task, mOrientationState, mTaskOverlayFactory);
+                taskView.bind(new SingleTask(task), mOrientationState, mTaskOverlayFactory);
             } else {
-                taskView.bind(((SingleTask) groupTask).getTask(), mOrientationState,
-                        mTaskOverlayFactory);
+                taskView.bind((SingleTask) groupTask, mOrientationState, mTaskOverlayFactory);
             }
             traceEnd(Trace.TRACE_TAG_APP);
             traceBegin(Trace.TRACE_TAG_APP, "RecentsView.applyLoadPlan.forLoop.addTaskView");
@@ -3042,13 +3038,14 @@ public abstract class RecentsView<
                 // When we create a placeholder task view mSplitBoundsConfig will be null, but with
                 // the actual app running we won't need to show the thumbnail until all the tasks
                 // load later anyways
-                ((GroupedTaskView) taskView).bind(Task.from(groupedTaskInfo.getTaskInfo1()),
-                        Task.from(groupedTaskInfo.getTaskInfo2()), mOrientationState,
-                        mTaskOverlayFactory, mSplitBoundsConfig);
+                ((GroupedTaskView) taskView).bind(
+                        new SplitTask(Task.from(groupedTaskInfo.getTaskInfo1()),
+                                Task.from(groupedTaskInfo.getTaskInfo2()), mSplitBoundsConfig),
+                        mOrientationState, mTaskOverlayFactory);
             } else {
                 taskView = getTaskViewFromPool(TaskViewType.SINGLE);
-                taskView.bind(Task.from(groupedTaskInfo.getTaskInfo1()), mOrientationState,
-                        mTaskOverlayFactory);
+                taskView.bind(new SingleTask(Task.from(groupedTaskInfo.getTaskInfo1())),
+                        mOrientationState, mTaskOverlayFactory);
             }
             if (mAddDesktopButton != null && wasEmpty) {
                 addView(mAddDesktopButton);
@@ -4036,12 +4033,17 @@ public abstract class RecentsView<
 
                 if (success) {
                     mAnyTaskHasBeenDismissed = true;
-                    if (shouldRemoveTask && dismissedTaskView != null) {
+                    // Caches the [groupTask] before removing it. As the [deskId] might become
+                    // invalid by [removeViewInLayout] on the [dismissedTaskView] below. It might
+                    // happen before [removeGroupTaskInternal] that runs on a helper thread.
+                    final GroupTask groupTask;
+                    if (shouldRemoveTask && dismissedTaskView != null
+                            && (groupTask = dismissedTaskView.getGroupTask()) != null) {
                         if (dismissedTaskView.isRunningTask()) {
                             finishRecentsAnimation(true /* toRecents */, false /* shouldPip */,
-                                    () -> removeTaskInternal(dismissedTaskView));
+                                    () -> removeGroupTaskInternal(groupTask));
                         } else {
-                            removeTaskInternal(dismissedTaskView);
+                            removeGroupTaskInternal(groupTask);
                         }
                         mContainer.getStatsLogManager().logger()
                                 .withItemInfo(dismissedTaskView.getItemInfo())
@@ -4383,32 +4385,29 @@ public abstract class RecentsView<
         return lastVisibleTaskView;
     }
 
-    private void removeTaskInternal(@NonNull TaskView dismissedTaskView) {
+    private void removeGroupTaskInternal(@NonNull GroupTask groupTask) {
         UI_HELPER_EXECUTOR
                 .getHandler()
                 .post(
                         () -> {
-                            if (dismissedTaskView instanceof DesktopTaskView desktopTaskView) {
-                                removeDesktopTaskView(desktopTaskView);
+                            if (groupTask instanceof DesktopTask desktopTask) {
+                                if (areMultiDesksFlagsEnabled()) {
+                                    SystemUiProxy.INSTANCE
+                                            .get(getContext())
+                                            .removeDesk(desktopTask.getDeskId());
+                                } else if (DesktopModeFlags
+                                        .ENABLE_DESKTOP_WINDOWING_BACK_NAVIGATION.isTrue()) {
+                                    SystemUiProxy.INSTANCE
+                                            .get(getContext())
+                                            .removeDefaultDeskInDisplay(
+                                                    mContainer.getDisplay().getDisplayId());
+                                }
                             } else {
-                                for (int taskId : dismissedTaskView.getTaskIds()) {
-                                    ActivityManagerWrapper.getInstance().removeTask(taskId);
+                                for (Task task : groupTask.getTasks()) {
+                                    ActivityManagerWrapper.getInstance().removeTask(task.key.id);
                                 }
                             }
                         });
-    }
-
-    private void removeDesktopTaskView(DesktopTaskView desktopTaskView) {
-        if (areMultiDesksFlagsEnabled()) {
-            SystemUiProxy.INSTANCE
-                    .get(getContext())
-                    .removeDesk(desktopTaskView.getDeskId());
-        } else if (DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_BACK_NAVIGATION.isTrue()) {
-            SystemUiProxy.INSTANCE
-                    .get(getContext())
-                    .removeDefaultDeskInDisplay(
-                            mContainer.getDisplay().getDisplayId());
-        }
     }
 
     protected void onDismissAnimationEnds() {

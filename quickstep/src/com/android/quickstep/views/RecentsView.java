@@ -2784,7 +2784,6 @@ public abstract class RecentsView<
         }
         if (enableRefactorTaskThumbnail()) {
             mRecentsViewModel.onReset();
-            getTaskViews().forEach(TaskView::cancelJobs);
         }
     }
 

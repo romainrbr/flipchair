@@ -87,8 +87,6 @@ import com.android.quickstep.views.OverviewActionsView
 import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.shared.recents.model.ThumbnailData
-import com.android.systemui.shared.system.TaskStackChangeListener
-import com.android.systemui.shared.system.TaskStackChangeListeners
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject

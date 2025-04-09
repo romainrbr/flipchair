@@ -74,7 +74,7 @@ object InputConsumerUtils {
         event: MotionEvent,
         rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
-        val tac = taskbarManager.currentActivityContext
+        val tac = taskbarManager.getCurrentActivityContext()
         val bubbleControllers = tac?.bubbleControllers
         if (bubbleControllers != null && BubbleBarInputConsumer.isEventOnBubbles(tac, event)) {
             val consumer: InputConsumer =

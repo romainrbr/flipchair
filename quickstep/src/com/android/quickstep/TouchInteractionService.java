@@ -452,6 +452,11 @@ public class TouchInteractionService extends Service {
             });
         }
 
+        @Override
+        public void onActionCornerActivated(int action, int displayId) {
+            //TODO: b/409036363 - Handle Home and Overview action corner
+        }
+
         private void executeForTouchInteractionService(
                 @NonNull Consumer<TouchInteractionService> tisConsumer) {
             TouchInteractionService tis = mTis.get();

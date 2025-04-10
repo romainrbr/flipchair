@@ -24,7 +24,6 @@ import static android.view.MotionEvent.ACTION_POINTER_UP;
 import static android.view.MotionEvent.ACTION_UP;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
-import static com.android.launcher3.Flags.enableHandleDelayedGestureCallbacks;
 import static com.android.launcher3.Flags.enableOverviewOnConnectedDisplays;
 import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
@@ -949,16 +948,14 @@ public class TouchInteractionService extends Service {
             ActiveGestureProtoLogProxy.logOnTaskAnimationManagerNotAvailable(displayId);
             return;
         }
-        if (enableHandleDelayedGestureCallbacks()) {
+        if (action == ACTION_DOWN || isHoverActionWithoutConsumer) {
+            taskAnimationManager.notifyNewGestureStart();
+        }
+        if (taskAnimationManager.shouldIgnoreMotionEvents()) {
             if (action == ACTION_DOWN || isHoverActionWithoutConsumer) {
-                taskAnimationManager.notifyNewGestureStart();
+                ActiveGestureProtoLogProxy.logOnInputIgnoringFollowingEvents(displayId);
             }
-            if (taskAnimationManager.shouldIgnoreMotionEvents()) {
-                if (action == ACTION_DOWN || isHoverActionWithoutConsumer) {
-                    ActiveGestureProtoLogProxy.logOnInputIgnoringFollowingEvents(displayId);
-                }
-                return;
-            }
+            return;
         }
 
         InputMonitorCompat inputMonitorCompat = getInputMonitorCompat(displayId);

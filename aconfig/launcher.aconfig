@@ -449,13 +449,6 @@ flag {
 }
 
 flag {
-    name: "enable_active_gesture_proto_log"
-    namespace: "launcher"
-    description: "Enables tracking active gesture logs in ProtoLog"
-    bug: "293182501"
-}
-
-flag {
     name: "enable_recents_window_proto_log"
     namespace: "lse_desktop_experience"
     description: "Enables tracking recents window logs in ProtoLog"

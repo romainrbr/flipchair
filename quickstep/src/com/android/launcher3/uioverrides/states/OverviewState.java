@@ -219,6 +219,11 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
+    public boolean shouldBlurWorkspace() {
+        return false;
+    }
+
+    @Override
     public void onBackInvoked(Launcher launcher) {
         RecentsView recentsView = launcher.getOverviewPanel();
         TaskView taskView = recentsView.getRunningTaskView();

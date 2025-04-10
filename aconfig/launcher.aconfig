@@ -356,16 +356,6 @@ flag {
 }
 
 flag {
-    name: "enable_desktop_task_alpha_animation"
-    namespace: "launcher"
-    description: "Enables the animation of the desktop task's background view"
-    bug: "320307666"
-    metadata {
-      purpose: PURPOSE_BUGFIX
-    }
-}
-
-flag {
     name: "ignore_three_finger_trackpad_for_nav_handle_long_press"
     namespace: "launcher"
     description: "Ignore three finger trackpad event for nav handle long press"

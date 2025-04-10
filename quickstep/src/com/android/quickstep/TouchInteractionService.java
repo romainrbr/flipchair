@@ -42,11 +42,8 @@ import static com.android.quickstep.InputConsumerUtils.newConsumer;
 import static com.android.quickstep.InputConsumerUtils.tryCreateAssistantInputConsumer;
 import static com.android.systemui.shared.system.ActivityManagerWrapper.CLOSE_SYSTEM_WINDOWS_REASON_RECENTS;
 
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
-import android.content.IIntentReceiver;
-import android.content.IIntentSender;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Region;
@@ -101,6 +98,7 @@ import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
 import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
+import com.android.quickstep.input.QuickstepKeyGestureEventsManager;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
 import com.android.quickstep.inputconsumers.OneHandedModeInputConsumer;
 import com.android.quickstep.util.ActiveGestureLog;
@@ -639,6 +637,8 @@ public class TouchInteractionService extends Service {
 
     private DisplayRepository mDisplayRepository;
 
+    private QuickstepKeyGestureEventsManager mQuickstepKeyGestureEventsHandler;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -653,8 +653,10 @@ public class TouchInteractionService extends Service {
         mRotationTouchHelperRepository = RotationTouchHelper.REPOSITORY_INSTANCE.get(this);
         mRecentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(this);
         mSystemDecorationChangeObserver = SystemDecorationChangeObserver.getINSTANCE().get(this);
-        mAllAppsActionManager = new AllAppsActionManager(
-                this, UI_HELPER_EXECUTOR, this::createAllAppsPendingIntent);
+        mQuickstepKeyGestureEventsHandler = new QuickstepKeyGestureEventsManager(this);
+        mAllAppsActionManager = new AllAppsActionManager(this, UI_HELPER_EXECUTOR,
+                mQuickstepKeyGestureEventsHandler,
+                () -> mTaskbarManager.createAllAppsPendingIntent());
         mTrackpadsConnected = new ActiveTrackpadList(this, () -> {
             if (mInputMonitorCompat != null && !mTrackpadsConnected.isEmpty()) {
                 // Don't destroy and reinitialize input monitor due to trackpad
@@ -810,17 +812,6 @@ public class TouchInteractionService extends Service {
                 mTaskbarManager.setRecentsViewContainer(newOverviewContainer);
             }
         }
-    }
-
-    private PendingIntent createAllAppsPendingIntent() {
-        return new PendingIntent(new IIntentSender.Stub() {
-            @Override
-            public void send(int code, Intent intent, String resolvedType,
-                    IBinder allowlistToken, IIntentReceiver finishedReceiver,
-                    String requiredPermission, Bundle options) {
-                MAIN_EXECUTOR.execute(() -> mTaskbarManager.toggleAllAppsSearch());
-            }
-        });
     }
 
     @UiThread

@@ -16,7 +16,6 @@
 package com.android.launcher3.util
 
 import android.content.Context
-import android.content.Intent
 import android.os.SystemClock
 import android.view.InputDevice
 import android.view.KeyCharacterMap
@@ -29,15 +28,12 @@ import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.uiautomator.UiDevice
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
-import com.android.launcher3.LauncherState
-import com.android.launcher3.R
 import com.android.launcher3.allapps.AllAppsStore.DEFER_UPDATES_TEST
 import com.android.launcher3.integration.util.LauncherActivityScenarioRule
 import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.Wait.atMost
 import java.util.function.Function
 import java.util.function.Predicate
-import java.util.function.Supplier
 import org.junit.Rule
 
 /**
@@ -51,6 +47,8 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
     var launcherActivity =
         LauncherActivityScenarioRule<LAUNCHER_TYPE>(getInstrumentation().targetContext)
 
+    val launcherInteractor = LauncherActivityInteractor(launcherActivity)
+
     @JvmField val uiDevice = UiDevice.getInstance(getInstrumentation())
 
     protected fun loadLauncherSync() {
@@ -59,9 +57,6 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
     }
 
     protected fun targetContext(): Context = getInstrumentation().targetContext
-
-    protected fun isInState(state: Supplier<LauncherState>): Boolean =
-        launcherActivity.getFromLauncher { it.stateManager.state == state.get() }!!
 
     protected fun waitForLauncherCondition(message: String, condition: (LAUNCHER_TYPE) -> Boolean) =
         atMost(message, { launcherActivity.getFromLauncher(condition)!! })
@@ -105,46 +100,10 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
         launcherActivity.executeOnLauncher { it.dispatchKeyEvent(event) }
     }
 
-    @JvmOverloads
-    fun startAppFast(
-        packageName: String,
-        intent: Intent = targetContext().packageManager.getLaunchIntentForPackage(packageName)!!,
-    ) {
-        intent.addCategory(Intent.CATEGORY_LAUNCHER)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        targetContext().startActivity(intent)
-        uiDevice.waitForIdle()
-    }
-
     fun freezeAllApps() =
         launcherActivity.executeOnLauncher {
             it.appsView.appsStore.enableDeferUpdates(DEFER_UPDATES_TEST)
         }
-
-    fun executeShellCommand(cmd: String) = uiDevice.executeShellCommand(cmd)
-
-    fun addToWorkspace(view: View) {
-        TestUtil.runOnExecutorSync(Executors.MAIN_EXECUTOR) {
-            view.accessibilityDelegate.performAccessibilityAction(
-                view,
-                R.id.action_add_to_workspace,
-                null,
-            )
-        }
-        UiDevice.getInstance(getInstrumentation()).waitForIdle()
-    }
-
-    /**
-     * Match the behavior with how widget is added in reality with "tap to add" (even with screen
-     * readers).
-     */
-    fun addWidgetToWorkspace(view: View) {
-        launcherActivity.executeOnLauncher {
-            view.performClick()
-            UiDevice.getInstance(getInstrumentation()).waitForIdle()
-            view.findViewById<View>(R.id.widget_add_button).performClick()
-        }
-    }
 
     fun ViewGroup.searchView(filter: Predicate<View>): View? {
         if (filter.test(this)) return this

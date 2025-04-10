@@ -61,7 +61,7 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
     @ScreenRecordRule.ScreenRecord // b/407406547
     @Test
     public void testToast() {
-        startAppFast(calculatorPackage);
+        getLauncherInteractor().startAppFast(calculatorPackage);
 
         final UsageStatsManager usageStatsManager =
                 targetContext().getSystemService(UsageStatsManager.class);

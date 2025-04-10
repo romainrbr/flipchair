@@ -18,6 +18,8 @@ package com.android.launcher3.compat;
 
 import static android.os.Process.myUserHandle;
 
+import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
+
 import static com.android.launcher3.Flags.FLAG_ENABLE_SUPPORT_FOR_ARCHIVING;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -32,6 +34,7 @@ import android.text.TextUtils;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.uiautomator.UiDevice;
 
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
@@ -63,6 +66,8 @@ public class PromiseIconUiTest extends BaseLauncherActivityTest<Launcher> {
     public static final String PACKAGE_NAME = "test.promise.app";
     public static final String DUMMY_PACKAGE = "com.example.android.aardwolf";
     public static final String DUMMY_LABEL = "Aardwolf";
+
+    public UiDevice uiDevice = UiDevice.getInstance(getInstrumentation());
 
     private int mSessionId = -1;
 
@@ -136,7 +141,7 @@ public class PromiseIconUiTest extends BaseLauncherActivityTest<Launcher> {
     @RequiresFlagsEnabled(FLAG_ENABLE_SUPPORT_FOR_ARCHIVING)
     public void testPromiseIcon_addedArchivedApp() throws Throwable {
         installDummyAppAndWaitForUIUpdate();
-        assertThat(executeShellCommand(
+        assertThat(uiDevice.executeShellCommand(
                 String.format("pm archive --user %d %s",
                         myUserHandle().getIdentifier(), DUMMY_PACKAGE)))
                 .isEqualTo("Success\n");

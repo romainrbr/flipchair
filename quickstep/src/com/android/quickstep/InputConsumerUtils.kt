@@ -552,12 +552,11 @@ object InputConsumerUtils {
             container.isResumed() && !previousGestureState.isRecentsAnimationRunning
         // If a task fragment within Launcher is resumed
         val launcherChildActivityResumed =
-            (com.android.launcher3.Flags.useActivityOverlay() &&
-                runningTask != null &&
+            runningTask != null &&
                 runningTask.isHomeTask &&
                 !previousGestureState.isRecentsAnimationRunning &&
                 overviewComponentObserver.isHomeAndOverviewSame &&
-                container.isLauncherOverlayShowing)
+                container.isLauncherOverlayShowing
 
         return if (container.isInLiveTileMode()) {
             createOverviewInputConsumer<S, T>(

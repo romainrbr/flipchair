@@ -174,13 +174,6 @@ flag {
 }
 
 flag {
-    name: "use_activity_overlay"
-    namespace: "launcher"
-    description: "Use an activity for home screen overlay"
-    bug: "273828110"
-}
-
-flag {
     name: "enable_grid_migration_fix"
     namespace: "launcher"
     description: "Keep items in place when migrating to a bigger grid"

@@ -46,7 +46,6 @@ import com.android.app.tracing.traceSection
 import com.android.launcher3.AbstractFloatingView
 import com.android.launcher3.Flags.enableCursorHoverStates
 import com.android.launcher3.Flags.enableDesktopExplodedView
-import com.android.launcher3.Flags.enableHoverOfChildElementsInTaskview
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
 import com.android.launcher3.Flags.enableRefactorTaskContentView
 import com.android.launcher3.Flags.enableRefactorTaskThumbnail
@@ -609,27 +608,17 @@ constructor(
         if (borderEnabled) {
             when (event.action) {
                 MotionEvent.ACTION_HOVER_ENTER -> {
-                    hoverBorderVisible =
-                        if (enableHoverOfChildElementsInTaskview()) {
-                            getThumbnailBounds(thumbnailBounds)
-                            event.isWithinThumbnailBounds()
-                        } else {
-                            true
-                        }
+                    getThumbnailBounds(thumbnailBounds)
+                    hoverBorderVisible = event.isWithinThumbnailBounds()
                 }
                 MotionEvent.ACTION_HOVER_MOVE ->
-                    if (enableHoverOfChildElementsInTaskview())
-                        hoverBorderVisible = event.isWithinThumbnailBounds()
+                    hoverBorderVisible = event.isWithinThumbnailBounds()
                 MotionEvent.ACTION_HOVER_EXIT -> hoverBorderVisible = false
                 else -> {}
             }
         }
         return super.onHoverEvent(event)
     }
-
-    override fun onInterceptHoverEvent(event: MotionEvent): Boolean =
-        if (enableHoverOfChildElementsInTaskview()) super.onInterceptHoverEvent(event)
-        else if (enableCursorHoverStates()) true else super.onInterceptHoverEvent(event)
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val recentsView = recentsView ?: return false
@@ -675,9 +664,7 @@ constructor(
                 it.right = width
                 it.bottom = height
             }
-        if (enableHoverOfChildElementsInTaskview()) {
-            getThumbnailBounds(thumbnailBounds)
-        }
+        getThumbnailBounds(thumbnailBounds)
     }
 
     private fun updatePivots() {
@@ -1611,10 +1598,8 @@ constructor(
 
     private fun showTaskMenuWithContainer(menuContainer: TaskContainer): Boolean {
         val recentsView = recentsView ?: return false
-        if (enableHoverOfChildElementsInTaskview()) {
-            // Disable hover on all TaskView's whilst menu is showing.
-            recentsView.setTaskBorderEnabled(false)
-        }
+        // Disable hover on all TaskView's whilst menu is showing.
+        recentsView.setTaskBorderEnabled(false)
         return if (enableOverviewIconMenu() && menuContainer.iconView is IconAppChipView) {
             if (menuContainer.iconView.status == AppChipStatus.Expanded) {
                 closeTaskMenu()
@@ -1623,9 +1608,7 @@ constructor(
                 TaskMenuView.showForTask(menuContainer) {
                     val isAnimated = !recentsView.isSplitSelectionActive
                     menuContainer.iconView.revealAnim(/* isRevealing= */ false, isAnimated)
-                    if (enableHoverOfChildElementsInTaskview()) {
-                        recentsView.setTaskBorderEnabled(true)
-                    }
+                    recentsView.setTaskBorderEnabled(true)
                 }
             }
         } else if (container.deviceProfile.isTablet) {
@@ -1647,16 +1630,10 @@ constructor(
                     0
                 }
             TaskMenuViewWithArrow.showForTask(menuContainer, alignedOptionIndex) {
-                if (enableHoverOfChildElementsInTaskview()) {
-                    recentsView.setTaskBorderEnabled(true)
-                }
+                recentsView.setTaskBorderEnabled(true)
             }
         } else {
-            TaskMenuView.showForTask(menuContainer) {
-                if (enableHoverOfChildElementsInTaskview()) {
-                    recentsView.setTaskBorderEnabled(true)
-                }
-            }
+            TaskMenuView.showForTask(menuContainer) { recentsView.setTaskBorderEnabled(true) }
         }
     }
 

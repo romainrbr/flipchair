@@ -109,6 +109,7 @@ import com.android.app.viewcapture.ViewCaptureFactory;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Flags;
+import com.android.launcher3.GestureNavContract;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherSettings.Favorites;
@@ -179,6 +180,7 @@ import com.android.quickstep.RecentsModel;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskUtils;
 import com.android.quickstep.TouchInteractionService.TISBinder;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.AsyncClockEventDelegate;
@@ -861,17 +863,18 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     protected void onNewIntent(Intent intent) {
+        boolean intentHasGnc = GestureNavContract.canBuildFromIntent(intent);
         super.onNewIntent(intent);
         OverviewCommandHelper overviewCommandHelper = mTISBindHelper.getOverviewCommandHelper();
         if (overviewCommandHelper != null) {
             overviewCommandHelper.clearPendingCommands();
         }
-
-        PerDisplayRepository<RecentsWindowManager> recentsWindowManagerRepository =
-                RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
-        recentsWindowManagerRepository.forEach(/* createIfAbsent= */ true, recentsWindowManager -> {
-            recentsWindowManager.cleanupRecentsWindow();
-        });
+        if (RecentsWindowFlags.getEnableOverviewInWindow() && !intentHasGnc) {
+            PerDisplayRepository<RecentsWindowManager> recentsWindowManagerRepository =
+                    RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
+            recentsWindowManagerRepository.forEach(
+                    /* createIfAbsent= */ true, RecentsWindowManager::cleanupRecentsWindow);
+        }
     }
 
     public QuickstepTransitionManager getAppTransitionManager() {
@@ -890,7 +893,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     protected void handleGestureContract(Intent intent) {
-        if (FeatureFlags.SEPARATE_RECENTS_ACTIVITY.get()) {
+        if (GestureNavContract.isContractEnabled(intent)
+                && (FeatureFlags.SEPARATE_RECENTS_ACTIVITY.get()
+                || RecentsWindowFlags.getEnableOverviewInWindow())) {
             super.handleGestureContract(intent);
         }
     }

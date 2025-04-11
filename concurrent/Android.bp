@@ -25,6 +25,9 @@ java_library {
         "src/com/android/launcher3/concurrent/annotations/ThreadPool.kt",
         "src/com/android/launcher3/concurrent/annotations/Ui.kt",
     ],
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    target_sdk_version: "current",
     static_libs: [
         "androidx.annotation_annotation",
         "jsr330",
@@ -36,6 +39,9 @@ java_library {
     srcs: [
         "src/com/android/launcher3/concurrent/ExecutorsModule.kt",
     ],
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    target_sdk_version: "current",
     plugins: ["dagger2-compiler"],
     static_libs: [
         "androidx.annotation_annotation",

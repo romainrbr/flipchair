@@ -19,6 +19,7 @@ package com.android.launcher3.pageindicators
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import com.android.launcher3.R
@@ -29,13 +30,40 @@ import com.android.launcher3.R
  */
 @SuppressLint("AppCompatCustomView")
 class PaginationArrow(context: Context, attrs: AttributeSet) : ImageView(context, attrs) {
+    private val bgCircle = ContextCompat.getDrawable(context, R.drawable.ic_circle)
 
     init {
         foreground = ContextCompat.getDrawable(context, R.drawable.ic_chevron_left_rounded_700)
     }
 
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        when (event?.action) {
+            MotionEvent.ACTION_DOWN -> {
+                background = bgCircle
+                background.alpha = BACKGROUND_PRESSED_OPACITY
+            }
+            MotionEvent.ACTION_UP -> background = null
+        }
+        return super.onTouchEvent(event)
+    }
+
+    override fun onHoverEvent(event: MotionEvent?): Boolean {
+        when (event?.action) {
+            MotionEvent.ACTION_HOVER_ENTER -> {
+                background = bgCircle
+                background.alpha = BACKGROUND_HOVERED_OPACITY
+            }
+            MotionEvent.ACTION_HOVER_EXIT -> background = null
+        }
+        return super.onHoverEvent(event)
+    }
+
     companion object {
         const val FULLY_OPAQUE = 1f
         const val DISABLED_ARROW_OPACITY = .38f
+
+        // alpha ints are 0 - 255; the former being transparent and the latter being fully opaque
+        private const val BACKGROUND_HOVERED_OPACITY = 28 // 11%
+        private const val BACKGROUND_PRESSED_OPACITY = 38 // 15%
     }
 }

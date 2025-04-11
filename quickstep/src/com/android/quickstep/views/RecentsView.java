@@ -37,7 +37,6 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
 import static com.android.launcher3.Flags.enableAdditionalHomeAnimations;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
-import static com.android.launcher3.Flags.enableDesktopTaskAlphaAnimation;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableLargeDesktopWindowingTile;
 import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
@@ -2909,7 +2908,7 @@ public abstract class RecentsView<
      * Returns whether the running task's attach alpha should be updated during the attach animation
      */
     public boolean shouldUpdateRunningTaskAlpha() {
-        return enableDesktopTaskAlphaAnimation() && getRunningTaskView() instanceof DesktopTaskView;
+        return getRunningTaskView() instanceof DesktopTaskView;
     }
 
     private boolean isGestureActive() {
@@ -4953,9 +4952,8 @@ public abstract class RecentsView<
                     : showAsGrid
                             ? gridOffsetSize
                             : i < modalMidpoint ? modalLeftOffsetSize : modalRightOffsetSize;
-            boolean skipTranslationOffset = enableDesktopTaskAlphaAnimation()
-                    && i == getRunningTaskIndex()
-                    && child instanceof DesktopTaskView;
+            boolean skipTranslationOffset =
+                    i == getRunningTaskIndex() && child instanceof DesktopTaskView;
             float totalTranslationX = (skipTranslationOffset ? 0f : translation) + modalTranslation
                     + carouselHiddenOffsetSize;
             if (child instanceof TaskView taskView) {

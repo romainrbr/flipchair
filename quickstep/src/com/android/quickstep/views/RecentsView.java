@@ -1337,7 +1337,13 @@ public abstract class RecentsView<
         if (child instanceof TaskView) {
             mTaskViewCount++;
         }
-        child.setAlpha(mContentAlpha);
+        if (mAddDesktopButton != null && child instanceof AddDesktopButton) {
+            mAddDesktopButton.setContentAlpha(mContentAlpha);
+        } else if (child instanceof ClearAllButton) {
+            mClearAllButton.setContentAlpha(mContentAlpha);
+        } else {
+            child.setAlpha(mContentAlpha);
+        }
         // RecentsView is set to RTL in the constructor when system is using LTR. Here we set the
         // child direction back to match system settings.
         child.setLayoutDirection(mIsRtl ? View.LAYOUT_DIRECTION_LTR : View.LAYOUT_DIRECTION_RTL);

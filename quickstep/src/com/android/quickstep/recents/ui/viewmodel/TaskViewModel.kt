@@ -148,6 +148,7 @@ class TaskViewModel(
         result?.let {
             TaskData.Data(
                 taskId = taskId,
+                packageName = result.packageName,
                 title = result.title,
                 titleDescription = result.titleDescription,
                 icon = result.icon,
@@ -155,6 +156,7 @@ class TaskViewModel(
                 backgroundColor = result.backgroundColor.removeAlpha(),
                 isLocked = result.isLocked,
                 isLiveTile = isLiveTile && !result.isMinimized,
+                remainingAppTimerDuration = result.remainingAppDuration,
             )
         } ?: TaskData.NoData(taskId)
 

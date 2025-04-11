@@ -397,7 +397,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
 
     @AssistedFactory
     public interface Factory {
-        /** Creates a new instance of [RotationTouchHelper] for a given [display]. */
+        /** Creates a new instance of [RotationTouchHelper] for a given [context]. */
         RotationTouchHelper create(@DisplayContext Context context);
     }
 }

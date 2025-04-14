@@ -1354,7 +1354,8 @@ public class TouchInteractionService extends Service {
             Log.d(TAG, "displayId " + displayId + " not valid");
             return null;
         }
-        return new RecentsWindowSwipeHandler(this, taskAnimationManager, deviceState,
+        return new RecentsWindowSwipeHandler(recentsWindowManager,
+                taskAnimationManager, deviceState,
                 rotationTouchHelper, recentsWindowManager, gestureState, touchTimeMs,
                 taskAnimationManager.isRecentsAnimationRunning(),
                 mInputConsumer, MSDLPlayerWrapper.INSTANCE.get(this));

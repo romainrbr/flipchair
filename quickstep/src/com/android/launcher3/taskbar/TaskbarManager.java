@@ -1680,7 +1680,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      */
     public void debugTaskbarManager(String debugReason, int displayId) {
         StringJoiner log = new StringJoiner("\n");
-        log.add(debugReason + " displayId=" + displayId + " isDefaultDisplay=" + isExternalDisplay(
+        log.add(debugReason + " displayId=" + displayId + " isDefaultDisplay=" + isDefaultDisplay(
                 displayId));
         Log.d(TAG, log.toString());
     }

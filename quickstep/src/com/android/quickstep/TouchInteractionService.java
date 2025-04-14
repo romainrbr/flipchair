@@ -94,8 +94,8 @@ import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.OverviewCommandHelper.CommandType;
 import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
@@ -630,7 +630,7 @@ public class TouchInteractionService extends Service {
 
     private DisplayController.DisplayInfoChangeListener mDisplayInfoChangeListener;
 
-    private RecentsDisplayModel mRecentsDisplayModel;
+    PerDisplayRepository<RecentsWindowManager> mRecentsWindowManagerRepository;
 
     private SystemDecorationChangeObserver mSystemDecorationChangeObserver;
 
@@ -650,7 +650,7 @@ public class TouchInteractionService extends Service {
         mTaskAnimationManagerRepository = TaskAnimationManager.REPOSITORY_INSTANCE.get(this);
         mMainChoreographer = Choreographer.getInstance();
         mRotationTouchHelperRepository = RotationTouchHelper.REPOSITORY_INSTANCE.get(this);
-        mRecentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(this);
+        mRecentsWindowManagerRepository = RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
         mSystemDecorationChangeObserver = SystemDecorationChangeObserver.getINSTANCE().get(this);
         mQuickstepKeyGestureEventsHandler = new QuickstepKeyGestureEventsManager(this);
         mAllAppsActionManager = new AllAppsActionManager(this, UI_HELPER_EXECUTOR,
@@ -666,7 +666,7 @@ public class TouchInteractionService extends Service {
         });
 
         mTaskbarManager = new TaskbarManager(this, mAllAppsActionManager, mNavCallbacks,
-                mRecentsDisplayModel);
+                mRecentsWindowManagerRepository);
         mDesktopAppLaunchTransitionManager =
                 new DesktopAppLaunchTransitionManager(this, SystemUiProxy.INSTANCE.get(this));
         mDesktopAppLaunchTransitionManager.registerTransitions();
@@ -753,7 +753,7 @@ public class TouchInteractionService extends Service {
                 + " instance=" + System.identityHashCode(this));
         mOverviewComponentObserver = OverviewComponentObserver.INSTANCE.get(this);
         mOverviewCommandHelper = new OverviewCommandHelper(this,
-                mOverviewComponentObserver, mRecentsDisplayModel, mTaskbarManager,
+                mOverviewComponentObserver, mDisplayRepository, mTaskbarManager,
                 mTaskAnimationManagerRepository);
         mUserUnlocked = true;
         mInputConsumer.registerInputConsumer();
@@ -1339,12 +1339,14 @@ public class TouchInteractionService extends Service {
         TaskAnimationManager taskAnimationManager = mTaskAnimationManagerRepository.get(displayId);
         RecentsAnimationDeviceState deviceState = mDeviceStateRepository.get(displayId);
         RotationTouchHelper rotationTouchHelper = mRotationTouchHelperRepository.get(displayId);
-        if (taskAnimationManager == null || deviceState == null || rotationTouchHelper == null) {
+        RecentsWindowManager recentsWindowManager = mRecentsWindowManagerRepository.get(displayId);
+        if (taskAnimationManager == null || deviceState == null || rotationTouchHelper == null
+                || recentsWindowManager == null) {
             Log.d(TAG, "displayId " + displayId + " not valid");
             return null;
         }
         return new RecentsWindowSwipeHandler(this, taskAnimationManager, deviceState,
-                rotationTouchHelper, gestureState, touchTimeMs,
+                rotationTouchHelper, recentsWindowManager, gestureState, touchTimeMs,
                 taskAnimationManager.isRecentsAnimationRunning(),
                 mInputConsumer, MSDLPlayerWrapper.INSTANCE.get(this));
     }

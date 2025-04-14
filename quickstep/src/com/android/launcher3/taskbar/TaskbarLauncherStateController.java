@@ -65,7 +65,6 @@ import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.quickstep.RecentsAnimationCallbacks;
 import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.fallback.RecentsState;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ScalingWorkspaceRevealAnim;
@@ -1128,8 +1127,9 @@ public class TaskbarLauncherStateController {
     private void runForRecentsWindowManager(Consumer<RecentsWindowManager> callback) {
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             final TaskbarActivityContext taskbarContext = mControllers.taskbarActivityContext;
-            RecentsWindowManager recentsWindowManager = RecentsDisplayModel.getINSTANCE()
-                    .get(taskbarContext).getRecentsWindowManager(taskbarContext.getDisplayId());
+            RecentsWindowManager recentsWindowManager =
+                    RecentsWindowManager.REPOSITORY_INSTANCE.get(taskbarContext).get(
+                            taskbarContext.getDisplayId());
             if (recentsWindowManager != null) {
                 callback.accept(recentsWindowManager);
             }

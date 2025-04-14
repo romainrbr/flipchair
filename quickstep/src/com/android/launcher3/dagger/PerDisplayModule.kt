@@ -103,19 +103,19 @@ object PerDisplayRepositoriesModule {
     fun provideRotationTouchHandlerRepo(
         repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<RotationTouchHelper>,
         instanceFactory: RotationTouchHelper.Factory,
-        @DisplayContext displayContextRepository: PerDisplayRepository<Context>,
+        @WindowContext windowContextRepository: PerDisplayRepository<Context>,
     ): PerDisplayRepository<RotationTouchHelper> {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create(
                 "RotationTouchHelperRepo",
                 { displayId ->
-                    displayContextRepository[displayId]?.let { instanceFactory.create(it) }
+                    windowContextRepository[displayId]?.let { instanceFactory.create(it) }
                 },
             )
         } else {
             SingleInstanceRepositoryImpl(
                 "RotationTouchHelperRepo",
-                instanceFactory.create(displayContextRepository[DEFAULT_DISPLAY]),
+                instanceFactory.create(windowContextRepository[DEFAULT_DISPLAY]),
             )
         }
     }

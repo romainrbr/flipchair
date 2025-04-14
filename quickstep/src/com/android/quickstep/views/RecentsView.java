@@ -89,6 +89,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.LocusId;
+import android.content.pm.LauncherApps;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BlendMode;
@@ -201,6 +202,8 @@ import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
+import com.android.quickstep.recents.data.AppTimersRepository;
+import com.android.quickstep.recents.data.AppTimersRepositoryImpl;
 import com.android.quickstep.recents.data.RecentTasksRepository;
 import com.android.quickstep.recents.data.RecentsDeviceProfileRepository;
 import com.android.quickstep.recents.data.RecentsDeviceProfileRepositoryImpl;
@@ -906,6 +909,12 @@ public abstract class RecentsView<
 
             recentsDependencies.provide(RecentsDeviceProfileRepository.class, scopeId,
                     () -> new RecentsDeviceProfileRepositoryImpl(mContainer));
+
+            recentsDependencies.provide(AppTimersRepository.class, scopeId,
+                    () -> new AppTimersRepositoryImpl(
+                            context.getApplicationContext().getSystemService(LauncherApps.class),
+                            recentsDependencies.inject(DispatcherProvider.class, scopeId)
+                    ));
         } else {
             mRecentsViewModel = null;
             mHelper = null;

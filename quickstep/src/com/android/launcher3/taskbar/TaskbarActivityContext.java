@@ -1139,7 +1139,8 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     }
 
     private void updateTaskbarSnapshot(AnimatorSet anim, boolean isExpanded) {
-        if (!ENABLE_TASKBAR_BEHIND_SHADE.isTrue()) {
+        if (!ENABLE_TASKBAR_BEHIND_SHADE.isTrue()
+                || isPhoneMode()) {
             return;
         }
         if (mTaskbarSnapshotView == null) {

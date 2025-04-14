@@ -28,6 +28,7 @@ import android.window.TransitionInfo
 import androidx.annotation.BinderThread
 import androidx.annotation.UiThread
 import androidx.annotation.VisibleForTesting
+import com.android.app.displaylib.DisplayRepository
 import com.android.app.displaylib.PerDisplayRepository
 import com.android.app.tracing.traceSection
 import com.android.internal.jank.Cuj
@@ -52,7 +53,6 @@ import com.android.quickstep.OverviewCommandHelper.CommandType.HOME
 import com.android.quickstep.OverviewCommandHelper.CommandType.KEYBOARD_INPUT
 import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE
-import com.android.quickstep.fallback.window.RecentsDisplayModel
 import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.ActiveGestureProtoLogProxy
@@ -77,7 +77,7 @@ constructor(
     private val touchInteractionService: TouchInteractionService,
     private val overviewComponentObserver: OverviewComponentObserver,
     private val dispatcherProvider: DispatcherProvider = ProductionDispatchers,
-    private val recentsDisplayModel: RecentsDisplayModel,
+    private val displayRepository: DisplayRepository,
     private val taskbarManager: TaskbarManager,
     private val taskAnimationManagerRepository: PerDisplayRepository<TaskAnimationManager>,
 ) {
@@ -148,19 +148,13 @@ constructor(
 
     @BinderThread
     fun addCommandsForAllDisplays(type: CommandType) =
-        addCommandsForDisplays(
-            type,
-            recentsDisplayModel.activeDisplayResources
-                .map { resource -> resource.displayId }
-                .toIntArray(),
-        )
+        addCommandsForDisplays(type, displayRepository.displayIds.value.toIntArray())
 
     @BinderThread
     fun addCommandsForDisplaysExcept(type: CommandType, excludedDisplayId: Int) =
         addCommandsForDisplays(
             type,
-            recentsDisplayModel.activeDisplayResources
-                .map { resource -> resource.displayId }
+            displayRepository.displayIds.value
                 .filter { displayId -> displayId != excludedDisplayId }
                 .toIntArray(),
         )

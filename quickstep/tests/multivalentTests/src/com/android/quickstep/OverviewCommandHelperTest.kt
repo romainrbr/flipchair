@@ -19,6 +19,7 @@ package com.android.quickstep
 import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.filters.SmallTest
+import com.android.app.displaylib.DisplayRepository
 import com.android.launcher3.Flags
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.TestDispatcherProvider
@@ -26,10 +27,10 @@ import com.android.launcher3.util.rule.setFlags
 import com.android.quickstep.OverviewCommandHelper.CommandInfo
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType
-import com.android.quickstep.fallback.window.RecentsDisplayModel
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -59,22 +60,16 @@ class OverviewCommandHelperTest {
 
     private var pendingCallbacksWithDelays = mutableListOf<Long>()
 
-    private val recentsDisplayModel: RecentsDisplayModel = mock()
-    private val defaultDisplayResource: RecentsDisplayModel.RecentsDisplayResource = mock()
-    private val secondaryDisplayResource: RecentsDisplayModel.RecentsDisplayResource = mock()
+    private val displayRepository: DisplayRepository = mock()
     private val executeCommandDisplayIds = mutableListOf<Int>()
 
     private fun setupDefaultDisplay() {
-        whenever(defaultDisplayResource.displayId).thenReturn(DEFAULT_DISPLAY)
-        whenever(recentsDisplayModel.activeDisplayResources)
-            .thenReturn(listOf(defaultDisplayResource))
+        whenever(displayRepository.displayIds).thenReturn(MutableStateFlow(setOf(DEFAULT_DISPLAY)))
     }
 
     private fun setupMultipleDisplays() {
-        whenever(defaultDisplayResource.displayId).thenReturn(DEFAULT_DISPLAY)
-        whenever(secondaryDisplayResource.displayId).thenReturn(1)
-        whenever(recentsDisplayModel.activeDisplayResources)
-            .thenReturn(listOf(defaultDisplayResource, secondaryDisplayResource))
+        whenever(displayRepository.displayIds)
+            .thenReturn(MutableStateFlow(setOf(DEFAULT_DISPLAY, 1)))
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -90,7 +85,7 @@ class OverviewCommandHelperTest {
                     touchInteractionService = mock(),
                     overviewComponentObserver = mock(),
                     dispatcherProvider = TestDispatcherProvider(dispatcher),
-                    recentsDisplayModel = recentsDisplayModel,
+                    displayRepository = displayRepository,
                     taskbarManager = mock(),
                     taskAnimationManagerRepository = mock(),
                 )

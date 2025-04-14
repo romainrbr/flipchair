@@ -149,8 +149,13 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
         mSystemUiProxy = systemUiProxy;
 
         Resources resources = mApplicationContext.getResources();
+        // TODO(b/408988616): Find a better solution for external display to have resources updated
+        // after configuration changes.
+        Context displayAssociatedContext =
+                mApplicationContext.getAssociatedDisplayId() == mDisplayId
+                        ? mApplicationContext : displayContext;
         mOrientationTouchTransformer = new OrientationTouchTransformer(resources, mMode,
-                () -> QuickStepContract.getWindowCornerRadius(displayContext));
+                () -> QuickStepContract.getWindowCornerRadius(displayAssociatedContext));
 
         // Register for navigation mode and rotation changes
         mDisplayController.addChangeListenerForDisplay(this, mDisplayId);
@@ -397,7 +402,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
 
     @AssistedFactory
     public interface Factory {
-        /** Creates a new instance of [RotationTouchHelper] for a given [display]. */
+        /** Creates a new instance of [RotationTouchHelper] for a given [context]. */
         RotationTouchHelper create(@DisplayContext Context context);
     }
 }

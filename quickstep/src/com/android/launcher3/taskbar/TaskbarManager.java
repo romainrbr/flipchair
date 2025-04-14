@@ -71,6 +71,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.app.displaylib.PerDisplayRepository;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
@@ -90,7 +91,6 @@ import com.android.quickstep.RecentsActivity;
 import com.android.quickstep.SystemDecorationChangeObserver;
 import com.android.quickstep.SystemDecorationChangeObserver.DisplayDecorationListener;
 import com.android.quickstep.SystemUiProxy;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ContextualSearchInvoker;
@@ -382,7 +382,7 @@ public class TaskbarManager implements DisplayDecorationListener {
     private final SimpleBroadcastReceiver mGrowthBroadcastReceiver;
 
     private final AllAppsActionManager mAllAppsActionManager;
-    private final RecentsDisplayModel mRecentsDisplayModel;
+    private final PerDisplayRepository<RecentsWindowManager> mRecentsWindowManagerRepository;
 
     private final Runnable mActivityOnDestroyCallback = new Runnable() {
         @Override
@@ -444,12 +444,12 @@ public class TaskbarManager implements DisplayDecorationListener {
             Context context,
             AllAppsActionManager allAppsActionManager,
             TaskbarNavButtonCallbacks navCallbacks,
-            RecentsDisplayModel recentsDisplayModel) {
+            PerDisplayRepository<RecentsWindowManager> recentsWindowManagerRepository) {
         mBaseContext = context;
         mPrimaryDisplayId = mBaseContext.getDisplayId();
         mAllAppsActionManager = allAppsActionManager;
         mNavCallbacks = navCallbacks;
-        mRecentsDisplayModel = recentsDisplayModel;
+        mRecentsWindowManagerRepository = recentsWindowManagerRepository;
 
         // Set up primary display.
         debugPrimaryTaskbar("TaskbarManager constructor");
@@ -713,7 +713,7 @@ public class TaskbarManager implements DisplayDecorationListener {
     private TaskbarUIController createTaskbarUIControllerForNonDefaultDisplay(int displayId) {
         debugPrimaryTaskbar("createTaskbarUIControllerForNonDefaultDisplay");
         if (RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
-            RecentsViewContainer rvc = mRecentsDisplayModel.getRecentsWindowManager(displayId);
+            RecentsViewContainer rvc = mRecentsWindowManagerRepository.get(displayId);
             if (rvc != null) {
                 return createTaskbarUIControllerForRecentsViewContainer(rvc);
             }

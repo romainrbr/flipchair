@@ -528,6 +528,8 @@ public class LoaderTask implements Runnable {
             processAppPairItems();
 
             c.commitRestoredItems();
+
+            mBgDataModel.dataLoadComplete();
         }
     }
 

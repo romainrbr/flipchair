@@ -104,6 +104,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.android.app.displaylib.PerDisplayRepository;
 import com.android.app.viewcapture.ViewCaptureFactory;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.DeviceProfile;
@@ -178,7 +179,6 @@ import com.android.quickstep.RecentsModel;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.TaskUtils;
 import com.android.quickstep.TouchInteractionService.TISBinder;
-import com.android.quickstep.fallback.window.RecentsDisplayModel;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.AsyncClockEventDelegate;
@@ -865,12 +865,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if (overviewCommandHelper != null) {
             overviewCommandHelper.clearPendingCommands();
         }
-        RecentsDisplayModel recentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(this);
-        recentsDisplayModel.getActiveDisplayResources().forEach(resource -> {
-            RecentsWindowManager recentsWindowManager = resource.getRecentsWindowManager();
-            if (recentsWindowManager != null) {
-                recentsWindowManager.onNewIntent();
-            }
+        PerDisplayRepository<RecentsWindowManager> recentsWindowManagerRepository =
+                RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
+        recentsWindowManagerRepository.forEach(/* createIfAbsent= */ true, recentsWindowManager -> {
+            recentsWindowManager.onNewIntent();
         });
     }
 

@@ -2815,11 +2815,15 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
      * to add an item to one of the workspace screens.
      */
     private void onDropExternal(final int[] touchXY, final CellLayout cellLayout, DragObject d) {
+        final int container = mLauncher.isHotseatLayout(cellLayout)
+                ? LauncherSettings.Favorites.CONTAINER_HOTSEAT
+                : LauncherSettings.Favorites.CONTAINER_DESKTOP;
         if (d.dragInfo instanceof PendingAddShortcutInfo) {
             WorkspaceItemInfo si = ((PendingAddShortcutInfo) d.dragInfo)
                     .getActivityInfo(mLauncher).createWorkspaceItemInfo();
             if (si != null) {
                 d.dragInfo = si;
+                si.container = container;
             }
         }
 
@@ -2830,10 +2834,6 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
             spanX = mDragInfo.spanX;
             spanY = mDragInfo.spanY;
         }
-
-        final int container = mLauncher.isHotseatLayout(cellLayout)
-                ? LauncherSettings.Favorites.CONTAINER_HOTSEAT
-                : LauncherSettings.Favorites.CONTAINER_DESKTOP;
         final int screenId = getCellLayoutId(cellLayout);
         if (!mLauncher.isHotseatLayout(cellLayout)
                 && screenId != getScreenIdForPageIndex(mCurrentPage)

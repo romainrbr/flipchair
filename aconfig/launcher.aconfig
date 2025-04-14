@@ -238,16 +238,6 @@ flag {
 }
 
 flag {
-  name: "enable_additional_home_animations"
-  namespace: "launcher"
-  description: "Enables custom home animations for non-running tasks"
-  bug: "237638627"
-  metadata {
-    purpose: PURPOSE_BUGFIX
-  }
-}
-
-flag {
     name: "enabled_folders_in_all_apps"
     namespace: "launcher"
     description: "Enables folders in all apps"

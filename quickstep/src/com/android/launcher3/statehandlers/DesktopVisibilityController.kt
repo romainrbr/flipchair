@@ -583,9 +583,6 @@ constructor(
             return
         }
 
-        val wasInDeskAndNotInOverview = isInDesktopModeAndNotInOverview(displayId)
-        val wasInDesk = isInDesktopMode(displayId)
-
         getDisplayDeskConfig(displayId)?.also {
             check(oldActiveDesk == it.activeDeskId) {
                 "Mismatch between the Shell's oldActiveDesk: $oldActiveDesk, and Launcher's: ${it.activeDeskId}"
@@ -600,18 +597,20 @@ constructor(
             notifyOnActiveDeskChanged(displayId, newActiveDesk, oldActiveDesk)
         }
 
-        if (wasInDeskAndNotInOverview != isInDesktopModeAndNotInOverview(displayId)) {
-            notifyIsInDesktopModeChanged(displayId, !wasInDeskAndNotInOverview)
-        }
-
-        val isInDesk = isInDesktopMode(displayId)
-        if (wasInDesk != isInDesk) {
+        if (
+            (newActiveDesk == INACTIVE_DESK_ID || oldActiveDesk == INACTIVE_DESK_ID) &&
+                !launcherAnimationRunning
+        ) {
             val duration = context.resources.getInteger(R.integer.to_desktop_animation_duration_ms)
-            if (isInDesk) {
+            if (oldActiveDesk == INACTIVE_DESK_ID && newActiveDesk != INACTIVE_DESK_ID) {
                 notifyTaskbarDesktopModeListenersForEntry(duration)
-            } else {
+            } else if (newActiveDesk == INACTIVE_DESK_ID && oldActiveDesk != INACTIVE_DESK_ID) {
                 notifyTaskbarDesktopModeListenersForExit(duration)
+            } else {
+                // do nothing because user switch between two desktop.
             }
+        } else {
+            isNotifyingDesktopVisibilityPending = true
         }
     }
 

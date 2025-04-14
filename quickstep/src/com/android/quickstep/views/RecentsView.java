@@ -200,6 +200,7 @@ import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
 import com.android.quickstep.recents.data.AppTimersRepositoryImpl;
@@ -5498,6 +5499,13 @@ public abstract class RecentsView<
                 clearAndRecycleTaskView(mSplitHiddenTaskView);
             }
             mSplitHiddenTaskView = null;
+        }
+
+        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
+            // Recents doesn't receive activity callback, so we cleanup manually
+            if (mContainer instanceof RecentsWindowManager manager) {
+                manager.cleanupRecentsWindow();
+            }
         }
     }
 

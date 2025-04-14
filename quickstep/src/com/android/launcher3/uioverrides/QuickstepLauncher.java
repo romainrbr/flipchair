@@ -865,10 +865,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if (overviewCommandHelper != null) {
             overviewCommandHelper.clearPendingCommands();
         }
+
         PerDisplayRepository<RecentsWindowManager> recentsWindowManagerRepository =
                 RecentsWindowManager.REPOSITORY_INSTANCE.get(this);
         recentsWindowManagerRepository.forEach(/* createIfAbsent= */ true, recentsWindowManager -> {
-            recentsWindowManager.onNewIntent();
+            recentsWindowManager.cleanupRecentsWindow();
         });
     }
 

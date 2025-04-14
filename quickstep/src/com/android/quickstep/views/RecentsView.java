@@ -3644,7 +3644,7 @@ public abstract class RecentsView<
         firstFloatingTaskView.setOnClickListener(view ->
                 mSplitSelectStateController.getSplitAnimationController().
                         playAnimPlaceholderToFullscreen(mContainer, view,
-                                Optional.of(() -> resetFromSplitSelectionState())));
+                                Optional.of(() -> mSplitSelectStateController.resetState())));
         firstFloatingTaskView.setContentDescription(splitAnimInitProps.getContentDescription());
 
         // SplitInstructionsView: animate in
@@ -5447,7 +5447,7 @@ public abstract class RecentsView<
     }
 
     @SuppressLint("WrongCall")
-    protected void resetFromSplitSelectionState() {
+    private void resetFromSplitSelectionState() {
         safeRemoveDragLayerView(mSplitSelectStateController.getFirstFloatingTaskView());
         safeRemoveDragLayerView(mSecondFloatingTaskView);
         safeRemoveDragLayerView(mSplitSelectStateController.getSplitInstructionsView());

@@ -31,7 +31,6 @@ import android.view.RemoteAnimationTarget
 import android.view.SurfaceControl
 import android.view.View
 import android.view.WindowManager
-import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
 import android.window.RemoteTransition
 import com.android.app.displaylib.PerDisplayInstanceProviderWithTeardown
 import com.android.app.displaylib.PerDisplayRepository
@@ -42,8 +41,9 @@ import com.android.launcher3.LauncherAnimationRunner.RemoteAnimationFactory
 import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.compat.AccessibilityManagerCompat
-import com.android.launcher3.dagger.DisplayContext
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.dagger.WindowContext
+import com.android.launcher3.desktop.DesktopRecentsTransitionController
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StateManager.AtomicAnimationFactory
 import com.android.launcher3.statemanager.StatefulContainer
@@ -104,8 +104,13 @@ import javax.inject.Inject
  */
 class RecentsWindowManager
 @AssistedInject
-constructor(@Assisted context: Context, wallpaperColorHints: WallpaperColorHints) :
-    RecentsWindowContext(context, wallpaperColorHints.hints),
+constructor(
+    @Assisted windowContext: Context,
+    wallpaperColorHints: WallpaperColorHints,
+    private val systemUiProxy: SystemUiProxy,
+    private val recentsModel: RecentsModel,
+) :
+    RecentsWindowContext(windowContext, wallpaperColorHints.hints),
     RecentsViewContainer,
     StatefulContainer<RecentsState> {
 
@@ -132,9 +137,7 @@ constructor(@Assisted context: Context, wallpaperColorHints: WallpaperColorHints
     }
 
     protected var recentsView: FallbackRecentsView<RecentsWindowManager>? = null
-    private val windowContext: Context = createWindowContext(TYPE_APPLICATION_OVERLAY, null)
-    private val windowManager: WindowManager =
-        windowContext.getSystemService(WindowManager::class.java)!!
+    private val windowManager: WindowManager = getSystemService(WindowManager::class.java)!!
     private var layoutInflater: LayoutInflater = LayoutInflater.from(this).cloneInContext(this)
     private var stateManager: StateManager<RecentsState, RecentsWindowManager> =
         StateManager<RecentsState, RecentsWindowManager>(this, RecentsState.BG_LAUNCHER)
@@ -262,11 +265,16 @@ constructor(@Assisted context: Context, wallpaperColorHints: WallpaperColorHints
                                 stateManager,
                                 /* depthController= */ null,
                                 statsLogManager,
-                                SystemUiProxy.INSTANCE[this@RecentsWindowManager],
-                                RecentsModel.INSTANCE[this@RecentsWindowManager],
+                                systemUiProxy,
+                                recentsModel,
                                 /* activityBackCallback= */ null,
                             ),
-                            /* desktopRecentsTransitionController= */ null,
+                            DesktopRecentsTransitionController(
+                                stateManager,
+                                systemUiProxy,
+                                iApplicationThread,
+                                /* depthController= */ null,
+                            ),
                         )
                     }
             actionsView?.apply {
@@ -498,7 +506,7 @@ constructor(@Assisted context: Context, wallpaperColorHints: WallpaperColorHints
     @AssistedFactory
     interface Factory {
         /** Creates a new instance of [RecentsWindowManager] for a given [context]. */
-        fun create(@DisplayContext context: Context): RecentsWindowManager
+        fun create(@WindowContext context: Context): RecentsWindowManager
     }
 }
 
@@ -507,10 +515,10 @@ class RecentsWindowManagerInstanceProvider
 @Inject
 constructor(
     private val factory: RecentsWindowManager.Factory,
-    @DisplayContext private val displayContextRepository: PerDisplayRepository<Context>,
+    @WindowContext private val windowContextRepository: PerDisplayRepository<Context>,
 ) : PerDisplayInstanceProviderWithTeardown<RecentsWindowManager> {
     override fun createInstance(displayId: Int) =
-        displayContextRepository[displayId]?.let { factory.create(it) }
+        windowContextRepository[displayId]?.let { factory.create(it) }
 
     override fun destroyInstance(instance: RecentsWindowManager) {
         instance.destroy()

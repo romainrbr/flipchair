@@ -76,6 +76,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DragSource;
 import com.android.launcher3.DropTarget;
 import com.android.launcher3.ExtendedEditText;
+import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.OnAlarmListener;
 import com.android.launcher3.R;
@@ -88,6 +89,8 @@ import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dragndrop.DragController.DragListener;
 import com.android.launcher3.dragndrop.DragOptions;
+import com.android.launcher3.graphics.ShapeDelegate;
+import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.logger.LauncherAtom.FromState;
 import com.android.launcher3.logger.LauncherAtom.ToState;
 import com.android.launcher3.logging.StatsLogManager;
@@ -192,6 +195,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     // use mActivityContext.
     protected LauncherDelegate mLauncherDelegate;
     protected final ActivityContext mActivityContext;
+    protected FolderAnimationCreator mOpenCloseAnimationManager;
 
     public FolderInfo mInfo;
     private CharSequence mFromTitle;
@@ -534,6 +538,17 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 replaceFolderWithFinalItem();
             }
         });
+        boolean shouldUseSpringMotion = Flags.enableLauncherIconShapes()
+                && Flags.enableExpressiveFolderExpansion();
+        if (shouldUseSpringMotion) {
+            ShapeDelegate shapeDelegate =
+                    ThemeManager.INSTANCE.get(mActivityContext.asContext()).getFolderShape();
+            mOpenCloseAnimationManager = new FolderAnimationSpringBuilderManager(
+                    this, shapeDelegate, mLauncherDelegate
+            );
+        } else {
+            mOpenCloseAnimationManager = new FolderAnimationManager(this);
+        }
     }
 
     public void reapplyItemInfo() {
@@ -718,9 +733,10 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         cancelRunningAnimations();
         Log.d("b/383526431", "animateOpen: content child count after cancelling"
                 + " animation: " + mContent.getTotalChildCount());
-        FolderAnimationManager fam = new FolderAnimationManager(this, true /* isOpening */);
-        AnimatorSet anim = fam.getAnimator();
-        anim.addListener(new AnimatorListenerAdapter() {
+
+        AnimatorSet animatorSet = mOpenCloseAnimationManager.createAnimatorSet(true);
+
+        animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
                 mFolderIcon.setIconVisible(false);
@@ -751,7 +767,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             // Do not update the flag if we are in drag mode. The flag will be updated, when we
             // actually drop the icon.
             final boolean updateAnimationFlag = !mIsDragInProgress;
-            anim.addListener(new AnimatorListenerAdapter() {
+            animatorSet.addListener(new AnimatorListenerAdapter() {
 
                 @SuppressLint("InlinedApi")
                 @Override
@@ -777,12 +793,14 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         // b/282158620 because setCurrentPlayTime() below will start animator, we need to register
         // {@link AnimatorListener} before it so that {@link AnimatorListener#onAnimationStart} can
         // be called to register mCurrentAnimator, which will be used to cancel animator
-        addAnimationStartListeners(anim);
+        addAnimationStartListeners(animatorSet);
         // Because t=0 has the folder match the folder icon, we can skip the
         // first frame and have the same movement one frame earlier.
         Log.d("b/311077782", "Folder.animateOpen");
-        anim.setCurrentPlayTime(Math.min(getSingleFrameMs(getContext()), anim.getTotalDuration()));
-        anim.start();
+        animatorSet.setCurrentPlayTime(Math.min(
+                getSingleFrameMs(getContext()), animatorSet.getTotalDuration()));
+        animatorSet.start();
+
 
         // Make sure the folder picks up the last drag move even if the finger doesn't move.
         if (mActivityContext.getDragController().isDragging()) {
@@ -873,8 +891,9 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mContent.snapToPageImmediately(mContent.getDestinationPage());
 
         cancelRunningAnimations();
-        AnimatorSet a = new FolderAnimationManager(this, false /* isOpening */).getAnimator();
-        a.addListener(new AnimatorListenerAdapter() {
+        AnimatorSet animatorSet = mOpenCloseAnimationManager.createAnimatorSet(false);
+
+        animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
                 setWindowInsetsAnimationCallback(null);
@@ -891,8 +910,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
                 mIsAnimatingClosed = false;
             }
         });
-        addAnimationStartListeners(a);
-        a.start();
+        addAnimationStartListeners(animatorSet);
+        animatorSet.start();
     }
 
     @Override
@@ -1841,7 +1860,6 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mFolderName = value;
     }
 
-    @VisibleForTesting
     FolderNameEditText getFolderName() {
         return mFolderName;
     }

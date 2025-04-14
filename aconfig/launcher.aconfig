@@ -673,3 +673,10 @@ flag {
     purpose: PURPOSE_BUGFIX
   }
 }
+
+flag {
+  name: "model_repository"
+  namespace: "launcher"
+  description: "Adds various data repositories for the model"
+  bug: "390572144"
+}

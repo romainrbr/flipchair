@@ -28,7 +28,6 @@ import static com.android.launcher3.AbstractFloatingView.TYPE_ICON_SURFACE;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType;
 import static com.android.launcher3.Flags.enableAddAppWidgetViaConfigActivityV2;
-import static com.android.launcher3.Flags.enableSmartspaceRemovalToggle;
 import static com.android.launcher3.Flags.enableStrictMode;
 import static com.android.launcher3.Flags.enableWorkspaceInflation;
 import static com.android.launcher3.LauncherAnimUtils.HOTSEAT_SCALE_PROPERTY_FACTORY;
@@ -1392,9 +1391,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Until the workspace is bound, ensure that we keep the wallpaper offset locked to the
         // default state, otherwise we will update to the wrong offsets in RTL
         mWorkspace.lockWallpaperToDefaultPage();
-        if (!enableSmartspaceRemovalToggle()) {
-            mWorkspace.bindAndInitFirstWorkspaceScreen();
-        }
+        mWorkspace.bindAndInitFirstWorkspaceScreen();
         mDragController.addDragListener(mWorkspace);
 
         // Get the search/delete/uninstall bar
@@ -2207,11 +2204,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     @Override
     public void startBinding() {
         mModelCallbacks.startBinding();
-    }
-
-    @Override
-    public void setIsFirstPagePinnedItemEnabled(boolean isFirstPagePinnedItemEnabled) {
-        mModelCallbacks.setIsFirstPagePinnedItemEnabled(isFirstPagePinnedItemEnabled);
     }
 
     @Override
@@ -3048,10 +3040,6 @@ public class Launcher extends StatefulActivity<LauncherState>
      */
     public void launchAppPair(AppPairIcon appPairIcon) {
         // Overridden
-    }
-
-    public boolean getIsFirstPagePinnedItemEnabled() {
-        return mModelCallbacks.getIsFirstPagePinnedItemEnabled();
     }
 
     /**

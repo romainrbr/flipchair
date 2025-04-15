@@ -95,13 +95,13 @@ import com.android.launcher3.model.LoaderTask.LoaderTaskFactory;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.util.dagger.LauncherExecutorsModule;
 import com.android.launcher3.util.BaseContext;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.SandboxContext;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.util.dagger.LauncherExecutorsModule;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
@@ -484,8 +484,7 @@ public class LauncherPreviewRenderer extends BaseContext
 
 
         // Add first page QSB
-        if (FeatureFlags.QSB_ON_FIRST_SCREEN && dataModel.isFirstPagePinnedItemEnabled
-                && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
+        if (FeatureFlags.QSB_ON_FIRST_SCREEN && !SHOULD_SHOW_FIRST_PAGE_WIDGET) {
             CellLayout firstScreen = mWorkspaceScreens.get(FIRST_SCREEN_ID);
             View qsb = mHomeElementInflater.inflate(R.layout.qsb_preview, firstScreen, false);
             // TODO: set bgHandler on qsb when it is BaseTemplateCard, which requires API changes.

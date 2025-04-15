@@ -48,11 +48,12 @@ import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
-import com.android.quickstep.OverviewCommandHelper.CommandType.HIDE
+import com.android.quickstep.OverviewCommandHelper.CommandType.HIDE_ALT_TAB
 import com.android.quickstep.OverviewCommandHelper.CommandType.HOME
-import com.android.quickstep.OverviewCommandHelper.CommandType.KEYBOARD_INPUT
-import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW
+import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW_ALT_TAB
+import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW_WITH_FOCUS
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE
+import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE_OVERVIEW_PREVIOUS
 import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.ActiveGestureProtoLogProxy
@@ -159,7 +160,10 @@ constructor(
                 .toIntArray(),
         )
 
-    fun canStartHomeSafely(): Boolean = commandQueue.isEmpty() || commandQueue.first().type == HOME
+    fun canStartHomeSafely(): Boolean =
+        commandQueue.isEmpty() ||
+            commandQueue.first().type == HOME ||
+            commandQueue.first().type == TOGGLE_OVERVIEW_PREVIOUS
 
     /** Clear pending or completed commands from the queue */
     fun clearPendingCommands() {
@@ -248,9 +252,9 @@ constructor(
         onCallbackResult: () -> Unit,
     ): Boolean =
         when (command.type) {
-            SHOW -> true // already visible
-            KEYBOARD_INPUT,
-            HIDE -> {
+            SHOW_WITH_FOCUS -> true // already visible
+            SHOW_ALT_TAB,
+            HIDE_ALT_TAB -> {
                 if (recentsView.isHandlingTouch) {
                     true
                 } else {
@@ -269,7 +273,15 @@ constructor(
                     onCallbackResult,
                 )
             }
-
+            TOGGLE_OVERVIEW_PREVIOUS -> {
+                val taskView = recentsView.runningTaskView
+                if (taskView == null) {
+                    recentsView.startHome()
+                } else {
+                    taskView.launchWithAnimation()
+                }
+                true
+            }
             HOME -> {
                 recentsView.startHome()
                 true
@@ -341,7 +353,7 @@ constructor(
             }
 
         when (command.type) {
-            HIDE -> {
+            HIDE_ALT_TAB -> {
                 if (
                     taskbarUIController == null ||
                         !shouldShowAltTabKqs(deviceProfile, command.displayId)
@@ -353,7 +365,7 @@ constructor(
                 if (keyboardTaskFocusIndex == -1) return true
             }
 
-            KEYBOARD_INPUT ->
+            SHOW_ALT_TAB ->
                 if (
                     taskbarUIController != null &&
                         shouldShowAltTabKqs(deviceProfile, command.displayId)
@@ -374,14 +386,15 @@ constructor(
                 return true
             }
 
-            SHOW ->
+            SHOW_WITH_FOCUS ->
                 // When Recents is not currently visible, the command's type is SHOW
                 // when overview is triggered via the keyboard overview button or Action+Tab
                 // keys (Not Alt+Tab which is KQS). The overview button on-screen in 3-button
                 // nav is TYPE_TOGGLE.
                 keyboardTaskFocusIndex = 0
 
-            TOGGLE -> {}
+            TOGGLE,
+            TOGGLE_OVERVIEW_PREVIOUS -> {}
         }
 
         recentsView?.setKeyboardTaskFocusIndex(
@@ -560,7 +573,11 @@ constructor(
 
     private fun updateRecentsViewFocus(command: CommandInfo) {
         val recentsView: RecentsView<*, *> = getVisibleRecentsView(command.displayId) ?: return
-        if (command.type != KEYBOARD_INPUT && command.type != HIDE && command.type != SHOW) {
+        if (
+            command.type != SHOW_ALT_TAB &&
+                command.type != HIDE_ALT_TAB &&
+                command.type != SHOW_WITH_FOCUS
+        ) {
             return
         }
 
@@ -581,7 +598,7 @@ constructor(
 
     private fun onRecentsViewFocusUpdated(command: CommandInfo) {
         val recentsView: RecentsView<*, *> = getVisibleRecentsView(command.displayId) ?: return
-        if (command.type != HIDE || keyboardTaskFocusIndex == PagedView.INVALID_PAGE) {
+        if (command.type != HIDE_ALT_TAB || keyboardTaskFocusIndex == PagedView.INVALID_PAGE) {
             return
         }
         recentsView.setKeyboardTaskFocusIndex(PagedView.INVALID_PAGE)
@@ -603,8 +620,8 @@ constructor(
         val container = containerInterface.getCreatedContainer() ?: return
         val event =
             when (command.type) {
-                SHOW -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
-                HIDE -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_QUICK_SWITCH
+                SHOW_WITH_FOCUS -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
+                HIDE_ALT_TAB -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_QUICK_SWITCH
                 TOGGLE -> LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_3_BUTTON
                 else -> return
             }
@@ -659,11 +676,17 @@ constructor(
     }
 
     enum class CommandType {
-        SHOW,
-        KEYBOARD_INPUT,
-        HIDE,
+        SHOW_WITH_FOCUS,
+        SHOW_ALT_TAB,
+        HIDE_ALT_TAB,
+        /** Toggle between overview and the next task */
         TOGGLE, // Navigate to Overview
         HOME, // Navigate to Home
+        /**
+         * Toggle between Overview and the previous screen before launching Overview, which can
+         * either be a task or the home screen.
+         */
+        TOGGLE_OVERVIEW_PREVIOUS,
     }
 
     companion object {

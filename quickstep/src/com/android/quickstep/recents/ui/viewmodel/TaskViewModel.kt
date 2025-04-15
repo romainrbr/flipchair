@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
@@ -82,12 +83,16 @@ class TaskViewModel(
         }
 
     private val overlayEnabled =
-        combine(recentsViewData.overlayEnabled, recentsViewData.settledFullyVisibleTaskIds) {
-                isOverlayEnabled,
-                settledFullyVisibleTaskIds ->
-                isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds.value }
-            }
-            .distinctUntilChanged()
+        if (taskViewType == TaskViewType.DESKTOP) {
+            flowOf(false)
+        } else {
+            combine(recentsViewData.overlayEnabled, recentsViewData.settledFullyVisibleTaskIds) {
+                    isOverlayEnabled,
+                    settledFullyVisibleTaskIds ->
+                    isOverlayEnabled && settledFullyVisibleTaskIds.any { it in taskIds.value }
+                }
+                .distinctUntilChanged()
+        }
 
     val state: Flow<TaskTileUiState> =
         combine(taskData, overlayEnabled, isCentralTask, ::mapToTaskTile)

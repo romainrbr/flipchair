@@ -177,6 +177,6 @@ constructor(
             Resources.getSystem().getIdentifier("config_icon_mask", "string", "android")
 
         // Use a constant to allow equality check in verifyIconState
-        private val MONO_THEME_CONTROLLER = MonoIconThemeController()
+        private val MONO_THEME_CONTROLLER = MonoIconThemeController(shouldForceThemeIcon = true)
     }
 }

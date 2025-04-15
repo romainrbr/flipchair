@@ -21,6 +21,7 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
+import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
 import com.android.app.displaylib.DefaultDisplayOnlyInstanceRepositoryImpl
 import com.android.app.displaylib.DisplayLibBackground
 import com.android.app.displaylib.DisplayLibComponent
@@ -175,6 +176,39 @@ object PerDisplayRepositoriesModule {
             SingleInstanceRepositoryImpl(
                 "DisplayContextRepo",
                 context.createDisplayContext(displayRepository.getDisplay(DEFAULT_DISPLAY)!!),
+            )
+        }
+    }
+
+    @Provides
+    @LauncherAppSingleton
+    @WindowContext
+    fun provideWindowContext(
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<Context>,
+        displayRepository: DisplayRepository,
+        @ApplicationContext context: Context,
+    ): PerDisplayRepository<Context> {
+        return if (enableOverviewOnConnectedDisplays()) {
+            repositoryFactory.create(
+                "DisplayContextRepo",
+                { displayId ->
+                    displayRepository.getDisplay(displayId)?.let {
+                        context.createWindowContext(
+                            it,
+                            TYPE_APPLICATION_OVERLAY,
+                            /* options=*/ null,
+                        )
+                    }
+                },
+            )
+        } else {
+            SingleInstanceRepositoryImpl(
+                "DisplayContextRepo",
+                context.createWindowContext(
+                    displayRepository.getDisplay(DEFAULT_DISPLAY)!!,
+                    TYPE_APPLICATION_OVERLAY,
+                    /* options=*/ null,
+                ),
             )
         }
     }

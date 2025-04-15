@@ -181,6 +181,7 @@ import com.android.launcher3.celllayout.CellPosMapper.CellPos;
 import com.android.launcher3.celllayout.CellPosMapper.TwoPanelCellPosMapper;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.debug.TestEventEmitter;
 import com.android.launcher3.debug.TestEventEmitter.TestEvent;
 import com.android.launcher3.dragndrop.DragLayer;
@@ -235,7 +236,6 @@ import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.KeyboardShortcutsDelegate;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.LockedUserState;
-import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.PluginManagerWrapper;
@@ -2630,10 +2630,9 @@ public class Launcher extends StatefulActivity<LauncherState>
             // Ignore
         }
 
-        mModel.dumpState(prefix, fd, writer, args);
         mOverlayManager.dump(prefix, writer);
         ACTIVITY_TRACKER.dump(prefix, writer);
-        MSDLPlayerWrapper.INSTANCE.get(getApplicationContext()).dump(prefix, writer);
+        LauncherComponentProvider.get(this).getDumpManager().dump(prefix, writer, args);
     }
 
     /**

@@ -60,6 +60,9 @@ import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.shortcuts.ShortcutRequest.QueryResult;
 import com.android.launcher3.util.ComponentKey;
+import com.android.launcher3.util.DaggerSingletonTracker;
+import com.android.launcher3.logging.DumpManager;
+import com.android.launcher3.logging.DumpManager.LauncherDumpable;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.IntSparseArrayMap;
@@ -68,7 +71,6 @@ import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.widget.model.WidgetsListBaseEntry;
 
-import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -94,7 +96,7 @@ import javax.inject.Provider;
  * this object when accessing any data from this model.
  */
 @LauncherAppSingleton
-public class BgDataModel {
+public class BgDataModel implements LauncherDumpable {
 
     private static final String TAG = "BgDataModel";
 
@@ -138,9 +140,12 @@ public class BgDataModel {
     public int lastLoadId = -1;
 
     @Inject
-    public BgDataModel(WidgetsModel widgetsModel, Provider<HomeScreenRepository> homeDataProvider) {
+    public BgDataModel(WidgetsModel widgetsModel,
+            Provider<HomeScreenRepository> homeDataProvider,
+            DumpManager dumpManager, DaggerSingletonTracker lifeCycle) {
         this.widgetsModel = widgetsModel;
         mRepo = Flags.modelRepository() ? homeDataProvider.get() : null;
+        lifeCycle.addCloseable(dumpManager.register(this));
     }
 
     /**
@@ -170,8 +175,9 @@ public class BgDataModel {
         return screenSet.getArray();
     }
 
-    public synchronized void dump(String prefix, FileDescriptor fd, PrintWriter writer,
-            String[] args) {
+    @Override
+    public synchronized void dump(@NonNull String prefix, @NonNull PrintWriter writer,
+            @Nullable String[] args) {
         writer.println(prefix + "Data Model:");
         writer.println(prefix + " ---- items id map ");
         for (int i = 0; i < itemsIdMap.size(); i++) {
@@ -182,7 +188,7 @@ public class BgDataModel {
             writer.println(prefix + '\t' + extraItems.valueAt(i).toString());
         }
 
-        if (args.length > 0 && TextUtils.equals(args[0], "--all")) {
+        if (args != null && args.length > 0 && TextUtils.equals(args[0], "--all")) {
             writer.println(prefix + "shortcut counts ");
             for (Integer count : deepShortcutMap.values()) {
                 writer.print(count + ", ");

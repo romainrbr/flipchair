@@ -28,6 +28,8 @@ import static com.android.launcher3.folder.FolderGridOrganizer.createFolderGridO
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_FOLDER_LABEL_UPDATED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ITEM_DROP_COMPLETED;
 import static com.android.launcher3.model.data.FolderInfo.willAcceptItemType;
+import static com.android.launcher3.pageindicators.PaginationArrow.DISABLED_ARROW_OPACITY;
+import static com.android.launcher3.pageindicators.PaginationArrow.FULLY_OPAQUE;
 import static com.android.launcher3.testing.shared.TestProtocol.FOLDER_OPENED_MESSAGE;
 import static com.android.launcher3.util.window.RefreshRateTracker.getSingleFrameMs;
 
@@ -100,6 +102,7 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemFactory;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pageindicators.PageIndicatorDots;
+import com.android.launcher3.pageindicators.PaginationArrow;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
 import com.android.launcher3.util.Thunk;
@@ -208,6 +211,8 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     FolderPagedView mContent;
     private FolderNameEditText mFolderName;
     private PageIndicatorDots mPageIndicator;
+    private PaginationArrow mLeftArrow;
+    private PaginationArrow mRightArrow;
 
     protected View mFooter;
     private int mFooterHeight;
@@ -316,6 +321,15 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         mFolderName.forceDisableSuggestions(true);
         mKeyboardInsetAnimationCallback = new KeyboardInsetAnimationCallback(this);
         setWindowInsetsAnimationCallback(mKeyboardInsetAnimationCallback);
+
+        if (enableLauncherVisualRefresh()) {
+            mLeftArrow = findViewById(R.id.left_indicator_arrow);
+            mRightArrow = findViewById(R.id.right_indicator_arrow);
+            mRightArrow.setOnClickListener(v -> mContent.snapToPage(
+                    mContent.getCurrentPage() + 1));
+            mLeftArrow.setOnClickListener(v -> mContent.snapToPage(
+                    mContent.getCurrentPage() - 1));
+        }
     }
 
     /** If arrows are visible, replace the container padding with indicator padding */
@@ -324,13 +338,28 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         if (mPageIndicator.getVisibility() == View.VISIBLE) {
             // Replace the container padding with indicator padding for arrows
             mFooter.setPadding(0, 0, 0, 0);
-            mPageIndicator.setPadding(sidePadding, 0, sidePadding, 0);
             ((MarginLayoutParams) mFolderName.getLayoutParams())
                     .setMarginStart(sidePadding);
+            mLeftArrow.setVisibility(View.VISIBLE);
+            mRightArrow.setVisibility(View.VISIBLE);
         } else {
             mFooter.setPadding(sidePadding, 0, sidePadding, 0);
-            mPageIndicator.setPadding(0, 0, 0, 0);
             ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginStart(0);
+            mLeftArrow.setVisibility(View.GONE);
+            mRightArrow.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Called when the page is switched. Sets arrow UX to a disabled appearance if the page is at
+     * one end or the other.
+     */
+    public void updateArrowAlphas() {
+        if (enableLauncherVisualRefresh()) {
+            mLeftArrow.setAlpha(
+                    0 == mContent.getCurrentPage() ? DISABLED_ARROW_OPACITY : FULLY_OPAQUE);
+            mRightArrow.setAlpha(mContent.getPageCount() == mContent.getCurrentPage() + 1
+                    ? DISABLED_ARROW_OPACITY : FULLY_OPAQUE);
         }
     }
 

@@ -295,6 +295,17 @@ class TaskViewModelTest {
         }
 
     @Test
+    fun taskOverlayDisabled_when_OverlayIsEnabledForVisibleDesktopTask() =
+        testScope.runTest {
+            sut = createTaskViewModel(TaskViewType.DESKTOP)
+            sut.bind(TASK_MODEL_1.id)
+            recentsViewData.overlayEnabled.value = true
+            recentsViewData.settledFullyVisibleTaskIds.value = setOf(1)
+
+            assertThat(sut.state.first().taskOverlayEnabled).isFalse()
+        }
+
+    @Test
     fun isCentralTask_when_CentralTaskIdsMatchTaskIds() =
         testScope.runTest {
             sut.bind(TASK_MODEL_1.id, TASK_MODEL_2.id)

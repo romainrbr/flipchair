@@ -63,6 +63,11 @@ public class HintState extends LauncherState {
     }
 
     @Override
+    public boolean shouldBlurWorkspace() {
+        return false;
+    }
+
+    @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
         return enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
                 ? Themes.getAttrColor(launcher, R.attr.overviewScrimColorOverBlur)

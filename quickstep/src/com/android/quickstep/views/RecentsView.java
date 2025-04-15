@@ -35,7 +35,6 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
-import static com.android.launcher3.Flags.enableAdditionalHomeAnimations;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableLargeDesktopWindowingTile;
@@ -201,6 +200,7 @@ import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
+import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
 import com.android.quickstep.recents.data.AppTimersRepositoryImpl;
@@ -1343,7 +1343,13 @@ public abstract class RecentsView<
         if (child instanceof TaskView) {
             mTaskViewCount++;
         }
-        child.setAlpha(mContentAlpha);
+        if (mAddDesktopButton != null && child instanceof AddDesktopButton) {
+            mAddDesktopButton.setContentAlpha(mContentAlpha);
+        } else if (child instanceof ClearAllButton) {
+            mClearAllButton.setContentAlpha(mContentAlpha);
+        } else {
+            child.setAlpha(mContentAlpha);
+        }
         // RecentsView is set to RTL in the constructor when system is using LTR. Here we set the
         // child direction back to match system settings.
         child.setLayoutDirection(mIsRtl ? View.LAYOUT_DIRECTION_LTR : View.LAYOUT_DIRECTION_RTL);
@@ -4865,9 +4871,6 @@ public abstract class RecentsView<
      * than the running task, when updating page offsets.
      */
     public void setOffsetMidpointIndexOverride(int offsetMidpointIndexOverride) {
-        if (!enableAdditionalHomeAnimations()) {
-            return;
-        }
         mOffsetMidpointIndexOverride = offsetMidpointIndexOverride;
         updatePageOffsets();
     }
@@ -5502,6 +5505,13 @@ public abstract class RecentsView<
                 clearAndRecycleTaskView(mSplitHiddenTaskView);
             }
             mSplitHiddenTaskView = null;
+        }
+
+        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
+            // Recents doesn't receive activity callback, so we cleanup manually
+            if (mContainer instanceof RecentsWindowManager manager) {
+                manager.cleanupRecentsWindow();
+            }
         }
     }
 

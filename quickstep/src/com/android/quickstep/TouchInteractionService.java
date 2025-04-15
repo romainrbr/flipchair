@@ -94,6 +94,7 @@ import com.android.launcher3.util.ScreenOnTracker;
 import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.OverviewCommandHelper.CommandType;
 import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
+import com.android.quickstep.actioncorner.ActionCornerHandler;
 import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
@@ -238,9 +239,9 @@ public class TouchInteractionService extends Service {
                     int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
                             ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
                             : DEFAULT_DISPLAY;
-                    tis.mOverviewCommandHelper.addCommand(CommandType.KEYBOARD_INPUT, displayId);
+                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_ALT_TAB, displayId);
                 } else {
-                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW);
+                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_WITH_FOCUS);
                 }
             });
         }
@@ -254,7 +255,7 @@ public class TouchInteractionService extends Service {
                     int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
                             ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
                             : DEFAULT_DISPLAY;
-                    tis.mOverviewCommandHelper.addCommand(CommandType.HIDE, displayId);
+                    tis.mOverviewCommandHelper.addCommand(CommandType.HIDE_ALT_TAB, displayId);
                 }
             });
         }
@@ -451,7 +452,13 @@ public class TouchInteractionService extends Service {
 
         @Override
         public void onActionCornerActivated(int action, int displayId) {
-            //TODO: b/409036363 - Handle Home and Overview action corner
+            MAIN_EXECUTOR.execute(() -> executeForTouchInteractionService(tis -> {
+                ActionCornerHandler actionCornerHandler = tis.mActionCornerHandler;
+                if (actionCornerHandler == null) {
+                    return;
+                }
+                actionCornerHandler.handleAction(action, displayId);
+            }));
         }
 
         private void executeForTouchInteractionService(
@@ -595,9 +602,9 @@ public class TouchInteractionService extends Service {
         @Override
         public void onHideOverview(int displayId) {
             if (enableOverviewOnConnectedDisplays()) {
-                mOverviewCommandHelper.addCommand(CommandType.HIDE, displayId);
+                mOverviewCommandHelper.addCommand(CommandType.HIDE_ALT_TAB, displayId);
             } else {
-                mOverviewCommandHelper.addCommand(CommandType.HIDE, DEFAULT_DISPLAY);
+                mOverviewCommandHelper.addCommand(CommandType.HIDE_ALT_TAB, DEFAULT_DISPLAY);
             }
         }
     };
@@ -620,6 +627,7 @@ public class TouchInteractionService extends Service {
     private InputEventReceiver mInputEventReceiver;
 
     private TaskbarManager mTaskbarManager;
+    private ActionCornerHandler mActionCornerHandler;
     private Function<GestureState, AnimatedFloat> mSwipeUpProxyProvider = i -> null;
     private AllAppsActionManager mAllAppsActionManager;
     private ActiveTrackpadList mTrackpadsConnected;
@@ -755,6 +763,7 @@ public class TouchInteractionService extends Service {
         mOverviewCommandHelper = new OverviewCommandHelper(this,
                 mOverviewComponentObserver, mDisplayRepository, mTaskbarManager,
                 mTaskAnimationManagerRepository);
+        mActionCornerHandler = new ActionCornerHandler(mOverviewCommandHelper);
         mUserUnlocked = true;
         mInputConsumer.registerInputConsumer();
         mDeviceStateRepository.forEach(/* createIfAbsent= */ true, deviceState ->

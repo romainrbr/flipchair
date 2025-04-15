@@ -144,8 +144,8 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
     }
 
     @Override
-    public boolean supportsAccessibilityDrop(ItemInfo info, View view) {
-        return getButtonType(info, view) != INVALID;
+    public int getSupportedAccessibilityAction(ItemInfo info, View view) {
+        return getButtonType(info, view);
     }
 
     private int getButtonType(ItemInfo info, View view) {
@@ -222,17 +222,17 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
         d.dragSource = new DeferredOnComplete(d.dragSource, getContext());
 
         super.onDrop(d, options);
-        doLog(d.logInstanceId, d.originalDragInfo);
+        doLog(d.logInstanceId, d.originalDragInfo, mCurrentAccessibilityAction);
     }
 
-    private void doLog(InstanceId logInstanceId, ItemInfo itemInfo) {
+    private void doLog(InstanceId logInstanceId, ItemInfo itemInfo, int action) {
         StatsLogger logger = mStatsLogManager.logger().withInstanceId(logInstanceId);
         if (itemInfo != null) {
             logger.withItemInfo(itemInfo);
         }
-        if (mCurrentAccessibilityAction == UNINSTALL) {
+        if (action == UNINSTALL) {
             logger.log(LAUNCHER_ITEM_DROPPED_ON_UNINSTALL);
-        } else if (mCurrentAccessibilityAction == DISMISS_PREDICTION) {
+        } else if (action == DISMISS_PREDICTION) {
             logger.log(LAUNCHER_ITEM_DROPPED_ON_DONT_SUGGEST);
         }
     }
@@ -272,7 +272,11 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
      * the action was not performed.
      */
     protected ComponentName performDropAction(View view, ItemInfo info) {
-        if (mCurrentAccessibilityAction == RECONFIGURE) {
+        return performDropAction(view, info, mCurrentAccessibilityAction);
+    }
+
+    private ComponentName performDropAction(View view, ItemInfo info, int action) {
+        if (action == RECONFIGURE) {
             int widgetId = getReconfigurableWidgetId(view);
             if (widgetId != INVALID_APPWIDGET_ID) {
                 mDropTargetHandler.reconfigureWidget(widgetId, info);
@@ -313,9 +317,9 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
     }
 
     @Override
-    public void onAccessibilityDrop(View view, ItemInfo item) {
-        doLog(new InstanceIdSequence().newInstanceId(), item);
-        performDropAction(view, item);
+    public void onAccessibilityDrop(View view, ItemInfo item, int action) {
+        doLog(new InstanceIdSequence().newInstanceId(), item, action);
+        performDropAction(view, item, action);
     }
 
     /**

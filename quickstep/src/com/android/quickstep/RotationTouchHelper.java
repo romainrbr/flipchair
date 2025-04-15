@@ -33,8 +33,7 @@ import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 
 import com.android.app.displaylib.PerDisplayRepository;
-import com.android.launcher3.dagger.ApplicationContext;
-import com.android.launcher3.dagger.DisplayContext;
+import com.android.launcher3.dagger.WindowContext;
 import com.android.launcher3.testing.shared.TestProtocol;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DaggerSingletonTracker;
@@ -134,35 +133,29 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
      */
     private boolean mInOverview;
     private boolean mTaskListFrozen;
-    private final Context mApplicationContext;
+    private final Context mWindowContext;
 
     @AssistedInject
     RotationTouchHelper(
-            @ApplicationContext Context applicationContext,
-            @Assisted Context displayContext,
+            @Assisted Context windowContext,
             DisplayController displayController,
             SystemUiProxy systemUiProxy,
             DaggerSingletonTracker lifeCycle) {
-        mApplicationContext = applicationContext;
-        mDisplayId = displayContext.getDisplayId();
+        mWindowContext = windowContext;
+        mDisplayId = windowContext.getDisplayId();
         mDisplayController = displayController;
         mSystemUiProxy = systemUiProxy;
 
-        Resources resources = mApplicationContext.getResources();
-        // TODO(b/408988616): Find a better solution for external display to have resources updated
-        // after configuration changes.
-        Context displayAssociatedContext =
-                mApplicationContext.getAssociatedDisplayId() == mDisplayId
-                        ? mApplicationContext : displayContext;
+        Resources resources = mWindowContext.getResources();
         mOrientationTouchTransformer = new OrientationTouchTransformer(resources, mMode,
-                () -> QuickStepContract.getWindowCornerRadius(displayAssociatedContext));
+                () -> QuickStepContract.getWindowCornerRadius(mWindowContext));
 
         // Register for navigation mode and rotation changes
         mDisplayController.addChangeListenerForDisplay(this, mDisplayId);
         DisplayController.Info info = mDisplayController.getInfoForDisplay(mDisplayId);
-        onDisplayInfoChanged(mApplicationContext, info, CHANGE_ALL);
+        onDisplayInfoChanged(mWindowContext, info, CHANGE_ALL);
 
-        mOrientationListener = new OrientationEventListener(mApplicationContext) {
+        mOrientationListener = new OrientationEventListener(mWindowContext) {
             @Override
             public void onOrientationChanged(int degrees) {
                 int newRotation = RecentsOrientedState.getRotationForUserDegreesRotated(degrees,
@@ -270,7 +263,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
             NavigationMode newMode = info.getNavigationMode();
             mOrientationTouchTransformer.setNavigationMode(newMode,
                     mDisplayController.getInfoForDisplay(mDisplayId),
-                    mApplicationContext.getResources());
+                    mWindowContext.getResources());
 
             TaskStackChangeListeners.getInstance()
                     .unregisterTaskStackListener(mFrozenTaskListener);
@@ -292,7 +285,7 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
     void setGesturalHeight(int newGesturalHeight) {
         mOrientationTouchTransformer.setGesturalHeight(
                 newGesturalHeight, mDisplayController.getInfoForDisplay(mDisplayId),
-                mApplicationContext.getResources());
+                mWindowContext.getResources());
     }
 
     /**
@@ -403,6 +396,6 @@ public class RotationTouchHelper implements DisplayInfoChangeListener {
     @AssistedFactory
     public interface Factory {
         /** Creates a new instance of [RotationTouchHelper] for a given [context]. */
-        RotationTouchHelper create(@DisplayContext Context context);
+        RotationTouchHelper create(@WindowContext Context context);
     }
 }

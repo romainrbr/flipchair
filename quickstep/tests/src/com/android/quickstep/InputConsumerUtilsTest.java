@@ -201,8 +201,10 @@ public class InputConsumerUtilsTest {
 
     @After
     public void cleanUp() {
-        mInputMonitorCompat.dispose();
-        mInputEventReceiver.dispose();
+        runOnMainSync(() -> {
+            mInputMonitorCompat.dispose();
+            mInputEventReceiver.dispose();
+        });
     }
 
     @Test

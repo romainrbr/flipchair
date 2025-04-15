@@ -301,10 +301,6 @@ public final class OverviewComponentObserver {
         return mIsHomeAndOverviewSame;
     }
 
-    public boolean isHomeAndOverviewSameActivity() {
-        return isHomeAndOverviewSame() && !enableLauncherOverviewInWindow.isTrue();
-    }
-
     /**
      * Get the current control helper for managing interactions to the overview container for
      * the given displayId.

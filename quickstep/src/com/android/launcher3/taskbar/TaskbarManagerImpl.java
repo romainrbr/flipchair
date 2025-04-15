@@ -1687,6 +1687,13 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     }
 
     /**
+     * Returns the primary display id associated with this manager.
+     */
+    public int getPrimaryDisplayId() {
+        return mPrimaryDisplayId;
+    }
+
+    /**
      * Logs debug information about the TaskbarManager for primary display.
      * @param debugReason A string describing the reason for the debug log.
      * @param displayId The ID of the display for which to log debug information.

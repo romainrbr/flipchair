@@ -121,12 +121,6 @@ public class TaskbarManager implements DisplayDecorationListener {
 
     // TODO: b/397738606  - Remove all logs with this tag after the growth framework is integrated.
     public static final String GROWTH_FRAMEWORK_TAG = "Growth Framework";
-    /**
-     * An integer extra specifying the ID of the display on which the All Apps UI should be shown
-     * or hidden.
-     */
-    public static final String EXTRA_KEY_ALL_APPS_ACTION_DISPLAY_ID =
-            "com.android.quickstep.allapps.display_id";
 
     /**
      * All the configurations which do not initiate taskbar recreation.
@@ -590,15 +584,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      * visibility on the System UI tracked focused display.
      */
     public void toggleAllAppsSearch() {
-        toggleAllAppsSearchForDisplay(getFocusedDisplayId());
-    }
-
-    /**
-     * Shows or hides the All Apps view in the Taskbar or Launcher, based on its current
-     * visibility on the given display, with ID {@code displayId}.
-     */
-    public void toggleAllAppsSearchForDisplay(int displayId) {
-        TaskbarActivityContext taskbar = getTaskbarForDisplay(displayId);
+        TaskbarActivityContext taskbar = getTaskbarForDisplay(getFocusedDisplayId());
         if (taskbar == null) {
             // Home All Apps should be toggled from this class, because the controllers are not
             // initialized when Taskbar is disabled (i.e. TaskbarActivityContext is null).
@@ -1740,17 +1726,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             public void send(int code, Intent intent, String resolvedType,
                     IBinder allowlistToken, IIntentReceiver finishedReceiver,
                     String requiredPermission, Bundle options) {
-                MAIN_EXECUTOR.execute(() -> {
-                    int displayId = -1;
-                    if (options != null) {
-                        displayId = options.getInt(EXTRA_KEY_ALL_APPS_ACTION_DISPLAY_ID, -1);
-                    }
-                    if (displayId == -1) {
-                        toggleAllAppsSearch();
-                    } else {
-                        toggleAllAppsSearchForDisplay(displayId);
-                    }
-                });
+                MAIN_EXECUTOR.execute(TaskbarManager.this::toggleAllAppsSearch);
             }
         });
     }

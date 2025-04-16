@@ -387,7 +387,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
 
     private int addPrivateSpaceApps(int position) {
         // Add Install Apps Button first.
-        if (Flags.privateSpaceAppInstallerButton() && !enableMovingContentIntoPrivateSpace()) {
+        if (!enableMovingContentIntoPrivateSpace()) {
             mPrivateProviderManager.addPrivateSpaceInstallAppButton(mAdapterItems);
             position++;
         }

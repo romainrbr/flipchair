@@ -54,6 +54,7 @@ import android.util.Log;
 import android.util.Pair;
 import android.util.TypedValue;
 import android.view.FocusFinder;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -63,6 +64,7 @@ import android.view.WindowInsets;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.IntDef;
@@ -214,7 +216,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
     private PaginationArrow mLeftArrow;
     private PaginationArrow mRightArrow;
 
-    protected View mFooter;
+    protected LinearLayout mFooter;
     private int mFooterHeight;
 
     // Cell ranks used for drag and drop
@@ -1338,6 +1340,7 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
             ((MarginLayoutParams) mFolderName.getLayoutParams()).setMarginStart(0);
             // The post is necessary for margins to be recalculated. RTL UI is shifted otherwise.
             mFolderName.post(() -> mFolderName.setVisibility(View.GONE));
+            mFooter.setGravity(Gravity.END);
         }
     }
 

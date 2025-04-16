@@ -66,7 +66,7 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
         scrollToAppIcon(APP_NAME);
         BubbleTextView btv = getLauncherActivity().getFromLauncher(
                 l -> verifyIconTheme(APP_NAME, l.getAppsView(), false));
-        getLauncherInteractor().addToWorkspace(btv);
+        addToWorkspace(btv);
         getLauncherActivity().executeOnLauncher(
                 l -> verifyIconTheme(APP_NAME, l.getWorkspace(), false)
         );
@@ -87,7 +87,7 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
         BubbleTextView menuItem = getOnceNotNull("Popup menu not open", l ->
                 (AbstractFloatingView.getOpenView(l, TYPE_ACTION_POPUP) instanceof ArrowPopup ap)
                         ? findBtv(SHORTCUT_NAME, ap) : null);
-        getLauncherInteractor().addToWorkspace(menuItem);
+        addToWorkspace(menuItem);
         getLauncherActivity().executeOnLauncher(
                 l -> verifyIconTheme(SHORTCUT_NAME, l.getWorkspace(), false));
     }
@@ -104,7 +104,7 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
                 l -> verifyIconTheme(APP_NAME, l.getAppsView(), false)
         );
 
-        getLauncherInteractor().addToWorkspace(btv);
+        addToWorkspace(btv);
         getLauncherActivity().executeOnLauncher(
                 l -> verifyIconTheme(APP_NAME, l.getWorkspace(), true));
     }
@@ -123,7 +123,7 @@ public class ThemeIconsTest extends BaseLauncherActivityTest<Launcher> {
         BubbleTextView menuItem = getOnceNotNull("Popup menu not open", l ->
                 (AbstractFloatingView.getOpenView(l, TYPE_ACTION_POPUP) instanceof ArrowPopup ap)
                         ? findBtv(SHORTCUT_NAME, ap) : null);
-        getLauncherInteractor().addToWorkspace(menuItem);
+        addToWorkspace(menuItem);
         getLauncherActivity().executeOnLauncher(
                 l -> verifyIconTheme(SHORTCUT_NAME, l.getWorkspace(), true));
     }

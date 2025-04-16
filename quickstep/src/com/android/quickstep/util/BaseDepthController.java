@@ -98,6 +98,9 @@ public class BaseDepthController {
     /** Pause blur but allow transparent, can be used when launch something behind the Launcher. */
     protected boolean mPauseBlurs;
 
+    // Combination of mCrossWindowBlursEnabled, Launcher's ScrimView opacity, and mPauseBlurs.
+    private boolean mBlursEnabled;
+
     /**
      * Last blur value, in pixels, that was applied.
      */
@@ -116,6 +119,7 @@ public class BaseDepthController {
         if (Flags.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
             mMaxBlurRadius = activity.getResources().getDimensionPixelSize(
                     R.dimen.max_depth_blur_radius_enhanced);
+            mLauncher.updateBlurStyle();
         } else {
             mMaxBlurRadius = activity.getResources().getInteger(R.integer.max_depth_blur_radius);
         }
@@ -128,8 +132,11 @@ public class BaseDepthController {
     }
 
     protected void setCrossWindowBlursEnabled(boolean isEnabled) {
+        if (mCrossWindowBlursEnabled == isEnabled) {
+            return;
+        }
         mCrossWindowBlursEnabled = isEnabled;
-        applyDepthAndBlur();
+        onBlurChange();
     }
 
     public void setHasContentBehindLauncher(boolean hasContentBehindLauncher) {
@@ -137,10 +144,30 @@ public class BaseDepthController {
     }
 
     public void pauseBlursOnWindows(boolean pause) {
-        if (pause != mPauseBlurs) {
-            mPauseBlurs = pause;
-            applyDepthAndBlur();
+        if (pause == mPauseBlurs) {
+            return;
         }
+        mPauseBlurs = pause;
+        onBlurChange();
+    }
+
+    protected final void onBlurChange() {
+        boolean hasOpaqueBg = mLauncher.getScrimView().isFullyOpaque();
+        boolean blursEnabled = mCrossWindowBlursEnabled && !hasOpaqueBg && !mPauseBlurs;
+        if (mBlursEnabled == blursEnabled) {
+            return;
+        }
+        mBlursEnabled = blursEnabled;
+        mLauncher.updateBlurStyle();
+        applyDepthAndBlur();
+    }
+
+    /**
+     * @return {@code true} if cross window blurs are enabled, the scrim is translucent, and blurs
+     * are not currently paused. In other words, whether depth changes will also apply blur.
+     */
+    public boolean areBlursEnabled() {
+        return mBlursEnabled;
     }
 
     protected void onInvalidSurface() { }
@@ -188,8 +215,7 @@ public class BaseDepthController {
         } else {
             blurAmount = depth;
         }
-        mCurrentBlur = !mCrossWindowBlursEnabled || hasOpaqueBg || mPauseBlurs
-                ? 0 : (int) (blurAmount * mMaxBlurRadius);
+        mCurrentBlur = mBlursEnabled ? (int) (blurAmount * mMaxBlurRadius) : 0;
 
         SurfaceControl blurSurface =
                 enableOverviewBackgroundWallpaperBlur() && mBlurSurface != null ? mBlurSurface

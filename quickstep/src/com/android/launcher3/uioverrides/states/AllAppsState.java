@@ -205,12 +205,9 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        if (!launcher.getDeviceProfile().shouldShowAllAppsOnSheet()) {
-            return Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
+        if (launcher.getDeviceProfile().shouldShowAllAppsOnSheet() && !Flags.allAppsBlur()) {
+            return launcher.getResources().getColor(R.color.widgets_picker_scrim);
         }
-        if (Flags.allAppsBlur()) {
-            return Themes.getAttrColor(launcher, R.attr.allAppsScrimColorOverBlur);
-        }
-        return launcher.getResources().getColor(R.color.widgets_picker_scrim);
+        return Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
     }
 }

@@ -28,6 +28,7 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.Log;
 import android.view.AttachedSurfaceControl;
+import android.view.CrossWindowBlurListeners;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.SurfaceControl;
@@ -227,6 +228,11 @@ public final class TaskbarOverlayController {
             radius = 0;
             // intentionally falling through in case a non-0 blur was previously set.
         }
+        if (!CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled()) {
+            Log.d(TAG, "setBackgroundBlurRadius: disabled, setting to 0");
+            radius = 0;
+            // intentionally falling through in case a non-0 blur was previously set.
+        }
         if (mOverlayContext == null) {
             Log.w(TAG, "setBackgroundBlurRadius: no overlay context");
             return;
@@ -269,6 +275,11 @@ public final class TaskbarOverlayController {
         }
 
         rootSurfaceControl.applyTransactionOnDraw(transaction);
+    }
+
+    boolean isBackgroundBlurEnabled() {
+        return BlurUtils.supportsBlursOnWindows()
+                && CrossWindowBlurListeners.getInstance().isCrossWindowBlurEnabled();
     }
 
     /**

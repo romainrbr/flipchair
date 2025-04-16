@@ -1688,6 +1688,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         toggleAllApps(/* alreadyOnHome= */ true, focusSearch);
     }
 
+    /** Apply the blur or blur fallback style to the current theme. */
+    public void updateBlurStyle() {}
+
     private void toggleAllApps(boolean alreadyOnHome, boolean focusSearch) {
         if (getStateManager().isInStableState(ALL_APPS)) {
             getStateManager().goToState(NORMAL, alreadyOnHome);

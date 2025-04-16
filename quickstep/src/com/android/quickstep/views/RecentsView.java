@@ -3659,7 +3659,7 @@ public abstract class RecentsView<
         firstFloatingTaskView.setOnClickListener(view ->
                 mSplitSelectStateController.getSplitAnimationController().
                         playAnimPlaceholderToFullscreen(mContainer, view,
-                                Optional.of(() -> resetFromSplitSelectionState())));
+                                Optional.of(() -> mSplitSelectStateController.resetState())));
         firstFloatingTaskView.setContentDescription(splitAnimInitProps.getContentDescription());
 
         // SplitInstructionsView: animate in
@@ -4902,8 +4902,14 @@ public abstract class RecentsView<
         float leftOffsetSize = midpoint - 1 >= 0
                 ? getHorizontalOffsetSize(midpoint - 1, midpoint, offset)
                 : 0;
-        float rightOffsetSize = midpoint + 1 < count
-                ? getHorizontalOffsetSize(midpoint + 1, midpoint, offset)
+        int rightOffsetReferenceIndex;
+        if (areMultiDesksFlagsEnabled() && midpoint == INVALID_PAGE) {
+            rightOffsetReferenceIndex = getFirstViewIndex();
+        } else {
+            rightOffsetReferenceIndex = midpoint + 1;
+        }
+        float rightOffsetSize = rightOffsetReferenceIndex >= 0 && rightOffsetReferenceIndex < count
+                ? getHorizontalOffsetSize(rightOffsetReferenceIndex, midpoint, offset)
                 : 0;
 
         float modalMidpointOffsetSize = 0;
@@ -5459,7 +5465,7 @@ public abstract class RecentsView<
     }
 
     @SuppressLint("WrongCall")
-    protected void resetFromSplitSelectionState() {
+    private void resetFromSplitSelectionState() {
         safeRemoveDragLayerView(mSplitSelectStateController.getFirstFloatingTaskView());
         safeRemoveDragLayerView(mSecondFloatingTaskView);
         safeRemoveDragLayerView(mSplitSelectStateController.getSplitInstructionsView());

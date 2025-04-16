@@ -655,6 +655,13 @@ flag {
 }
 
 flag {
+  name: "enable_taskbar_ui_thread"
+  namespace: "launcher"
+  description: "Enable per-window thread for taskbar"
+  bug: "404636836"
+}
+
+flag {
   name: "enable_expressive_folder_expansion"
   namespace: "launcher"
   description: "Enables expressive folder expansion motion"
@@ -669,4 +676,11 @@ flag {
   namespace: "launcher"
   description: "Adds various data repositories for the model"
   bug: "390572144"
+}
+
+flag {
+  name: "enable_qsb_on_homescreen"
+  namespace: "launcher"
+  description: "Enable Search App's widget on homescreen"
+  bug: "405226308"
 }

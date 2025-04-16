@@ -677,10 +677,3 @@ flag {
   description: "Adds various data repositories for the model"
   bug: "390572144"
 }
-
-flag {
-  name: "enable_qsb_on_homescreen"
-  namespace: "launcher"
-  description: "Enable Search App's widget on homescreen"
-  bug: "405226308"
-}

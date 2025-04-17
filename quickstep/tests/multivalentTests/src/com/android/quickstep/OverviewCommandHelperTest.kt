@@ -16,18 +16,15 @@
 
 package com.android.quickstep
 
-import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.filters.SmallTest
 import com.android.app.displaylib.DisplayRepository
-import com.android.launcher3.Flags
 import com.android.launcher3.LauncherState
 import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.statemanager.StatefulActivity
 import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.TestDispatcherProvider
-import com.android.launcher3.util.rule.setFlags
 import com.android.quickstep.OverviewCommandHelper.CommandInfo
 import com.android.quickstep.OverviewCommandHelper.CommandInfo.CommandStatus
 import com.android.quickstep.OverviewCommandHelper.CommandType
@@ -45,7 +42,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.doAnswer
@@ -59,8 +55,6 @@ import org.mockito.kotlin.whenever
 @RunWith(LauncherMultivalentJUnit::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class OverviewCommandHelperTest {
-    @get:Rule val setFlagsRule: SetFlagsRule = SetFlagsRule()
-
     private lateinit var sut: OverviewCommandHelper
     private val dispatcher = StandardTestDispatcher()
     private val testScope = TestScope(dispatcher)
@@ -86,8 +80,6 @@ class OverviewCommandHelperTest {
     @Suppress("UNCHECKED_CAST")
     @Before
     fun setup() {
-        setFlagsRule.setFlags(true, Flags.FLAG_ENABLE_OVERVIEW_COMMAND_HELPER_TIMEOUT)
-
         setupDefaultDisplay()
 
         val overviewComponentObserver = mock<OverviewComponentObserver>()

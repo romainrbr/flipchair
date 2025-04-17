@@ -149,6 +149,11 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
+    public boolean shouldBlurWorkspace() {
+        return true;
+    }
+
+    @Override
     public PageAlphaProvider getWorkspacePageAlphaProvider(Launcher launcher) {
         PageAlphaProvider superPageAlphaProvider = super.getWorkspacePageAlphaProvider(launcher);
         return new PageAlphaProvider(DECELERATE_2) {

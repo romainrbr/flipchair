@@ -19,6 +19,7 @@ import static android.content.Context.RECEIVER_EXPORTED;
 import static android.content.Context.RECEIVER_NOT_EXPORTED;
 import static android.content.pm.PackageManager.FEATURE_FREEFORM_WINDOW_MANAGEMENT;
 import static android.content.pm.PackageManager.FEATURE_PC;
+import static android.os.Process.THREAD_PRIORITY_FOREGROUND;
 import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR;
 import static android.view.WindowManager.LayoutParams.TYPE_NAVIGATION_BAR_PANEL;
 
@@ -35,7 +36,6 @@ import static com.android.launcher3.util.DisplayController.CHANGE_DESKTOP_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
 import static com.android.launcher3.util.DisplayController.CHANGE_SHOW_LOCKED_TASKBAR;
 import static com.android.launcher3.util.DisplayController.CHANGE_TASKBAR_PINNING;
-import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
 import static com.android.quickstep.util.SystemActionConstants.ACTION_SHOW_TASKBAR;
@@ -85,6 +85,7 @@ import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButton
 import com.android.launcher3.taskbar.unfold.NonDestroyableScopedUnfoldTransitionProgressProvider;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.util.LooperExecutor;
 import com.android.launcher3.util.SettingsCache;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
 import com.android.quickstep.AllAppsActionManager;
@@ -114,11 +115,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 
 /**
  * Class to manage taskbar lifecycle
  */
-public class TaskbarManager implements DisplayDecorationListener {
+public class TaskbarManagerImpl implements DisplayDecorationListener {
     private static final String TAG = "TaskbarManager";
     private static final boolean DEBUG = false;
     private static final int TASKBAR_DESTROY_DURATION = 100;
@@ -158,6 +160,9 @@ public class TaskbarManager implements DisplayDecorationListener {
     private ComponentCallbacks mPrimaryComponentCallbacks;
 
     private final SimpleBroadcastReceiver mShutdownReceiver;
+
+    private final LooperExecutor mPerWindowUiExecutor =
+            new LooperExecutor("TaskbarUiThread", THREAD_PRIORITY_FOREGROUND);
 
     // The source for this provider is set when Launcher is available
     // We use 'non-destroyable' version here so the original provider won't be destroyed
@@ -437,7 +442,7 @@ public class TaskbarManager implements DisplayDecorationListener {
             };
 
     @SuppressLint("WrongConstant")
-    public TaskbarManager(
+    public TaskbarManagerImpl(
             Context context,
             AllAppsActionManager allAppsActionManager,
             TaskbarNavButtonCallbacks navCallbacks,
@@ -505,6 +510,10 @@ public class TaskbarManager implements DisplayDecorationListener {
         addWindowContextToMap(mPrimaryDisplayId, mPrimaryWindowContext);
         recreateTaskbars();
         debugPrimaryTaskbar("TaskbarManager created");
+    }
+
+    public LooperExecutor getPerWindowUiExecutor() {
+        return mPerWindowUiExecutor;
     }
 
     private void handleDisplayUpdatesForPerceptibleTasks() {
@@ -591,7 +600,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      * Shows or hides the All Apps view in the Taskbar or Launcher, based on its current
      * visibility on the System UI tracked focused display.
      */
-    public void toggleAllAppsSearch() {
+    private void toggleAllAppsSearch() {
         TaskbarActivityContext taskbar = getTaskbarForDisplay(getFocusedDisplayId());
         if (taskbar == null) {
             // Home All Apps should be toggled from this class, because the controllers are not
@@ -613,9 +622,7 @@ public class TaskbarManager implements DisplayDecorationListener {
         return taskbar == null ? null : taskbar.createLauncherStartFromSuwAnim(duration);
     }
 
-    /**
-     * Called when the user is unlocked
-     */
+    /** Called when the user is unlocked */
     public void onUserUnlocked() {
         debugPrimaryTaskbar("onUserUnlocked");
         mUserUnlocked = true;
@@ -743,7 +750,6 @@ public class TaskbarManager implements DisplayDecorationListener {
      * we fully want to destroy existing taskbars and create all desired new ones.
      * In other case (folding/unfolding) we don't need to remove and add window.
      */
-    @VisibleForTesting
     public synchronized void recreateTaskbars() {
         for (int i = 0; i < mWindowContexts.size(); i++) {
             int displayId = mWindowContexts.keyAt(i);
@@ -1698,7 +1704,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      * @param displayId The ID of the display for which to log debug information.
      * @param verbose Indicates whether or not to debug with detail.
      */
-    public void debugTaskbarManager(String debugReason, int displayId, boolean verbose) {
+    private void debugTaskbarManager(String debugReason, int displayId, boolean verbose) {
         StringJoiner log = new StringJoiner("\n");
         log.add(debugReason + " displayId=" + displayId + " isDefaultDisplay=" + isDefaultDisplay(
                 displayId));
@@ -1713,7 +1719,7 @@ public class TaskbarManager implements DisplayDecorationListener {
      * @param debugReason A string describing the reason for the debug log.
      *
      */
-    public void debugPrimaryTaskbar(String debugReason) {
+    private void debugPrimaryTaskbar(String debugReason) {
         debugTaskbarManager(debugReason, mPrimaryDisplayId, false);
     }
 
@@ -1727,13 +1733,13 @@ public class TaskbarManager implements DisplayDecorationListener {
     }
 
     /** Creates a {@link PendingIntent} for showing / hiding the all apps UI. */
-    public PendingIntent createAllAppsPendingIntent() {
+    public PendingIntent createAllAppsPendingIntent(Executor uiExecutor) {
         return new PendingIntent(new IIntentSender.Stub() {
             @Override
             public void send(int code, Intent intent, String resolvedType,
                     IBinder allowlistToken, IIntentReceiver finishedReceiver,
                     String requiredPermission, Bundle options) {
-                MAIN_EXECUTOR.execute(TaskbarManager.this::toggleAllAppsSearch);
+                uiExecutor.execute(TaskbarManagerImpl.this::toggleAllAppsSearch);
             }
         });
     }

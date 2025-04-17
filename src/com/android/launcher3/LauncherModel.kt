@@ -19,12 +19,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
-import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import com.android.launcher3.celllayout.CellPosMapper
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.IconCache
+import com.android.launcher3.logging.DumpManager
+import com.android.launcher3.logging.DumpManager.LauncherDumpable
 import com.android.launcher3.model.AllAppsList
 import com.android.launcher3.model.BaseLauncherBinder.BaseLauncherBinderFactory
 import com.android.launcher3.model.BgDataModel
@@ -51,7 +52,6 @@ import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
-import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
@@ -82,7 +82,8 @@ constructor(
     private val loaderFactory: LoaderTaskFactory,
     private val binderFactory: BaseLauncherBinderFactory,
     val modelDbController: ModelDbController,
-) {
+    dumpManager: DumpManager,
+) : LauncherDumpable {
 
     private val mCallbacksList = ArrayList<BgDataModel.Callbacks>(1)
 
@@ -124,6 +125,7 @@ constructor(
         }
         lifecycle.addCloseable { destroy() }
         modelDelegate.init(this, mBgAllAppsList, mBgDataModel)
+        lifecycle.addCloseable(dumpManager.register(this))
     }
 
     fun newModelCallbacks() = ModelLauncherCallbacks(this::enqueueModelUpdateTask)
@@ -444,8 +446,8 @@ constructor(
         }
     }
 
-    fun dumpState(prefix: String?, fd: FileDescriptor?, writer: PrintWriter, args: Array<String?>) {
-        if (args.isNotEmpty() && TextUtils.equals(args[0], "--all")) {
+    override fun dump(prefix: String, writer: PrintWriter, args: Array<String>?) {
+        if (args?.getOrNull(0) == "--all") {
             writer.println(prefix + "All apps list: size=" + mBgAllAppsList.data.size)
             for (info in mBgAllAppsList.data) {
                 writer.println(
@@ -454,8 +456,6 @@ constructor(
             }
             writer.println()
         }
-        modelDelegate.dump(prefix, fd, writer, args)
-        mBgDataModel.dump(prefix, fd, writer, args)
     }
 
     /** Returns true if there are any callbacks attached to the model */

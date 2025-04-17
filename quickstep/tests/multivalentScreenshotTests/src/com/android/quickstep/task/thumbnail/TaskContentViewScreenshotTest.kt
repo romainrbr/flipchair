@@ -61,7 +61,10 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
 
     @Test
     fun taskContentView_recyclesToUninitialized() {
-        screenshotRule.screenshotTest("taskContentView_uninitialized") { activity ->
+        screenshotRule.screenshotTest(
+            "taskContentView_uninitialized",
+            ViewScreenshotTestRule.Mode.MatchSize,
+        ) { activity ->
             activity.actionBar?.hide()
             val taskContentView = createTaskContentView(activity)
             taskContentView.setState(
@@ -76,7 +79,10 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
 
     @Test
     fun taskContentView_shows_thumbnail_and_header() {
-        screenshotRule.screenshotTest("taskContentView_shows_thumbnail_and_header") { activity ->
+        screenshotRule.screenshotTest(
+            "taskContentView_shows_thumbnail_and_header",
+            ViewScreenshotTestRule.Mode.MatchSize,
+        ) { activity ->
             activity.actionBar?.hide()
             createTaskContentView(activity).apply {
                 setState(
@@ -95,7 +101,10 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
 
     @Test
     fun taskContentView_scaled_roundRoundedCorners() {
-        screenshotRule.screenshotTest("taskContentView_scaledRoundedCorners") { activity ->
+        screenshotRule.screenshotTest(
+            "taskContentView_scaledRoundedCorners",
+            ViewScreenshotTestRule.Mode.MatchSize,
+        ) { activity ->
             activity.actionBar?.hide()
             createTaskContentView(activity).apply {
                 scaleX = 0.75f

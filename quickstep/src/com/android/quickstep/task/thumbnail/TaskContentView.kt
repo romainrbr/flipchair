@@ -24,7 +24,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.view.ViewStub
-import android.widget.LinearLayout
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.isInvisible
 import com.android.launcher3.R
 import com.android.launcher3.util.ViewPool
@@ -35,7 +36,7 @@ import com.android.quickstep.views.TaskHeaderView
  * DWB, AiAi (TaskOverlay).
  */
 class TaskContentView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
-    LinearLayout(context, attrs), ViewPool.Reusable {
+    ConstraintLayout(context, attrs), ViewPool.Reusable {
 
     private var taskHeaderView: TaskHeaderView? = null
     private var taskThumbnailView: TaskThumbnailView? = null
@@ -123,6 +124,16 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
                 findViewById<ViewStub>(R.id.task_header_view)
                     .apply { layoutResource = R.layout.task_header_view }
                     .inflate() as TaskHeaderView
+
+            // TODO: Move to layout xml when moving away from view stubs.
+            val constraintSet = ConstraintSet().apply { clone(this@TaskContentView) }
+            constraintSet.connect(
+                R.id.snapshot,
+                ConstraintSet.TOP,
+                R.id.task_header_view,
+                ConstraintSet.BOTTOM,
+            )
+            constraintSet.applyTo(this@TaskContentView)
         }
     }
 

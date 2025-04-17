@@ -34,7 +34,6 @@ import com.android.app.tracing.traceSection
 import com.android.internal.jank.Cuj
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.Flags.enableLargeDesktopWindowingTile
-import com.android.launcher3.Flags.enableOverviewCommandHelperTimeout
 import com.android.launcher3.PagedView
 import com.android.launcher3.logger.LauncherAtom
 import com.android.launcher3.logging.StatsLogManager
@@ -43,7 +42,6 @@ import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVER
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_OVERVIEW_SHOW_OVERVIEW_FROM_KEYBOARD_SHORTCUT
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.taskbar.TaskbarUIController
-import com.android.launcher3.util.Executors
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.coroutines.DispatcherProvider
 import com.android.launcher3.util.coroutines.ProductionDispatchers
@@ -61,15 +59,15 @@ import com.android.quickstep.views.RecentsView
 import com.android.quickstep.views.TaskView
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.android.systemui.shared.system.InteractionJankMonitorWrapper
-import java.io.PrintWriter
-import java.util.concurrent.ConcurrentLinkedDeque
-import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
+import java.io.PrintWriter
+import java.util.concurrent.ConcurrentLinkedDeque
+import kotlin.coroutines.resume
 
 /** Helper class to handle various atomic commands for switching between Overview. */
 class OverviewCommandHelper
@@ -125,11 +123,7 @@ constructor(
 
         if (commandQueue.size == 1) {
             Log.d(TAG, "execute: $command - queue size: ${commandQueue.size}")
-            if (enableOverviewCommandHelperTimeout()) {
-                coroutineScope.launch(dispatcherProvider.main) { processNextCommand() }
-            } else {
-                Executors.MAIN_EXECUTOR.execute { processNextCommand() }
-            }
+            coroutineScope.launch(dispatcherProvider.main) { processNextCommand() }
         } else {
             Log.d(TAG, "not executed: $command - queue size: ${commandQueue.size}")
         }
@@ -188,24 +182,13 @@ constructor(
             command.status = CommandStatus.PROCESSING
             Log.d(TAG, "executing command: $command")
 
-            if (enableOverviewCommandHelperTimeout()) {
-                coroutineScope.launch(dispatcherProvider.main) {
-                    traceSection("OverviewCommandHelper.executeCommandWithTimeout") {
-                        withTimeout(QUEUE_WAIT_DURATION_IN_MS) {
-                            executeCommandSuspended(command)
-                            ensureActive()
-                            onCommandFinished(command)
-                        }
+            coroutineScope.launch(dispatcherProvider.main) {
+                traceSection("OverviewCommandHelper.executeCommandWithTimeout") {
+                    withTimeout(QUEUE_WAIT_DURATION_IN_MS) {
+                        executeCommandSuspended(command)
+                        ensureActive()
+                        onCommandFinished(command)
                     }
-                }
-            } else {
-                val result =
-                    executeCommand(command, onCallbackResult = { onCommandFinished(command) })
-                Log.d(TAG, "command executed: $command with result: $result")
-                if (result) {
-                    onCommandFinished(command)
-                } else {
-                    Log.d(TAG, "waiting for command callback: $command")
                 }
             }
         }

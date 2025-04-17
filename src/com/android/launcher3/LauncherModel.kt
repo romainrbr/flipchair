@@ -51,7 +51,6 @@ import com.android.launcher3.util.DaggerSingletonTracker
 import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.PackageUserKey
-import com.android.launcher3.util.Preconditions
 import java.io.PrintWriter
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
@@ -239,7 +238,6 @@ constructor(
     /** Removes an existing callback */
     fun removeCallbacks(callbacks: BgDataModel.Callbacks) {
         synchronized(mCallbacksList) {
-            Preconditions.assertUIThread()
             if (mCallbacksList.remove(callbacks)) {
                 if (stopLoader()) {
                     // Rebind existing callbacks
@@ -263,7 +261,6 @@ constructor(
 
     /** Adds a callbacks to receive model updates */
     fun addCallbacks(callbacks: BgDataModel.Callbacks) {
-        Preconditions.assertUIThread()
         synchronized(mCallbacksList) { mCallbacksList.add(callbacks) }
     }
 

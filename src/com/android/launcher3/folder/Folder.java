@@ -1594,6 +1594,11 @@ public class Folder extends AbstractFloatingView implements ClipPathView, DragSo
         return mContent.iterateOverItems((info, view) -> info == item);
     }
 
+    @Override
+    public boolean isContainerSupported(int container) {
+        return container == mInfo.id;
+    }
+
     /**
      * Utility methods to iterate over items of the view
      */

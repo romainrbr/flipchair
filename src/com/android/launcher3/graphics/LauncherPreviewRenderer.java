@@ -95,13 +95,13 @@ import com.android.launcher3.model.LoaderTask.LoaderTaskFactory;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
-import com.android.launcher3.util.dagger.LauncherExecutorsModule;
 import com.android.launcher3.util.BaseContext;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.SandboxContext;
 import com.android.launcher3.util.Themes;
+import com.android.launcher3.util.dagger.LauncherExecutorsModule;
 import com.android.launcher3.util.window.WindowManagerProxy;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
@@ -561,7 +561,7 @@ public class LauncherPreviewRenderer extends BaseContext
             PerDisplayModule.class,
             LauncherConcurrencyModule.class,
             ExecutorsModule.class,
-            LauncherExecutorsModule.class
+            LauncherExecutorsModule.class,
     })
     public interface PreviewAppComponent extends LauncherAppComponent {
 

@@ -289,9 +289,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                         && ((WorkspaceItemInfo) itemInfo).hasStatusFlag(
                         WorkspaceItemInfo.FLAG_SUPPORTS_WEB_UI);
                 boolean isInstantApp = false;
-                if (itemInfo instanceof com.android.launcher3.model.data.AppInfo) {
-                    com.android.launcher3.model.data.AppInfo
-                            appInfo = (com.android.launcher3.model.data.AppInfo) itemInfo;
+                if (itemInfo instanceof com.android.launcher3.model.data.AppInfo appInfo) {
                     isInstantApp = InstantAppResolver.newInstance(
                             originalView.getContext()).isInstantApp(appInfo);
                 }

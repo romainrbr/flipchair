@@ -218,15 +218,15 @@ public class TouchInteractionService extends Service {
         public void onOverviewToggle() {
             TestLogging.recordEvent(TestProtocol.SEQUENCE_MAIN, "onOverviewToggle");
             executeForTouchInteractionService(tis -> {
-                // TODO: update for non-default displays.
+                int displayId = tis.focusedDisplayIdForOverviewOnConnectedDisplays();
                 RecentsAnimationDeviceState deviceState = tis.mDeviceStateRepository.get(
-                        DEFAULT_DISPLAY);
+                        displayId);
                 // If currently screen pinning, do not enter overview
                 if (deviceState != null && deviceState.isScreenPinningActive()) {
                     return;
                 }
                 TaskUtils.closeSystemWindowsAsync(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
-                tis.mOverviewCommandHelper.addCommand(CommandType.TOGGLE, DEFAULT_DISPLAY);
+                tis.mOverviewCommandHelper.addCommand(CommandType.TOGGLE, displayId);
             });
         }
 
@@ -236,12 +236,11 @@ public class TouchInteractionService extends Service {
             executeForTouchInteractionService(tis -> {
                 if (triggeredFromAltTab) {
                     TaskUtils.closeSystemWindowsAsync(CLOSE_SYSTEM_WINDOWS_REASON_RECENTS);
-                    int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
-                            ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
-                            : DEFAULT_DISPLAY;
-                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_ALT_TAB, displayId);
+                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_ALT_TAB,
+                            tis.focusedDisplayIdForAltTabKqsOnConnectedDisplays());
                 } else {
-                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_WITH_FOCUS);
+                    tis.mOverviewCommandHelper.addCommand(CommandType.SHOW_WITH_FOCUS,
+                            tis.focusedDisplayIdForOverviewOnConnectedDisplays());
                 }
             });
         }
@@ -252,9 +251,7 @@ public class TouchInteractionService extends Service {
             executeForTouchInteractionService(tis -> {
                 if (triggeredFromAltTab && !triggeredFromHomeKey) {
                     // onOverviewShownFromAltTab hides the overview and ends at the target app
-                    int displayId = enableAltTabKqsOnConnectedDisplays.isTrue()
-                            ? SystemUiProxy.INSTANCE.get(tis).getFocusState().getFocusedDisplayId()
-                            : DEFAULT_DISPLAY;
+                    int displayId = tis.focusedDisplayIdForAltTabKqsOnConnectedDisplays();
                     tis.mOverviewCommandHelper.addCommand(CommandType.HIDE_ALT_TAB, displayId);
                 }
             });
@@ -1360,6 +1357,19 @@ public class TouchInteractionService extends Service {
                 taskAnimationManager.isRecentsAnimationRunning(),
                 mInputConsumer, MSDLPlayerWrapper.INSTANCE.get(this));
     }
+
+    private int focusedDisplayIdForOverviewOnConnectedDisplays() {
+        return enableOverviewOnConnectedDisplays()
+                ? SystemUiProxy.INSTANCE.get(this).getFocusState().getFocusedDisplayId()
+                : DEFAULT_DISPLAY;
+    }
+
+    private int focusedDisplayIdForAltTabKqsOnConnectedDisplays() {
+        return enableAltTabKqsOnConnectedDisplays.isTrue()
+                ? SystemUiProxy.INSTANCE.get(this).getFocusState().getFocusedDisplayId()
+                : DEFAULT_DISPLAY;
+    }
+
 
     /**
      * Helper class that keeps track of external displays and prepares input monitors for each.

@@ -367,9 +367,14 @@ public abstract class LauncherState implements BaseState<LauncherState> {
         return 0f;
     }
 
-    /** @return {@code true} if the workspace should be blurred alongside wallpaper depth. */
-    public boolean shouldBlurWorkspace() {
-        return false;
+    /**
+     * Returns whether the workspace should be blurred alongside wallpaper depth.
+     *
+     * @param targetState - The target state if a transition is in progress, or current state
+     * @return {@code true} if the workspace should be blurred alongside wallpaper depth.
+     */
+    public boolean shouldBlurWorkspace(LauncherState targetState) {
+        return targetState == ALL_APPS;
     }
 
     public String getDescription(Launcher launcher) {

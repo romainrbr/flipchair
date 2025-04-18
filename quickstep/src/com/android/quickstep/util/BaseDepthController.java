@@ -30,6 +30,7 @@ import android.view.AttachedSurfaceControl;
 import android.view.SurfaceControl;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
@@ -258,19 +259,22 @@ public class BaseDepthController {
         blurWorkspaceDepthTargets();
     }
 
-    private void blurWorkspaceDepthTargets() {
+    /** @return {@code true} if the workspace should be blurred. */
+    @VisibleForTesting
+    public boolean blurWorkspaceDepthTargets() {
         if (!Flags.allAppsBlur()) {
-            return;
+            return false;
         }
         StateManager<LauncherState, Launcher> stateManager = mLauncher.getStateManager();
-        // Only blur workspace if the current or target state want it blurred.
-        boolean shouldBlurWorkspace = stateManager.getCurrentStableState().shouldBlurWorkspace()
-                || stateManager.getState().shouldBlurWorkspace();
+        // Only blur workspace if the current state wants to blur based on the target state.
+        boolean shouldBlurWorkspace =
+                stateManager.getCurrentStableState().shouldBlurWorkspace(stateManager.getState());
         // If blur is not desired, apply 0 blur to force reset.
         int blurRadius = shouldBlurWorkspace ? mCurrentBlur : 0;
         RenderEffect blurEffect =
                 RenderEffect.createBlurEffect(blurRadius, blurRadius, Shader.TileMode.DECAL);
         mLauncher.getDepthBlurTargets().forEach(target -> target.setRenderEffect(blurEffect));
+        return shouldBlurWorkspace;
     }
 
     private void setDepth(float depth) {

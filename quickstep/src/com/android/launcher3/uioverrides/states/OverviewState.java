@@ -171,11 +171,6 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public boolean detachDesktopCarousel() {
-        return false;
-    }
-
-    @Override
     public boolean showExplodedDesktopView() {
         return enableDesktopExplodedView();
     }
@@ -216,11 +211,6 @@ public class OverviewState extends LauncherState {
         } else {
             return SystemProperties.getBoolean("ro.launcher.depth.overview", true) ? 1 : 0;
         }
-    }
-
-    @Override
-    public boolean shouldBlurWorkspace() {
-        return false;
     }
 
     @Override

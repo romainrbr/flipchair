@@ -149,6 +149,11 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
+    public boolean shouldBlurWorkspace() {
+        return true;
+    }
+
+    @Override
     public PageAlphaProvider getWorkspacePageAlphaProvider(Launcher launcher) {
         PageAlphaProvider superPageAlphaProvider = super.getWorkspacePageAlphaProvider(launcher);
         return new PageAlphaProvider(DECELERATE_2) {
@@ -195,12 +200,6 @@ public class AllAppsState extends LauncherState {
     public boolean shouldFloatingSearchBarUsePillWhenUnfocused(Launcher launcher) {
         DeviceProfile dp = launcher.getDeviceProfile();
         return dp.isPhone && !dp.isLandscape;
-    }
-
-    @Override
-    public LauncherState getHistoryForState(LauncherState previousState) {
-        return previousState == BACKGROUND_APP ? QUICK_SWITCH_FROM_HOME
-                : previousState == OVERVIEW ? OVERVIEW : NORMAL;
     }
 
     @Override

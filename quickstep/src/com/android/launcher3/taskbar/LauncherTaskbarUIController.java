@@ -133,10 +133,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
         }
 
         mHomeState.addListener(mVisibilityChangeListener);
-        onLauncherVisibilityChanged(
-                Flags.useActivityOverlay()
-                        ? mHomeState.isHomeVisible() : mLauncher.hasBeenResumed(),
-                true /* fromInit */);
+        onLauncherVisibilityChanged(mHomeState.isHomeVisible(), true /* fromInit */);
 
         onStashedInAppChanged(mLauncher.getDeviceProfile());
         mLauncher.addOnDeviceProfileChangeListener(mOnDeviceProfileChangeListener);
@@ -295,8 +292,7 @@ public class LauncherTaskbarUIController extends TaskbarUIController {
 
     @Override
     public void refreshResumedState() {
-        onLauncherVisibilityChanged(Flags.useActivityOverlay()
-                ? mHomeState.isHomeVisible() : mLauncher.hasBeenResumed());
+        onLauncherVisibilityChanged(mHomeState.isHomeVisible());
     }
 
     @Override

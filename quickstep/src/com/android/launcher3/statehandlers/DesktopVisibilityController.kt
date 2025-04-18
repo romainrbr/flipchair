@@ -25,6 +25,7 @@ import android.window.DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_WALLPAPER_ACTIVI
 import androidx.core.util.forEach
 import com.android.internal.util.LatencyTracker
 import com.android.launcher3.LauncherState
+import com.android.launcher3.R
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton
@@ -605,10 +606,11 @@ constructor(
 
         val isInDesk = isInDesktopMode(displayId)
         if (wasInDesk != isInDesk) {
+            val duration = context.resources.getInteger(R.integer.to_desktop_animation_duration_ms)
             if (isInDesk) {
-                notifyTaskbarDesktopModeListenersForEntry(336)
+                notifyTaskbarDesktopModeListenersForEntry(duration)
             } else {
-                notifyTaskbarDesktopModeListenersForExit(336)
+                notifyTaskbarDesktopModeListenersForExit(duration)
             }
         }
     }

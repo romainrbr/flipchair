@@ -26,7 +26,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllers
-import com.android.launcher3.taskbar.TaskbarManager
+import com.android.launcher3.taskbar.TaskbarManagerImpl
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks
 import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
@@ -79,7 +79,7 @@ class TaskbarUnitTestRule(
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
-    private lateinit var taskbarManager: TaskbarManager
+    private lateinit var taskbarManager: TaskbarManagerImpl
 
     val activityContext: TaskbarActivityContext
         get() {
@@ -107,7 +107,7 @@ class TaskbarUnitTestRule(
                 taskbarManager =
                     TestUtil.getOnUiThread {
                         object :
-                            TaskbarManager(
+                            TaskbarManagerImpl(
                                 context,
                                 AllAppsActionManager(
                                     context,

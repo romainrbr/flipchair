@@ -155,10 +155,8 @@ public class SecondaryDropTarget extends ButtonDropTarget implements OnAlarmList
             }
             return INVALID;
         } else if (info.isPredictedItem()) {
-            if (Flags.enableShortcutDontSuggestApp()) {
-                return INVALID;
-            }
-            return DISMISS_PREDICTION;
+            // For predicted apps we show only one drop target "cancel" and no secondary drop target
+            return INVALID;
         }
 
         Boolean uninstallDisabled = mUninstallDisabledCache.get(info.user);

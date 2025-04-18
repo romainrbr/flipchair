@@ -74,7 +74,7 @@ object InputConsumerUtils {
         event: MotionEvent,
         rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
-        val tac = taskbarManager.currentActivityContext
+        val tac = taskbarManager.getCurrentActivityContext()
         val bubbleControllers = tac?.bubbleControllers
         if (bubbleControllers != null && BubbleBarInputConsumer.isEventOnBubbles(tac, event)) {
             val consumer: InputConsumer =
@@ -552,12 +552,11 @@ object InputConsumerUtils {
             container.isResumed() && !previousGestureState.isRecentsAnimationRunning
         // If a task fragment within Launcher is resumed
         val launcherChildActivityResumed =
-            (com.android.launcher3.Flags.useActivityOverlay() &&
-                runningTask != null &&
+            runningTask != null &&
                 runningTask.isHomeTask &&
                 !previousGestureState.isRecentsAnimationRunning &&
                 overviewComponentObserver.isHomeAndOverviewSame &&
-                container.isLauncherOverlayShowing)
+                container.isLauncherOverlayShowing
 
         return if (container.isInLiveTileMode()) {
             createOverviewInputConsumer<S, T>(

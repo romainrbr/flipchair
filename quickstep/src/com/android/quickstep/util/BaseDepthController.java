@@ -231,27 +231,30 @@ public class BaseDepthController {
         if (transaction == null) {
             transaction = createTransaction();
         }
-        transaction.setBackgroundBlurRadius(blurSurface, mCurrentBlur)
-                .setOpaque(blurSurface, isSurfaceOpaque);
+        final SurfaceControl.Transaction finalTransaction = transaction;
+        try (finalTransaction) {
+            finalTransaction.setBackgroundBlurRadius(blurSurface, mCurrentBlur)
+                    .setOpaque(blurSurface, isSurfaceOpaque);
 
-        // Set early wake-up flags when we know we're executing an expensive operation, this way
-        // SurfaceFlinger will adjust its internal offsets to avoid jank.
-        boolean wantsEarlyWakeUp = depth > 0 && depth < 1;
-        if (wantsEarlyWakeUp && !mInEarlyWakeUp) {
-            transaction.setEarlyWakeupStart(mEarlyWakeupInfo);
-            mInEarlyWakeUp = true;
-        } else if (!wantsEarlyWakeUp && mInEarlyWakeUp) {
-            transaction.setEarlyWakeupEnd(mEarlyWakeupInfo);
-            mInEarlyWakeUp = false;
-        }
+            // Set early wake-up flags when we know we're executing an expensive operation, this way
+            // SurfaceFlinger will adjust its internal offsets to avoid jank.
+            boolean wantsEarlyWakeUp = depth > 0 && depth < 1;
+            if (wantsEarlyWakeUp && !mInEarlyWakeUp) {
+                finalTransaction.setEarlyWakeupStart(mEarlyWakeupInfo);
+                mInEarlyWakeUp = true;
+            } else if (!wantsEarlyWakeUp && mInEarlyWakeUp) {
+                finalTransaction.setEarlyWakeupEnd(mEarlyWakeupInfo);
+                mInEarlyWakeUp = false;
+            }
 
-        if (applyImmediately) {
-            transaction.apply();
-        } else {
-            AttachedSurfaceControl rootSurfaceControl =
-                    mLauncher.getRootView().getRootSurfaceControl();
-            if (rootSurfaceControl != null) {
-                rootSurfaceControl.applyTransactionOnDraw(transaction);
+            if (applyImmediately) {
+                finalTransaction.apply();
+            } else {
+                AttachedSurfaceControl rootSurfaceControl =
+                        mLauncher.getRootView().getRootSurfaceControl();
+                if (rootSurfaceControl != null) {
+                    rootSurfaceControl.applyTransactionOnDraw(finalTransaction);
+                }
             }
         }
 

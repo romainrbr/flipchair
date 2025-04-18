@@ -130,7 +130,7 @@ public final class TaskbarOverlayController {
      */
     public TaskbarOverlayContext requestWindow() {
         if (mOverlayContext == null) {
-            mOverlayContext = new TaskbarOverlayContext(
+            mOverlayContext = TaskbarOverlayContextFactory.newInstance(mWindowContext).create(
                     mWindowContext, mTaskbarContext, mControllers);
         }
 

@@ -153,7 +153,7 @@ public class BaseDepthController {
     }
 
     public void pauseBlursOnWindows(boolean pause) {
-        if (pause == mPauseBlurs) {
+        if (mPauseBlurs == pause) {
             return;
         }
         mPauseBlurs = pause;

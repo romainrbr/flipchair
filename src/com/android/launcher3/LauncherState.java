@@ -447,7 +447,11 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     }
 
     /** Called when predictive back gesture is started. */
-    public void onBackStarted(Launcher launcher) {}
+    public void onBackStarted(Launcher launcher) {
+        StateManager<LauncherState, Launcher> lsm = launcher.getStateManager();
+        LauncherState toState = lsm.getLastState();
+        lsm.onBackStarted(toState);
+    }
 
     /**
      * Called when back action is invoked. This can happen when:

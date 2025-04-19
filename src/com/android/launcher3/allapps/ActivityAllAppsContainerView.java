@@ -316,13 +316,9 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
         };
 
         if (Flags.allAppsBlur()) {
-            int overBlurBaseColor = getContext().getColor(Utilities.isDarkTheme(getContext())
-                            ? android.R.color.system_accent1_800
-                            : android.R.color.system_accent1_100);
-            int layerAbove = ColorUtils.setAlphaComponent(overBlurBaseColor, (int) (0.4f * 255));
-            int layerBelow = ColorUtils.setAlphaComponent(Color.WHITE, (int) (0.1f * 255));
-            mBottomSheetBackgroundColorOverBlur = ColorUtils.compositeColors(layerAbove,
-                    layerBelow);
+            int layerFg = getContext().getColor(R.color.blur_shade_panel_fg);
+            int layerBg = getContext().getColor(R.color.blur_shade_panel_bg);
+            mBottomSheetBackgroundColorOverBlur = ColorUtils.compositeColors(layerFg, layerBg);
             mBottomSheetBackgroundColorBlurFallback = getContext().getColor(
                     Utilities.isDarkTheme(getContext()) ? android.R.color.system_accent1_800
                             : android.R.color.system_accent2_100);

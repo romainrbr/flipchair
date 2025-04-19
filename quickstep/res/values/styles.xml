@@ -381,7 +381,7 @@
     </style>
 
     <style name="BlurStyle">
-        <item name="allAppsScrimColor">@color/all_apps_blur_scrim</item>
+        <item name="allAppsScrimColor">@androidprv:color/shade_panel_scrim_color</item>
         <item name="groupHighlight">@androidprv:color/surface_effect_1</item>
         <item name="allAppsSurfaceLow">@androidprv:color/surface_effect_0</item>
         <item name="allAppsSurfaceHighest">@androidprv:color/surface_effect_2</item>

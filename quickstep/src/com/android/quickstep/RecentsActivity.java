@@ -243,6 +243,11 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     }
 
     @Override
+    public SplitSelectStateController getSplitSelectStateController() {
+        return mSplitSelectStateController;
+    }
+
+    @Override
     public FallbackRecentsView getOverviewPanel() {
         return mFallbackRecentsView;
     }

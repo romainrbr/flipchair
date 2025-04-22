@@ -33,6 +33,7 @@ import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimView;
 import com.android.quickstep.BaseContainerInterface;
+import com.android.quickstep.util.SplitSelectStateController;
 
 /**
  * Interface to be implemented by the parent view of RecentsView
@@ -204,4 +205,9 @@ public interface RecentsViewContainer extends ActivityContext {
     void setTaskbarUIController(@Nullable TaskbarUIController taskbarUIController);
 
     @Nullable TaskbarUIController getTaskbarUIController();
+
+    /**
+     * Returns the Split Select State Controller
+     */
+    SplitSelectStateController getSplitSelectStateController();
 }

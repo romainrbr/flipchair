@@ -1708,7 +1708,7 @@ public abstract class RecentsView<
     protected void onPageEndTransition() {
         super.onPageEndTransition();
         ActiveGestureProtoLogProxy.logOnPageEndTransition(getNextPage());
-        if (isClearAllHidden() && !mContainer.getDeviceProfile().isTablet) {
+        if (!mContainer.getDeviceProfile().isTablet) {
             mActionsView.updateDisabledFlags(OverviewActionsView.DISABLED_SCROLLING, false);
         }
         if (getNextPage() > 0) {
@@ -4241,7 +4241,7 @@ public abstract class RecentsView<
                         // Update various scroll-dependent UI.
                         dispatchScrollChanged();
                         updateActionsViewFocusedScroll();
-                        if (isClearAllHidden() && !mContainer.getDeviceProfile().isTablet) {
+                        if (!mContainer.getDeviceProfile().isTablet) {
                             mActionsView.updateDisabledFlags(OverviewActionsView.DISABLED_SCROLLING,
                                     false);
                         }

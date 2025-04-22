@@ -1218,6 +1218,11 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
         } else {
             taskbarWindowSize = deviceProfile.taskbarHeight + deviceProfile.getTaskbarOffsetY();
         }
+        if (mBubbleControllers != null) {
+            int bubbleBarMaxHeight = mBubbleControllers.bubbleBarViewController
+                    .getBubbleBarWithFlyoutMaximumHeight();
+            taskbarWindowSize = Math.max(taskbarWindowSize, bubbleBarMaxHeight);
+        }
         mActivity.setTaskbarWindowSize(taskbarWindowSize);
         mTaskbarNavButtonTranslationY.updateValue(-deviceProfile.getTaskbarOffsetY());
     }

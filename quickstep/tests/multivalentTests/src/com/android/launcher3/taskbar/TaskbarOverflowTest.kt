@@ -26,6 +26,7 @@ import android.platform.test.flag.junit.SetFlagsRule
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.BubbleTextView
+import com.android.launcher3.Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING
 import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
 import com.android.launcher3.Flags.FLAG_TASKBAR_OVERFLOW
 import com.android.launcher3.R
@@ -354,6 +355,7 @@ class TaskbarOverflowTest {
 
     @Test
     @TaskbarMode(PINNED)
+    @DisableFlags(FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     fun testPressingOverflowButtonOpensKeyboardQuickSwitch() {
         val maxNumIconViews = maxNumberOfTaskbarIcons
         // Assume there are at least all apps and divider icon, as they would appear once running
@@ -413,6 +415,7 @@ class TaskbarOverflowTest {
 
     @Test
     @TaskbarMode(PINNED)
+    @DisableFlags(FLAG_ENABLE_ALT_TAB_KQS_FLATENNING)
     fun testHotseatItemTasksNotShownInKQS() {
         val maxNumIconViews = maxNumberOfTaskbarIcons
         // Assume there are at least all apps and divider icon, as they would appear once running

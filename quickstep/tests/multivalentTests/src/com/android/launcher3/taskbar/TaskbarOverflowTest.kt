@@ -23,7 +23,6 @@ import android.os.Process
 import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
-import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
@@ -36,10 +35,12 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut
+import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.runOnMainSync
 import com.android.launcher3.taskbar.TaskbarViewTestUtil.createHotseatItems
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController
+import com.android.launcher3.taskbar.rules.DesktopVisibilityControllerModule
 import com.android.launcher3.taskbar.rules.DisplayControllerModule
 import com.android.launcher3.taskbar.rules.MockedRecentsModelHelper
 import com.android.launcher3.taskbar.rules.MockedRecentsModelTestRule
@@ -128,6 +129,9 @@ class TaskbarOverflowTest {
     @InjectController lateinit var bubbleStashController: BubbleStashController
     @InjectController lateinit var keyboardQuickSwitchController: KeyboardQuickSwitchController
 
+    private val desktopVisibilityController: DesktopVisibilityController
+        get() = DesktopVisibilityController.INSTANCE[context]
+
     private var desktopTaskListener: IDesktopTaskListener? = null
     private val modelCallback = ModelCallbacks()
 
@@ -157,6 +161,7 @@ class TaskbarOverflowTest {
 
     @Before
     fun ensureRunningAppsShowing() {
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
         runOnMainSync { recentsModel.resolvePendingTaskRequests() }
     }
 
@@ -586,12 +591,10 @@ class TaskbarOverflowTest {
                 )
             })
 
-        recentsModel.updateRecentTasks(listOf(DesktopTask(deskId = 0, DEFAULT_DISPLAY, tasks)))
+        val displayId = context.virtualDisplay.display.displayId
+        recentsModel.updateRecentTasks(listOf(DesktopTask(deskId = 0, displayId, tasks)))
         for (task in 1..tasks.size) {
-            desktopTaskListener?.onTasksVisibilityChanged(
-                context.virtualDisplay.display.displayId,
-                task,
-            )
+            desktopTaskListener?.onTasksVisibilityChanged(displayId, task)
         }
         runOnMainSync { recentsModel.resolvePendingTaskRequests() }
     }
@@ -716,7 +719,13 @@ class TaskbarOverflowTest {
 /** TaskbarOverflowComponent used to bind the RecentsModel. */
 @LauncherAppSingleton
 @Component(
-    modules = [AllModulesForTest::class, FakePrefsModule::class, DisplayControllerModule::class]
+    modules =
+        [
+            AllModulesForTest::class,
+            FakePrefsModule::class,
+            DisplayControllerModule::class,
+            DesktopVisibilityControllerModule::class,
+        ]
 )
 interface TaskbarOverflowComponent : TaskbarSandboxComponent {
 

@@ -505,7 +505,9 @@ public class BubbleBarController extends IBubblesListener.Stub {
         }
         if (update.expandedChanged) {
             if (update.expanded != mBubbleBarViewController.isExpanded()) {
-                mBubbleBarViewController.setExpandedFromSysui(update.expanded);
+                // If we start as expanded, show bar immediately without waiting for animation.
+                boolean animate = !update.initialState;
+                mBubbleBarViewController.setExpandedFromSysui(update.expanded, animate);
             } else {
                 Log.w(TAG, "expansion was changed but is the same");
             }

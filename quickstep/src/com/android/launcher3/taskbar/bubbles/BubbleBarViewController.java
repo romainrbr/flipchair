@@ -1298,15 +1298,25 @@ public class BubbleBarViewController {
      * Sets whether the bubble bar should be expanded. This method is used in response to UI events
      * from SystemUI.
      */
-    public void setExpandedFromSysui(boolean isExpanded) {
+    public void setExpandedFromSysui(boolean isExpanded, boolean animate) {
         if (isNewBubbleAnimationRunningOrPending() && isExpanded) {
             mBubbleBarViewAnimator.expandedWhileAnimating();
             return;
         }
-        if (!isExpanded) {
-            mBubbleStashController.stashBubbleBar();
+        if (animate) {
+            if (!isExpanded) {
+                mBubbleStashController.stashBubbleBar();
+            } else {
+                mBubbleStashController.showBubbleBar(true /* expand the bubbles */);
+            }
         } else {
-            mBubbleStashController.showBubbleBar(true /* expand the bubbles */);
+            if (!isExpanded) {
+                mBubbleStashController.stashBubbleBarImmediate();
+            } else {
+                mBubbleStashController.showBubbleBarImmediate();
+                mBarView.setExpanded(true);
+                adjustTaskbarAndHotseatToBubbleBarState(true);
+            }
         }
     }
 

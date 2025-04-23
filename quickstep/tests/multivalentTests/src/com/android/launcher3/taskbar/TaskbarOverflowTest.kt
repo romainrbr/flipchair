@@ -32,6 +32,8 @@ import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.model.BgDataModel
+import com.android.launcher3.model.BgDataModel.FixedContainerItems
+import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -56,6 +58,7 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.FakePrefsModule
+import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.Preconditions.assertNotNull
@@ -571,7 +574,7 @@ class TaskbarOverflowTest {
         taskbarView.updateItems(hotseatItems, recentAppsController.shownTasks)
         modelCallback.recentAppsController = recentAppsController
         context.baseContext.appComponent.launcherAppState.model.addCallbacksAndLoad(modelCallback)
-        modelCallback.bindItems(hotseatItems.toList(), false)
+        modelCallback.bindItemsAdded(hotseatItems.toList())
         return taskbarView
     }
 
@@ -694,9 +697,16 @@ class TaskbarOverflowTest {
         var hotseatItems = mutableListOf<WorkspaceItemInfo>()
         var recentAppsController: TaskbarRecentAppsController? = null
 
-        override fun bindItems(shortcuts: List<ItemInfo>, forceAnimateIcons: Boolean) {
+        override fun bindCompleteModel(
+            itemIdMap: IntSparseArrayMap<ItemInfo>,
+            extraItems: MutableList<FixedContainerItems>,
+            stringCache: StringCache,
+            isBindingSync: Boolean,
+        ) = bindItemsAdded(itemIdMap.toList())
+
+        override fun bindItemsAdded(items: List<ItemInfo>) {
             runOnMainSync {
-                shortcuts
+                items
                     .filter { item ->
                         item is WorkspaceItemInfo &&
                             !hotseatItems.any { it.targetPackage == item.targetPackage }

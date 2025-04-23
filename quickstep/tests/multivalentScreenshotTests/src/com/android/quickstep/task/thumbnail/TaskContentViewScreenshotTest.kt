@@ -23,9 +23,11 @@ import android.view.LayoutInflater
 import com.android.launcher3.Flags
 import com.android.launcher3.R
 import com.android.launcher3.util.rule.setFlags
+import com.android.quickstep.task.apptimer.TaskAppTimerUiState
 import com.android.quickstep.task.thumbnail.SplashHelper.createSplash
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.BackgroundOnly
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
+import java.time.Duration
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -56,6 +58,7 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             true,
             Flags.FLAG_ENABLE_REFACTOR_TASK_THUMBNAIL,
             Flags.FLAG_ENABLE_REFACTOR_TASK_CONTENT_VIEW,
+            Flags.FLAG_ENABLE_REFACTOR_DIGITAL_WELLBEING_TOAST,
         )
     }
 
@@ -70,6 +73,7 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             taskContentView.setState(
                 TaskHeaderUiState.HideHeader,
                 BackgroundOnly(Color.YELLOW),
+                TIMER_UI_STATE,
                 null,
             )
             taskContentView.onRecycle()
@@ -93,6 +97,7 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
                         ) {}
                     ),
                     BackgroundOnly(Color.YELLOW),
+                    NO_TIMER_UI_STATE,
                     null,
                 )
             }
@@ -109,7 +114,12 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             createTaskContentView(activity).apply {
                 scaleX = 0.75f
                 scaleY = 0.3f
-                setState(TaskHeaderUiState.HideHeader, BackgroundOnly(Color.YELLOW), null)
+                setState(
+                    TaskHeaderUiState.HideHeader,
+                    BackgroundOnly(Color.YELLOW),
+                    NO_TIMER_UI_STATE,
+                    null,
+                )
             }
         }
     }
@@ -133,5 +143,14 @@ class TaskContentViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
             )
 
         const val CORNER_RADIUS = 56f
+
+        private val TIMER_UI_STATE =
+            TaskAppTimerUiState.Timer(
+                timeRemaining = Duration.ofHours(2).plusMinutes(20L),
+                taskDescription = "test",
+                taskPackageName = "com.test",
+                accessibilityActionId = R.id.action_digital_wellbeing_top_left,
+            )
+        private val NO_TIMER_UI_STATE = TaskAppTimerUiState.NoTimer(taskDescription = "test")
     }
 }

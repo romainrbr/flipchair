@@ -7003,11 +7003,11 @@ public abstract class RecentsView<
      * spring in response to the perceived impact of the settling task.
      */
     public SpringAnimation runTaskDismissSettlingSpringAnimation(TaskView draggedTaskView,
-            float velocity, boolean isDismissing, int dismissThreshold, float finalPosition,
-            boolean shouldRemoveTaskView, boolean isSplitSelection,
+            float velocity, boolean isDismissing, int dismissLength, int dismissThreshold,
+            float finalPosition, boolean shouldRemoveTaskView, boolean isSplitSelection,
             @NonNull Function0<Unit> onEndRunnable) {
         return mDismissUtils.createTaskDismissSettlingSpringAnimation(draggedTaskView, velocity,
-                isDismissing, dismissThreshold, finalPosition, shouldRemoveTaskView,
+                isDismissing, dismissLength, dismissThreshold, finalPosition, shouldRemoveTaskView,
                 isSplitSelection, onEndRunnable);
     }
 

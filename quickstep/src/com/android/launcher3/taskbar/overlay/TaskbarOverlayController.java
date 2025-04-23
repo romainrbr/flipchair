@@ -26,8 +26,6 @@ import static com.android.launcher3.LauncherState.ALL_APPS;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.gui.EarlyWakeupInfo;
-import android.os.Binder;
 import android.util.Log;
 import android.view.AttachedSurfaceControl;
 import android.view.CrossWindowBlurListeners;
@@ -101,10 +99,6 @@ public final class TaskbarOverlayController {
     private TaskbarControllers mControllers; // Initialized in init.
     // True if we have alerted surface flinger of an expensive call for blur.
     private boolean mInEarlyWakeUp;
-        /**
-     * Token for early wakeup requests to SurfaceFlinger.
-     */
-    private EarlyWakeupInfo mEarlyWakeupInfo = new EarlyWakeupInfo();
 
     public TaskbarOverlayController(
             TaskbarActivityContext taskbarContext, DeviceProfile launcherDeviceProfile) {
@@ -115,8 +109,6 @@ public final class TaskbarOverlayController {
         mLauncherDeviceProfile = launcherDeviceProfile;
         mMaxBlurRadius = mTaskbarContext.getResources().getDimensionPixelSize(
                 R.dimen.max_depth_blur_radius_enhanced);
-        mEarlyWakeupInfo.token = new Binder();
-        mEarlyWakeupInfo.trace = TaskbarOverlayController.class.getName();
     }
 
     /** Initialize the controller. */
@@ -274,14 +266,12 @@ public final class TaskbarOverlayController {
             // SurfaceFlinger will adjust its internal offsets to avoid jank.
             boolean wantsEarlyWakeUp = radius > 0 && radius < mMaxBlurRadius;
             if (wantsEarlyWakeUp && !mInEarlyWakeUp) {
-                Log.d(TAG, "setBackgroundBlurRadius: setting early wakeup with token "
-                                                    + mEarlyWakeupInfo);
-                transaction.setEarlyWakeupStart(mEarlyWakeupInfo);
+                Log.d(TAG, "setBackgroundBlurRadius: setting early wakeup with token ");
+                transaction.setEarlyWakeupStart();
                 mInEarlyWakeUp = true;
             } else if (!wantsEarlyWakeUp && mInEarlyWakeUp) {
-                Log.d(TAG, "setBackgroundBlurRadius: clearing early wakeup with token "
-                                                    + mEarlyWakeupInfo);
-                transaction.setEarlyWakeupEnd(mEarlyWakeupInfo);
+                Log.d(TAG, "setBackgroundBlurRadius: clearing early wakeup with token ");
+                transaction.setEarlyWakeupEnd();
                 mInEarlyWakeUp = false;
             }
 

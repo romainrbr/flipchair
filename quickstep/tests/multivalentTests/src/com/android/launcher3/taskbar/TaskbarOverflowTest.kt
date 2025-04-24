@@ -27,11 +27,12 @@ import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.BubbleTextView
 import com.android.launcher3.Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING
 import com.android.launcher3.Flags.FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR
-import com.android.launcher3.Flags.FLAG_TASKBAR_OVERFLOW
 import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.model.BgDataModel
+import com.android.launcher3.model.BgDataModel.FixedContainerItems
+import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.TaskItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
@@ -56,6 +57,7 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
 import com.android.launcher3.util.AllModulesForTest
 import com.android.launcher3.util.FakePrefsModule
+import com.android.launcher3.util.IntSparseArrayMap
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.launcher3.util.Preconditions.assertNotNull
@@ -70,6 +72,7 @@ import com.android.systemui.shared.recents.model.Task
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_MODE
 import com.android.window.flags.Flags.FLAG_ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS
 import com.android.window.flags.Flags.FLAG_ENABLE_PINNING_APP_WITH_CONTEXT_MENU
+import com.android.window.flags.Flags.FLAG_ENABLE_TASKBAR_OVERFLOW
 import com.android.wm.shell.Flags.FLAG_ENABLE_BUBBLE_BAR
 import com.android.wm.shell.desktopmode.IDesktopTaskListener
 import com.google.common.truth.Truth.assertThat
@@ -88,10 +91,10 @@ import org.mockito.kotlin.whenever
 @RunWith(LauncherMultivalentJUnit::class)
 @EmulatedDevices(["pixelTablet2023"])
 @EnableFlags(
-    FLAG_TASKBAR_OVERFLOW,
     FLAG_ENABLE_DESKTOP_WINDOWING_TASKBAR_RUNNING_APPS,
     FLAG_ENABLE_DESKTOP_WINDOWING_MODE,
     FLAG_ENABLE_BUBBLE_BAR,
+    FLAG_ENABLE_TASKBAR_OVERFLOW,
 )
 @DisableFlags(FLAG_ENABLE_MULTI_INSTANCE_MENU_TASKBAR)
 class TaskbarOverflowTest {
@@ -571,7 +574,7 @@ class TaskbarOverflowTest {
         taskbarView.updateItems(hotseatItems, recentAppsController.shownTasks)
         modelCallback.recentAppsController = recentAppsController
         context.baseContext.appComponent.launcherAppState.model.addCallbacksAndLoad(modelCallback)
-        modelCallback.bindItems(hotseatItems.toList(), false)
+        modelCallback.bindItemsAdded(hotseatItems.toList())
         return taskbarView
     }
 
@@ -694,9 +697,16 @@ class TaskbarOverflowTest {
         var hotseatItems = mutableListOf<WorkspaceItemInfo>()
         var recentAppsController: TaskbarRecentAppsController? = null
 
-        override fun bindItems(shortcuts: List<ItemInfo>, forceAnimateIcons: Boolean) {
+        override fun bindCompleteModel(
+            itemIdMap: IntSparseArrayMap<ItemInfo>,
+            extraItems: MutableList<FixedContainerItems>,
+            stringCache: StringCache,
+            isBindingSync: Boolean,
+        ) = bindItemsAdded(itemIdMap.toList())
+
+        override fun bindItemsAdded(items: List<ItemInfo>) {
             runOnMainSync {
-                shortcuts
+                items
                     .filter { item ->
                         item is WorkspaceItemInfo &&
                             !hotseatItems.any { it.targetPackage == item.targetPackage }

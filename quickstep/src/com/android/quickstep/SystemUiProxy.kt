@@ -143,6 +143,10 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     private var desktopTaskListener: IDesktopTaskListener? = null
     private val remoteTransitions = LinkedHashMap<RemoteTransition, TransitionFilter>()
 
+    // Save bubble bar state in case service is not bound yet when it is updated. SysUI relies on
+    // this to suppress the floating bubbles UI.
+    private var hasBubbleBar = false
+
     private val stateChangeCallbacks: MutableList<Runnable> = ArrayList()
 
     private var originalTransactionToken: IBinder? = null
@@ -264,6 +268,7 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
         this.unfoldAnimation = if (Flags.enableUnfoldStateAnimation()) null else unfoldAnimation
         this.dragAndDrop = dragAndDrop
         linkToDeath()
+        setHasBubbleBar(hasBubbleBar)
         // re-attach the listeners once missing due to setProxy has not been initialized yet.
         setPipAnimationListener(pipAnimationListener)
         setBubblesListener(bubblesListener)
@@ -559,6 +564,14 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     //
     // Bubbles
     //
+    /** Tells SysUI whether bubble bar is used or not. */
+    fun setHasBubbleBar(hasBubbleBar: Boolean) {
+        executeWithErrorLog({ "Failed call setHasBubbleBar" }) {
+            bubbles?.setHasBubbleBar(hasBubbleBar)
+        }
+        this.hasBubbleBar = hasBubbleBar
+    }
+
     /** Sets the listener to be notified of bubble state changes. */
     fun setBubblesListener(listener: IBubblesListener?) {
         executeWithErrorLog({ "Failed call registerBubblesListener" }) {
@@ -695,13 +708,6 @@ class SystemUiProxy @Inject constructor(@ApplicationContext private val context:
     fun moveDraggedBubbleToFullscreen(key: String, dropLocation: Point) {
         executeWithErrorLog({ "Failed to call moveDraggedBubbleToFullscreen" }) {
             bubbles?.moveDraggedBubbleToFullscreen(key, dropLocation)
-        }
-    }
-
-    /** Tells SysUI whether bubble bar is used or not. */
-    fun setHasBubbleBar(hasBubbleBar: Boolean) {
-        executeWithErrorLog({ "Failed call setHasBubbleBar" }) {
-            bubbles?.setHasBubbleBar(hasBubbleBar)
         }
     }
 

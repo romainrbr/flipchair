@@ -179,6 +179,8 @@ public class BubbleBarController extends IBubblesListener.Stub {
     public void onDestroy() {
         mSystemUiProxy.setBubblesListener(null);
         // Saves bubble bar state
+        mSharedState.bubbleBarExpanded = mBubbleBarViewController.isExpanded();
+        mSharedState.selectedBubbleKey = mSelectedBubble != null ? mSelectedBubble.getKey() : null;
         BubbleInfo[] bubbleInfoItems = new BubbleInfo[mBubbles.size()];
         mBubbles.values().forEach(bubbleBarBubble -> {
             int index = mBubbleBarViewController.bubbleViewIndex(bubbleBarBubble.getView());
@@ -298,6 +300,14 @@ public class BubbleBarController extends IBubblesListener.Stub {
         }
         restoreSavedBubbles(sharedState.bubbleInfoItems);
         restoreSuppressed(sharedState.suppressedBubbleInfoItems);
+        setSelectedBubbleInternal(mBubbles.get(sharedState.selectedBubbleKey));
+        if (sharedState.bubbleBarExpanded) {
+            // We don't want state restore to have side effects which update the Shell state.
+            // Use the method for setting expanded state from sysui as that won't trigger an
+            // update back to Shell.
+            mBubbleBarViewController.setExpandedFromSysui(/* isExpanded= */ true,
+                    /* animate= */ false);
+        }
     }
 
     private void restoreSavedBubbles(List<BubbleInfo> bubbleInfos) {

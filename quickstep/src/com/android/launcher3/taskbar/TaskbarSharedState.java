@@ -75,6 +75,10 @@ public class TaskbarSharedState {
 
     public boolean allAppsVisible = false;
 
+    public boolean bubbleBarExpanded = false;
+
+    public String selectedBubbleKey;
+
     public BubbleBarLocation bubbleBarLocation;
 
     public List<BubbleInfo> bubbleInfoItems;

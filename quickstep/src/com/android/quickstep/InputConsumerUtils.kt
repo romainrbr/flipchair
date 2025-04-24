@@ -23,7 +23,7 @@ import com.android.launcher3.statemanager.BaseState
 import com.android.launcher3.statemanager.StatefulContainer
 import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.util.LockedUserState.Companion.get
-import com.android.quickstep.fallback.window.RecentsWindowFlags
+import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.inputconsumers.AccessibilityInputConsumer
 import com.android.quickstep.inputconsumers.AssistantInputConsumer
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer
@@ -806,14 +806,13 @@ object InputConsumerUtils {
         isHomeTask: Boolean,
         rotationTouchHelper: RotationTouchHelper,
     ): InputConsumer where T : RecentsViewContainer, T : StatefulContainer<S> {
+        val containerInterface = gestureState.getContainerInterface<S, T>()
         val shouldDefer =
             (!overviewComponentObserver.isHomeAndOverviewSame ||
-                gestureState
-                    .getContainerInterface<S, T>()
-                    .deferStartingActivity(deviceState, event))
+                containerInterface.deferStartingActivity(deviceState, event))
         val disableHorizontalSwipe =
             deviceState.isInExclusionRegion(event) &&
-                (!RecentsWindowFlags.enableOverviewInWindow || !isHomeTask)
+                (containerInterface.getCreatedContainer() !is RecentsWindowManager || !isHomeTask)
         return OtherActivityInputConsumer(
             /* base= */ context,
             deviceState,

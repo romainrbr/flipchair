@@ -47,6 +47,7 @@ import com.android.quickstep.views.RecentsViewContainer
 import com.android.systemui.shared.system.InputChannelCompat
 import com.android.systemui.shared.system.InputMonitorCompat
 import com.android.wm.shell.Flags
+import com.android.wm.shell.shared.desktopmode.DesktopState
 import java.util.function.Consumer
 import java.util.function.Function
 
@@ -548,8 +549,12 @@ object InputConsumerUtils {
                 deviceState.isPredictiveBackToHomeInProgress)
         // with shell-transitions, home is resumed during recents animation, so
         // explicitly check against recents animation too.
+        // Home is always running and isn't resumed when home shows behind desktop.
         val launcherResumedThroughShellTransition =
-            container.isResumed() && !previousGestureState.isRecentsAnimationRunning
+            container.isResumed() &&
+                !previousGestureState.isRecentsAnimationRunning &&
+                !DesktopState.fromContext(context).shouldShowHomeBehindDesktop
+
         // If a task fragment within Launcher is resumed
         val launcherChildActivityResumed =
             runningTask != null &&

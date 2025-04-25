@@ -28,6 +28,7 @@ import android.view.View
 import android.view.View.LAYOUT_DIRECTION_LTR
 import android.view.View.LAYOUT_DIRECTION_RTL
 import androidx.core.view.children
+import androidx.core.view.isInvisible
 import com.android.launcher3.AbstractFloatingView.TYPE_TASK_MENU
 import com.android.launcher3.AbstractFloatingView.getTopOpenViewWithType
 import com.android.launcher3.Flags.enableDesktopExplodedView
@@ -246,7 +247,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     fun getLastLargeTaskView(): TaskView? = taskViews.lastOrNull { it.isLargeTile }
 
     override fun onCanCreateDesksChanged(canCreateDesks: Boolean) {
-        // TODO: b/389209338 - update the AddDesktopButton's visibility on this.
+        recentsView.addDeskButton?.isInvisible = !canCreateDesks
     }
 
     override fun onDeskAdded(displayId: Int, deskId: Int) {

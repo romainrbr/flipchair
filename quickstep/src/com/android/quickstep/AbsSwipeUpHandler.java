@@ -2781,7 +2781,11 @@ public abstract class AbsSwipeUpHandler<
      */
     @Override
     protected float overrideDisplacementForTransientTaskbar(float displacement) {
-        if (!mIsTransientTaskbar) {
+        boolean shouldReturnDisplacement = mContainerInterface.getTaskbarController() == null
+                ? !mIsTransientTaskbar
+                : !mContainerInterface.getTaskbarController().shouldAllowTaskbarToAutoStash();
+
+        if (shouldReturnDisplacement) {
             return displacement;
         }
 

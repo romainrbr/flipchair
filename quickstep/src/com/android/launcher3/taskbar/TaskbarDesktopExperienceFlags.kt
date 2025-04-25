@@ -24,7 +24,7 @@ object TaskbarDesktopExperienceFlags {
     val enableAltTabKqsOnConnectedDisplays: DesktopExperienceFlag =
         DesktopExperienceFlag(
             Flags::enableAltTabKqsOnConnectedDisplays,
-            /* shouldOverrideByDevOption= */ false,
+            /* shouldOverrideByDevOption= */ true,
             Flags.FLAG_ENABLE_ALT_TAB_KQS_ON_CONNECTED_DISPLAYS,
         )
 

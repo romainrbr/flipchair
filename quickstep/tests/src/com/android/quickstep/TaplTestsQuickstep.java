@@ -526,7 +526,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
     @Test
     @PortraitLandscape
-    @ScreenRecordRule.ScreenRecord // TODO(b/396447643): Remove screen record.
+    @ScreenRecordRule.ScreenRecord // TODO(b/412766455): Remove screen record.
     public void testDismissCancel() throws Exception {
         startTestAppsWithCheck();
         Overview overview = mLauncher.goHome().switchToOverview();

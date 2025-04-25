@@ -715,8 +715,8 @@ public class BubbleBarView extends FrameLayout {
     }
 
     /** Add a new bubble to the bubble bar without updating the selected bubble. */
-    public void addBubble(BubbleView bubble) {
-        addBubble(bubble, /* bubbleToSelect = */ null);
+    public void addBubble(BubbleView bubble, boolean suppressAnimation) {
+        addBubble(bubble, /* bubbleToSelect = */ null, suppressAnimation);
     }
 
     /**
@@ -725,12 +725,13 @@ public class BubbleBarView extends FrameLayout {
      * @param bubble         bubble to add
      * @param bubbleToSelect if {@code null}, then selected bubble does not change
      */
-    public void addBubble(BubbleView bubble, @Nullable BubbleView bubbleToSelect) {
+    public void addBubble(BubbleView bubble, @Nullable BubbleView bubbleToSelect,
+            boolean suppressAnimation) {
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((int) mIconSize, (int) mIconSize,
                 Gravity.LEFT);
         final int index = bubble.isOverflow() ? getChildCount() : 0;
 
-        if (isExpanded()) {
+        if (isExpanded() && !suppressAnimation) {
             // if we're expanded scale the new bubble in
             bubble.setScaleX(0f);
             bubble.setScaleY(0f);

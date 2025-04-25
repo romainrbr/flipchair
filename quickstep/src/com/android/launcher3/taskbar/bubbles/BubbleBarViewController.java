@@ -1110,7 +1110,7 @@ public class BubbleBarViewController {
         if (mOverflowAdded == showOverflow) return;
         mOverflowAdded = showOverflow;
         if (mOverflowAdded) {
-            mBarView.addBubble(mOverflowBubble.getView());
+            mBarView.addBubble(mOverflowBubble.getView(), /* suppressAnimation= */ true);
             mOverflowBubble.getView().setOnClickListener(mBubbleClickListener);
             mOverflowBubble.getView().setController(mBubbleViewController);
         } else {
@@ -1157,7 +1157,7 @@ public class BubbleBarViewController {
         if (b != null) {
             BubbleView bubbleToSelectView =
                     bubbleToSelect == null ? null : bubbleToSelect.getView();
-            mBarView.addBubble(b.getView(), bubbleToSelectView);
+            mBarView.addBubble(b.getView(), bubbleToSelectView, suppressAnimation);
             b.getView().setOnClickListener(mBubbleClickListener);
             mBubbleDragController.setupBubbleView(b.getView());
             b.getView().setController(mBubbleViewController);

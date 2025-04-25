@@ -730,7 +730,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     /** Creates a {@link TaskbarUIController} to use with non default displays. */
     private TaskbarUIController createTaskbarUIControllerForNonDefaultDisplay(int displayId) {
         debugPrimaryTaskbar("createTaskbarUIControllerForNonDefaultDisplay");
-        if (RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
+        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
             RecentsViewContainer rvc = mRecentsWindowManagerRepository.get(displayId);
             if (rvc != null) {
                 return createTaskbarUIControllerForRecentsViewContainer(rvc);

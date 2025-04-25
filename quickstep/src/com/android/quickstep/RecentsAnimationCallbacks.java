@@ -113,7 +113,7 @@ public class RecentsAnimationCallbacks implements
         boolean isOpeningHome = Arrays.stream(appTargets).filter(app -> app.mode == MODE_OPENING
                         && app.windowConfiguration.getActivityType() == ACTIVITY_TYPE_HOME)
                 .count() > 0;
-        if (appCount == 0 && (!RecentsWindowFlags.Companion.getEnableOverviewInWindow()
+        if (appCount == 0 && (!RecentsWindowFlags.getEnableOverviewInWindow()
                 || isOpeningHome)) {
             ActiveGestureProtoLogProxy.logOnRecentsAnimationStartCancelled();
             // Edge case, if there are no closing app targets, then Launcher has nothing to handle

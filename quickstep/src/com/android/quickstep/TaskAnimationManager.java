@@ -340,7 +340,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
 
         if (containerInterface.getCreatedContainer()
                 instanceof RecentsWindowManager recentsWindowManager
-                && RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
+                && RecentsWindowFlags.getEnableOverviewInWindow()) {
             mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent, options,
                     mCallbacks, gestureState.useSyntheticRecentsTransition(), null, mDisplayId);
             recentsWindowManager.startRecentsWindow(mCallbacks);

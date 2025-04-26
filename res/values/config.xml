@@ -68,7 +68,6 @@
     <string name="taskbar_model_callbacks_factory_class" translatable="false"></string>
     <string name="taskbar_view_callbacks_factory_class" translatable="false"></string>
     <string name="taskbar_overlay_context_factory_class" translatable="false"></string>
-    <string name="launcher_restore_event_logger_class" translatable="false"></string>
     <string name="taskbar_edu_tooltip_controller_class" translatable="false"></string>
 
     <!-- Default packages -->

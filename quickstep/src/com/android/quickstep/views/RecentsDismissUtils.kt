@@ -1029,7 +1029,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                     pageToSnapTo = indexOfChild(clearAllButton)
                 } else if (isClearAllHidden) {
                     // Snap to focused task if clear all is hidden.
-                    pageToSnapTo = indexOfChild(firstTaskView)
+                    pageToSnapTo = firstTaskViewIndex
                 }
             } else {
                 val snappedTaskView = currentPageTaskView

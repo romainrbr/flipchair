@@ -877,6 +877,10 @@ public abstract class RecentsView<
         return mUtils.getFirstTaskView();
     }
 
+    public int getFirstTaskViewIndex() {
+        return indexOfChild(getFirstTaskView());
+    }
+
     public RecentsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setEnableFreeScroll(true);
@@ -4086,7 +4090,7 @@ public abstract class RecentsView<
                                 pageToSnapTo = indexOfChild(mClearAllButton);
                             } else if (isClearAllHidden) {
                                 // Snap to focused task if clear all is hidden.
-                                pageToSnapTo = indexOfChild(getFirstTaskView());
+                                pageToSnapTo = getFirstTaskViewIndex();
                             }
                         } else {
                             // Get the id of the task view we will snap to based on the current
@@ -4104,7 +4108,7 @@ public abstract class RecentsView<
                                     } else {
                                         // Won't focus next task in split select, so snap to the
                                         // first task.
-                                        pageToSnapTo = indexOfChild(getFirstTaskView());
+                                        pageToSnapTo = getFirstTaskViewIndex();
                                         calculateScrollDiff = false;
                                     }
                                 } else {

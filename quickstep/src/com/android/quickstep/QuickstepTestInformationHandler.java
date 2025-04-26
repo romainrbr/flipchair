@@ -104,6 +104,13 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                         launcher -> launcher.<RecentsView>getOverviewPanel().getCurrentPage());
             }
 
+            case TestProtocol.REQUEST_GET_OVERVIEW_FIRST_TASKVIEW_INDEX: {
+                return getLauncherUIProperty(Bundle::putInt,
+                        launcher ->
+                                launcher.<RecentsView<?, ?>>getOverviewPanel()
+                                        .getFirstTaskViewIndex());
+            }
+
             case TestProtocol.REQUEST_HAS_TIS: {
                 response.putBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD, true);
                 return response;

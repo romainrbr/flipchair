@@ -320,7 +320,8 @@ public class BubbleBarController extends IBubblesListener.Stub {
                 Log.e(TAG, "Could not instantiate BubbleBarBubble for " + bubbleInfos.get(i));
                 continue;
             }
-            addBubbleInternally(bubble, /* isExpanding= */ false, /* suppressAnimation= */ true);
+            mBubbles.put(bubble.getKey(), bubble);
+            mBubbleBarViewController.restoreBubble(bubble);
         }
     }
 

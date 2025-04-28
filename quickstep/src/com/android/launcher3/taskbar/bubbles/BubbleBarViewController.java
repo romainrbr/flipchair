@@ -1157,10 +1157,7 @@ public class BubbleBarViewController {
         if (b != null) {
             BubbleView bubbleToSelectView =
                     bubbleToSelect == null ? null : bubbleToSelect.getView();
-            mBarView.addBubble(b.getView(), bubbleToSelectView, suppressAnimation);
-            b.getView().setOnClickListener(mBubbleClickListener);
-            mBubbleDragController.setupBubbleView(b.getView());
-            b.getView().setController(mBubbleViewController);
+            addBubbleView(b.getView(), suppressAnimation, bubbleToSelectView);
 
             if (suppressAnimation || !(b instanceof BubbleBarBubble bubble)) {
                 // the bubble bar and handle are initialized as part of the first bubble animation.
@@ -1168,7 +1165,8 @@ public class BubbleBarViewController {
                 // ensure they've been initialized.
                 if (mTaskbarStashController.isInApp()
                         && mBubbleStashController.isTransientTaskBar()
-                        && mTaskbarStashController.isStashed()) {
+                        && mTaskbarStashController.isStashed()
+                        && !isExpanded()) {
                     mBubbleStashController.stashBubbleBarImmediate();
                 } else {
                     mBubbleStashController.showBubbleBarImmediate();
@@ -1179,6 +1177,21 @@ public class BubbleBarViewController {
         } else {
             Log.w(TAG, "addBubble, bubble was null!");
         }
+    }
+
+    private void addBubbleView(BubbleView bubbleView, boolean suppressAnimation,
+            BubbleView selectedBubbleView) {
+        mBarView.addBubble(bubbleView, selectedBubbleView, suppressAnimation);
+        bubbleView.setOnClickListener(mBubbleClickListener);
+        mBubbleDragController.setupBubbleView(bubbleView);
+        bubbleView.setController(mBubbleViewController);
+    }
+
+    /**
+     * Restore a previous bubble that is stored in {@link TaskbarSharedState}.
+     */
+    public void restoreBubble(BubbleBarItem b) {
+        addBubbleView(b.getView(), /* suppressAnimation= */ true, /* bubbleToSelectView= */ null);
     }
 
     /** Animates the bubble bar to notify the user about a bubble change. */

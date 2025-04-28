@@ -77,6 +77,8 @@ public class TaskbarSharedState {
 
     public boolean bubbleBarExpanded = false;
 
+    public boolean bubbleBarStashed = false;
+
     public String selectedBubbleKey;
 
     public BubbleBarLocation bubbleBarLocation;

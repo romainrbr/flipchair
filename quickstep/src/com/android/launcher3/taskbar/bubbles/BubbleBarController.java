@@ -180,6 +180,7 @@ public class BubbleBarController extends IBubblesListener.Stub {
         mSystemUiProxy.setBubblesListener(null);
         // Saves bubble bar state
         mSharedState.bubbleBarExpanded = mBubbleBarViewController.isExpanded();
+        mSharedState.bubbleBarStashed = mBubbleStashController.isStashed();
         mSharedState.selectedBubbleKey = mSelectedBubble != null ? mSelectedBubble.getKey() : null;
         BubbleInfo[] bubbleInfoItems = new BubbleInfo[mBubbles.size()];
         mBubbles.values().forEach(bubbleBarBubble -> {
@@ -298,20 +299,29 @@ public class BubbleBarController extends IBubblesListener.Stub {
         if (sharedState.bubbleBarLocation != null) {
             updateBubbleBarLocationInternal(sharedState.bubbleBarLocation);
         }
-        restoreSavedBubbles(sharedState.bubbleInfoItems);
+        List<BubbleInfo> savedBubbles = sharedState.bubbleInfoItems;
+        boolean hasSavedBubbles = savedBubbles != null && !savedBubbles.isEmpty();
+        if (hasSavedBubbles) {
+            restoreSavedBubbles(savedBubbles);
+        }
         restoreSuppressed(sharedState.suppressedBubbleInfoItems);
-        setSelectedBubbleInternal(mBubbles.get(sharedState.selectedBubbleKey));
-        if (sharedState.bubbleBarExpanded) {
-            // We don't want state restore to have side effects which update the Shell state.
-            // Use the method for setting expanded state from sysui as that won't trigger an
-            // update back to Shell.
-            mBubbleBarViewController.setExpandedFromSysui(/* isExpanded= */ true,
-                    /* animate= */ false);
+        if (hasSavedBubbles) {
+            setSelectedBubbleInternal(mBubbles.get(sharedState.selectedBubbleKey));
+            if (sharedState.bubbleBarExpanded) {
+                // We don't want state restore to have side effects which update the Shell state.
+                // Use the method for setting expanded state from sysui as that won't trigger an
+                // update back to Shell.
+                mBubbleBarViewController.setExpandedFromSysui(/* isExpanded= */ true,
+                        /* animate= */ false);
+            } else if (sharedState.bubbleBarStashed) {
+                mBubbleStashController.stashBubbleBarImmediate();
+            } else {
+                mBubbleStashController.showBubbleBarImmediate();
+            }
         }
     }
 
     private void restoreSavedBubbles(List<BubbleInfo> bubbleInfos) {
-        if (bubbleInfos == null || bubbleInfos.isEmpty()) return;
         // Iterate in reverse because new bubbles are added in front and the list is in order.
         for (int i = bubbleInfos.size() - 1; i >= 0; i--) {
             BubbleBarBubble bubble = mBubbleCreator.populateBubble(mContext,

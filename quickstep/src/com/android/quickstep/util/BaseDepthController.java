@@ -23,6 +23,8 @@ import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import android.app.WallpaperManager;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
+import android.gui.EarlyWakeupInfo;
+import android.os.Binder;
 import android.os.IBinder;
 import android.os.Trace;
 import android.util.FloatProperty;
@@ -118,6 +120,10 @@ public class BaseDepthController {
     protected boolean mWaitingOnSurfaceValidity;
 
     private SurfaceControl mBlurSurface = null;
+    /**
+     * Info for early wakeup requests to SurfaceFlinger.
+     */
+    private EarlyWakeupInfo mEarlyWakeupInfo = new EarlyWakeupInfo();
 
     public BaseDepthController(Launcher activity) {
         mLauncher = activity;
@@ -134,6 +140,8 @@ public class BaseDepthController {
                 new MultiPropertyFactory<>(this, DEPTH, DEPTH_INDEX_COUNT, Float::max);
         stateDepth = depthProperty.get(DEPTH_INDEX_STATE_TRANSITION);
         widgetDepth = depthProperty.get(DEPTH_INDEX_WIDGET);
+        mEarlyWakeupInfo.token = new Binder();
+        mEarlyWakeupInfo.trace = BaseDepthController.class.getName();
     }
 
     protected void setCrossWindowBlursEnabled(boolean isEnabled) {
@@ -252,7 +260,6 @@ public class BaseDepthController {
         try (finalTransaction) {
             finalTransaction.setBackgroundBlurRadius(blurSurface, mCurrentBlur)
                     .setOpaque(blurSurface, isSurfaceOpaque);
-
             // Set early wake-up flags when we know we're executing an expensive operation, this way
             // SurfaceFlinger will adjust its internal offsets to avoid jank.
             boolean wantsEarlyWakeUp = depth > 0 && depth < 1;
@@ -304,9 +311,9 @@ public class BaseDepthController {
         if (start) {
             Trace.instantForTrack(TRACE_TAG_APP, TAG, "notifyRendererForGpuLoadUp");
             mLauncher.getRootView().getViewRootImpl().notifyRendererForGpuLoadUp("applyBlur");
-            transaction.setEarlyWakeupStart();
+            transaction.setEarlyWakeupStart(mEarlyWakeupInfo);
         } else {
-            transaction.setEarlyWakeupEnd();
+            transaction.setEarlyWakeupEnd(mEarlyWakeupInfo);
         }
         mInEarlyWakeUp = start;
     }

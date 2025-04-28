@@ -15,7 +15,6 @@
  */
 package com.android.launcher3.uioverrides.states;
 
-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 
 import android.graphics.Color;
@@ -23,7 +22,6 @@ import android.graphics.Color;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.util.Themes;
-import com.android.systemui.shared.system.BlurUtils;
 
 /**
  * State to indicate we are about to launch a recent task. Note that this state is only used when
@@ -50,9 +48,7 @@ public class QuickSwitchState extends BackgroundAppState {
             // No scrim while desktop tasks are visible
             return Color.TRANSPARENT;
         }
-        return enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
-                ? Themes.getAttrColor(launcher, R.attr.overviewScrimColorOverBlur)
-                : Themes.getAttrColor(launcher, R.attr.overviewScrimColor);
+        return Themes.getAttrColor(launcher, R.attr.overviewScrimColor);
     }
 
     @Override

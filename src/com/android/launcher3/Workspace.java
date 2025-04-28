@@ -22,7 +22,7 @@ import static com.android.launcher3.LauncherAnimUtils.SPRING_LOADED_EXIT_DELAY;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
-import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.EDIT_MODE;
 import static com.android.launcher3.LauncherState.FLAG_MULTI_PAGE;
@@ -3369,7 +3369,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     public boolean isContainerSupported(int container) {
         return container == CONTAINER_DESKTOP
                 || container == CONTAINER_HOTSEAT
-                || container == CONTAINER_PREDICTION
+                || container == CONTAINER_ALL_APPS_PREDICTION
                 || container == CONTAINER_HOTSEAT_PREDICTION;
     }
 

@@ -4748,12 +4748,18 @@ public abstract class RecentsView<
     }
 
     @Nullable
-    public TaskView getLastLargeTaskView() {
-        return mUtils.getLastLargeTaskView();
+    public TaskView getFirstNonDesktopTaskView() {
+        return mUtils.getFirstNonDesktopTaskView();
     }
 
-    public int getLargeTilesCount() {
-        return mUtils.getLargeTileCount();
+    @Nullable
+    public TaskView getLastDesktopTaskView() {
+        return mUtils.getLastDesktopTaskView();
+    }
+
+    @Nullable
+    public TaskView getLastLargeTaskView() {
+        return mUtils.getLastLargeTaskView();
     }
 
     @Nullable

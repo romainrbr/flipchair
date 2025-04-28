@@ -448,6 +448,11 @@ public final class LauncherInstrumentation {
                 .getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
+    public int getOverviewFirstTaskViewIndex() {
+        return getTestInfo(TestProtocol.REQUEST_GET_OVERVIEW_FIRST_TASKVIEW_INDEX).getInt(
+                TEST_INFO_RESPONSE_FIELD);
+    }
+
     float getExactScreenCenterX() {
         return getRealDisplaySize().x / 2f;
     }

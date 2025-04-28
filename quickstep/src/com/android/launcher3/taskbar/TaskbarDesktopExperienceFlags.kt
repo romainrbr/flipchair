@@ -32,7 +32,7 @@ object TaskbarDesktopExperienceFlags {
     val enableAltTabKqsFlatenning: DesktopExperienceFlag =
         DesktopExperienceFlag(
             Flags::enableAltTabKqsFlatenning,
-            /* shouldOverrideByDevOption= */ false,
+            /* shouldOverrideByDevOption= */ true,
             Flags.FLAG_ENABLE_ALT_TAB_KQS_FLATENNING,
         )
 }

@@ -109,6 +109,7 @@ import android.os.VibrationEffect;
 import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.util.ArraySet;
 import android.util.AttributeSet;
 import android.util.FloatProperty;
 import android.util.Log;
@@ -142,6 +143,7 @@ import androidx.dynamicanimation.animation.SpringAnimation;
 import com.android.internal.jank.Cuj;
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.BaseActivity.MultiWindowModeChangedListener;
+import com.android.launcher3.BuildConfig;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.PagedView;
@@ -546,7 +548,7 @@ public abstract class RecentsView<
     private final PointF mTempPointF = new PointF();
     private final Matrix mTempMatrix = new Matrix();
     private final float[] mTempFloat = new float[1];
-    private final List<OnScrollChangedListener> mScrollListeners = new ArrayList<>();
+    private final ArraySet<OnScrollChangedListener> mScrollListeners = new ArraySet<>();
 
     // The threshold at which we update the SystemUI flags when animating from the task into the app
     public static final float UPDATE_SYSUI_FLAGS_THRESHOLD = 0.85f;
@@ -4748,12 +4750,18 @@ public abstract class RecentsView<
     }
 
     @Nullable
-    public TaskView getLastLargeTaskView() {
-        return mUtils.getLastLargeTaskView();
+    public TaskView getFirstNonDesktopTaskView() {
+        return mUtils.getFirstNonDesktopTaskView();
     }
 
-    public int getLargeTilesCount() {
-        return mUtils.getLargeTileCount();
+    @Nullable
+    public TaskView getLastDesktopTaskView() {
+        return mUtils.getLastDesktopTaskView();
+    }
+
+    @Nullable
+    public TaskView getLastLargeTaskView() {
+        return mUtils.getLastLargeTaskView();
     }
 
     @Nullable
@@ -6711,6 +6719,14 @@ public abstract class RecentsView<
      * Adds a listener for scroll changes
      */
     public void addOnScrollChangedListener(OnScrollChangedListener listener) {
+        if (mScrollListeners.contains(listener)) {
+            if (BuildConfig.IS_STUDIO_BUILD) {
+                throw new IllegalStateException(
+                        "Should not add duplicated OnScrollChangedListener");
+            } else {
+                mScrollListeners.remove(listener);
+            }
+        }
         mScrollListeners.add(listener);
     }
 
@@ -6845,7 +6861,7 @@ public abstract class RecentsView<
         runActionOnRemoteHandles(remoteTargetHandle ->
                 remoteTargetHandle.getTaskViewSimulator().setScroll(getScrollOffset()));
         for (int i = mScrollListeners.size() - 1; i >= 0; i--) {
-            mScrollListeners.get(i).onScrollChanged();
+            mScrollListeners.valueAt(i).onScrollChanged();
         }
     }
 
@@ -7003,11 +7019,11 @@ public abstract class RecentsView<
      * spring in response to the perceived impact of the settling task.
      */
     public SpringAnimation runTaskDismissSettlingSpringAnimation(TaskView draggedTaskView,
-            float velocity, boolean isDismissing, int dismissThreshold, float finalPosition,
-            boolean shouldRemoveTaskView, boolean isSplitSelection,
+            float velocity, boolean isDismissing, int dismissLength, int dismissThreshold,
+            float finalPosition, boolean shouldRemoveTaskView, boolean isSplitSelection,
             @NonNull Function0<Unit> onEndRunnable) {
         return mDismissUtils.createTaskDismissSettlingSpringAnimation(draggedTaskView, velocity,
-                isDismissing, dismissThreshold, finalPosition, shouldRemoveTaskView,
+                isDismissing, dismissLength, dismissThreshold, finalPosition, shouldRemoveTaskView,
                 isSplitSelection, onEndRunnable);
     }
 

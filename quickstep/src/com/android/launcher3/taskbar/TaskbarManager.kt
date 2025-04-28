@@ -79,7 +79,5 @@ interface TaskbarManager : SystemDecorationChangeObserver.DisplayDecorationListe
 
     fun createAllAppsPendingIntent(): PendingIntent
 
-    fun getPrimaryDisplayId(): Int
-
     fun debugPrimaryTaskbar(debugReason: String, verbose: Boolean)
 }

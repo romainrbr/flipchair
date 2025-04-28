@@ -176,6 +176,8 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         if (enableLargeDesktopWindowingTile()) taskViews.firstOrNull { it !is DesktopTaskView }
         else taskViews.firstOrNull()
 
+    fun getLastDesktopTaskView(): TaskView? = taskViews.lastOrNull { it is DesktopTaskView }
+
     /**
      * Returns the [TaskView] that should be the current page during task binding, in the following
      * priorities:

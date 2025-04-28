@@ -47,6 +47,8 @@
         <item name="allAppsSurfaceHighest">@color/materialColorSurfaceContainerHighest</item>
         <item name="allAppsUnselectedTab">@color/materialColorSurfaceBright</item>
         <item name="privateSpaceSettingsColor">@color/materialColorSurfaceBright</item>
+        <item name="privateSpaceDividerColor">@color/materialColorOutlineVariant</item>
+        <item name="bottomSheetDragHandleColor">@color/materialColorOutlineVariant</item>
         <item name="popupColorPrimary">@color/popup_color_primary_light</item>
         <item name="popupColorSecondary">@color/popup_color_secondary_light</item>
         <item name="popupColorTertiary">@color/popup_color_tertiary_light</item>

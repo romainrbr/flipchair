@@ -19,7 +19,7 @@ flag {
     name: "enable_refactor_task_thumbnail"
     namespace: "launcher_overview"
     description: "Enables rewritten version of TaskThumbnailViews in Overview"
-    bug: "331753115"
+    bug: "331754864"
 }
 
 flag {

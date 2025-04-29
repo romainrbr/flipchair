@@ -2907,6 +2907,9 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
         } else {
             // This is for other drag/drop cases, like dragging from All Apps
             mLauncher.getStateManager().goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
+            // TODO(b/414409465) We could just create a new info making a copy with all the new
+            //  needed values instead of choosing on each case what to modify.
+            info.container = container;
             View view = mLauncher.getItemInflater().inflateItem(info, cellLayout);
             d.dragInfo = info = (ItemInfo) view.getTag();
 

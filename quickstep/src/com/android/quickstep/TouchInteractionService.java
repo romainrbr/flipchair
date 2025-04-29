@@ -101,6 +101,7 @@ import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.fallback.window.RecentsWindowSwipeHandler;
 import com.android.quickstep.input.QuickstepKeyGestureEventsManager;
+import com.android.quickstep.input.QuickstepKeyGestureEventsManager.OverviewGestureHandler;
 import com.android.quickstep.inputconsumers.BubbleBarInputConsumer;
 import com.android.quickstep.inputconsumers.OneHandedModeInputConsumer;
 import com.android.quickstep.util.ActiveGestureLog;
@@ -781,6 +782,8 @@ public class TouchInteractionService extends Service {
         onOverviewTargetChanged(mOverviewComponentObserver.isHomeAndOverviewSame());
 
         mTaskbarManager.onUserUnlocked();
+        mQuickstepKeyGestureEventsHandler.registerOverviewKeyGestureEvent(
+                createOverviewGestureHandler());
     }
 
     public OverviewCommandHelper getOverviewCommandHelper() {
@@ -857,6 +860,7 @@ public class TouchInteractionService extends Service {
                 + " instance=" + System.identityHashCode(this));
         if (LockedUserState.get(this).isUserUnlocked()) {
             mInputConsumer.unregisterInputConsumer();
+            mQuickstepKeyGestureEventsHandler.onDestroy();
             mOverviewComponentObserver.setHomeDisabled(false);
             mOverviewComponentObserver.removeOverviewChangeListener(mOverviewChangeListener);
         }
@@ -1372,6 +1376,22 @@ public class TouchInteractionService extends Service {
                 : DEFAULT_DISPLAY;
     }
 
+
+    private OverviewGestureHandler createOverviewGestureHandler() {
+        return new OverviewGestureHandler() {
+            @Override
+            public void showOverview(@NonNull OverviewType type) {
+                mTISBinder.onOverviewShown(/* triggeredFromAltTab= */ type == OverviewType.ALT_TAB);
+            }
+
+            @Override
+            public void hideOverview(@NonNull OverviewType type) {
+                mTISBinder.onOverviewHidden(
+                        /* triggeredFromAltTab= */ type == OverviewType.ALT_TAB,
+                        /* triggeredFromHomeKey= */ type == OverviewType.HOME);
+            }
+        };
+    }
 
     /**
      * Helper class that keeps track of external displays and prepares input monitors for each.

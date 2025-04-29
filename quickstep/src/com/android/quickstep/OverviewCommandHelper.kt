@@ -52,7 +52,7 @@ import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW_ALT_TAB
 import com.android.quickstep.OverviewCommandHelper.CommandType.SHOW_WITH_FOCUS
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE
 import com.android.quickstep.OverviewCommandHelper.CommandType.TOGGLE_OVERVIEW_PREVIOUS
-import com.android.quickstep.fallback.window.RecentsWindowFlags.Companion.enableOverviewInWindow
+import com.android.quickstep.fallback.window.RecentsWindowManager
 import com.android.quickstep.util.ActiveGestureLog
 import com.android.quickstep.util.ActiveGestureProtoLogProxy
 import com.android.quickstep.views.RecentsView
@@ -345,10 +345,12 @@ constructor(
         val recentsView: RecentsView<*, *>? = recentsViewContainer?.getOverviewPanel()
         val deviceProfile = recentsViewContainer?.getDeviceProfile()
         val taskbarUIController: TaskbarUIController? =
-            if (command.displayId != DEFAULT_DISPLAY && !enableOverviewInWindow) {
-                // When enableOverviewInWindow is false, getContainerInterface can only return
-                // BaseContainerInterface of DEFAULT_DISPLAY. Getting TaskbarUiController from
-                // TaskbarManager as a workaround.
+            if (
+                command.displayId != DEFAULT_DISPLAY &&
+                    recentsViewContainer !is RecentsWindowManager
+            ) {
+                // When recentsViewContainer is not RecentsWindowManager, get TaskbarUiController
+                // from TaskbarManager as a workaround.
                 taskbarManager.getUIControllerForDisplay(command.displayId)
             } else {
                 containerInterface.getTaskbarController()
@@ -432,8 +434,8 @@ constructor(
         // If we get here then launcher is not the top visible task, so we should animate
         // that task.
 
-        if (!enableOverviewInWindow) {
-            containerInterface.getCreatedContainer()?.rootView?.let { view ->
+        if (recentsViewContainer !is RecentsWindowManager) {
+            recentsViewContainer?.rootView?.let { view ->
                 InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
             }
         }
@@ -468,8 +470,8 @@ constructor(
                     transitionInfo: TransitionInfo?,
                 ) {
                     Log.d(TAG, "recents animation started: $command")
-                    if (enableOverviewInWindow) {
-                        containerInterface.getCreatedContainer()?.rootView?.let { view ->
+                    if (recentsViewContainer is RecentsWindowManager) {
+                        recentsViewContainer.rootView?.let { view ->
                             InteractionJankMonitorWrapper.begin(view, Cuj.CUJ_LAUNCHER_QUICK_SWITCH)
                         }
                     }

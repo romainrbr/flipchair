@@ -201,7 +201,6 @@ import com.android.quickstep.TaskOverlayFactory;
 import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
@@ -877,6 +876,10 @@ public abstract class RecentsView<
     @Nullable
     public TaskView getFirstTaskView() {
         return mUtils.getFirstTaskView();
+    }
+
+    public int getFirstTaskViewIndex() {
+        return indexOfChild(getFirstTaskView());
     }
 
     public RecentsView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
@@ -4079,7 +4082,7 @@ public abstract class RecentsView<
                                 pageToSnapTo = indexOfChild(mClearAllButton);
                             } else if (isClearAllHidden) {
                                 // Snap to focused task if clear all is hidden.
-                                pageToSnapTo = indexOfChild(getFirstTaskView());
+                                pageToSnapTo = getFirstTaskViewIndex();
                             }
                         } else {
                             // Get the id of the task view we will snap to based on the current
@@ -4097,7 +4100,7 @@ public abstract class RecentsView<
                                     } else {
                                         // Won't focus next task in split select, so snap to the
                                         // first task.
-                                        pageToSnapTo = indexOfChild(getFirstTaskView());
+                                        pageToSnapTo = getFirstTaskViewIndex();
                                         calculateScrollDiff = false;
                                     }
                                 } else {
@@ -5511,11 +5514,9 @@ public abstract class RecentsView<
             mSplitHiddenTaskView = null;
         }
 
-        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
-            // Recents doesn't receive activity callback, so we cleanup manually
-            if (mContainer instanceof RecentsWindowManager manager) {
-                manager.cleanupRecentsWindow();
-            }
+        // Recents doesn't receive activity callback, so we cleanup manually
+        if (mContainer instanceof RecentsWindowManager manager) {
+            manager.cleanupRecentsWindow();
         }
     }
 
@@ -5970,7 +5971,7 @@ public abstract class RecentsView<
         // mSyncTransactionApplier doesn't get transferred over
         runActionOnRemoteHandles(remoteTargetHandle -> {
             final TransformParams params = remoteTargetHandle.getTransformParams();
-            if (RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
+            if (mContainer instanceof RecentsWindowManager manager) {
                 params.setHomeBuilderProxy((builder, app, transformParams) -> {
                     mTmpMatrix.setScale(
                             1f, 1f, app.localBounds.exactCenterX(), app.localBounds.exactCenterY());

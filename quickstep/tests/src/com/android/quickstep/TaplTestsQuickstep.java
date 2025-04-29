@@ -119,16 +119,14 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
 
         // Test flinging forward and backward.
         runOnRecentsView(recentsView -> assertEquals("Current task in Overview is not first",
-                recentsView.indexOfChild(recentsView.getFirstTaskView()),
-                recentsView.getCurrentPage()));
+                recentsView.getFirstTaskViewIndex(), recentsView.getCurrentPage()));
 
         overview.flingForward();
         assertIsInState("Launcher internal state is not Overview", LauncherState.OVERVIEW);
         final Integer currentTaskAfterFlingForward =
                 getFromRecentsView(RecentsView::getCurrentPage);
-        runOnRecentsView(recentsView -> assertTrue("Current task in Overview is still 0",
-                currentTaskAfterFlingForward > recentsView.indexOfChild(
-                        recentsView.getFirstTaskView())));
+        runOnRecentsView(recentsView -> assertTrue("Current task in Overview is still first",
+                currentTaskAfterFlingForward > recentsView.getFirstTaskViewIndex()));
 
         overview.flingBackward();
         assertIsInState("Launcher internal state is not Overview", LauncherState.OVERVIEW);
@@ -390,8 +388,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         overview.scrollCurrentTaskOffScreen();
         assertIsInState("Launcher internal state is not Overview", LauncherState.OVERVIEW);
         runOnRecentsView(recentsView -> assertTrue("Current task in Overview is still first",
-                recentsView.getCurrentPage() > recentsView.indexOfChild(
-                        recentsView.getFirstTaskView())));
+                recentsView.getCurrentPage() > recentsView.getFirstTaskViewIndex()));
 
         // Test opening the task.
         overview.getCurrentTask().open();
@@ -407,8 +404,7 @@ public class TaplTestsQuickstep extends AbstractQuickStepTest {
         assertIsInState(
                 "Launcher internal state is not Overview", LauncherState.OVERVIEW);
         runOnRecentsView(recentsView -> assertTrue("Current task in Overview is still first",
-                recentsView.getCurrentPage() > recentsView.indexOfChild(
-                        recentsView.getFirstTaskView())));
+                recentsView.getCurrentPage() > recentsView.getFirstTaskViewIndex()));
 
         // Test dismissing the later task.
         final Integer numTasks = getFromRecentsView(RecentsView::getTaskViewCount);

@@ -462,6 +462,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             return;
         }
         getTheme().applyStyle(getBlurStyleResId(), true);
+        getAppsView().getContext().getTheme().applyStyle(getBlurStyleResId(), true);
         getAppsView().onThemeChanged();
     }
 
@@ -542,7 +543,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public void bindExtraContainerItems(FixedContainerItems item) {
-        if (item.containerId == Favorites.CONTAINER_PREDICTION) {
+        if (item.containerId == Favorites.CONTAINER_ALL_APPS_PREDICTION) {
             mAllAppsPredictions = item;
             PredictionRowView<?> predictionRowView =
                     getAppsView().getFloatingHeaderView().findFixedRowByType(

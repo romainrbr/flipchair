@@ -26,6 +26,8 @@
     <attr name="allAppsUnselectedTab" format="color" />
     <attr name="allAppsSearchIconBackground" format="color" />
     <attr name="privateSpaceSettingsColor" format="color" />
+    <attr name="privateSpaceDividerColor" format="color" />
+    <attr name="bottomSheetDragHandleColor" format="color" />
     <attr name="allAppsTheme" format="reference" />
     <attr name="popupColorPrimary" format="color" />
     <attr name="popupColorSecondary" format="color" />

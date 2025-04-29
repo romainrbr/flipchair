@@ -323,7 +323,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
      */
     public boolean useSyntheticRecentsTransition() {
         return mRunningTask.isHomeTask()
-                && RecentsWindowFlags.Companion.getEnableOverviewInWindow();
+                && RecentsWindowFlags.getEnableOverviewInWindow();
     }
 
     /**

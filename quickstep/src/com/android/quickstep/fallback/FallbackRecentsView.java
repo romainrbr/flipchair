@@ -82,7 +82,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
 
     @Override
     public BaseContainerInterface<RecentsState, ?> getContainerInterface(int displayId) {
-        return RecentsWindowFlags.Companion.getEnableOverviewInWindow()
+        return RecentsWindowFlags.getEnableOverviewInWindow()
                 ? FallbackWindowInterface.REPOSITORY_INSTANCE.get(mContext).get(displayId)
                 : FallbackActivityInterface.INSTANCE;
     }
@@ -309,7 +309,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
         }
 
         // disabling this so app icons aren't drawn on top of recent tasks.
-        if (isOverlayEnabled && !RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
+        if (isOverlayEnabled && !RecentsWindowFlags.getEnableOverviewInWindow()) {
             mBlurUtils.setDrawLiveTileBelowRecents(true);
         }
     }

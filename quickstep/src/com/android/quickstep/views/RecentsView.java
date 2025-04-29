@@ -201,7 +201,6 @@ import com.android.quickstep.TaskOverlayFactory;
 import com.android.quickstep.TaskViewUtils;
 import com.android.quickstep.TopTaskTracker;
 import com.android.quickstep.ViewUtils;
-import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.fallback.window.RecentsWindowManager;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.recents.data.AppTimersRepository;
@@ -5515,11 +5514,9 @@ public abstract class RecentsView<
             mSplitHiddenTaskView = null;
         }
 
-        if (RecentsWindowFlags.getEnableOverviewInWindow()) {
-            // Recents doesn't receive activity callback, so we cleanup manually
-            if (mContainer instanceof RecentsWindowManager manager) {
-                manager.cleanupRecentsWindow();
-            }
+        // Recents doesn't receive activity callback, so we cleanup manually
+        if (mContainer instanceof RecentsWindowManager manager) {
+            manager.cleanupRecentsWindow();
         }
     }
 
@@ -5974,7 +5971,7 @@ public abstract class RecentsView<
         // mSyncTransactionApplier doesn't get transferred over
         runActionOnRemoteHandles(remoteTargetHandle -> {
             final TransformParams params = remoteTargetHandle.getTransformParams();
-            if (RecentsWindowFlags.getEnableOverviewInWindow()) {
+            if (mContainer instanceof RecentsWindowManager manager) {
                 params.setHomeBuilderProxy((builder, app, transformParams) -> {
                     mTmpMatrix.setScale(
                             1f, 1f, app.localBounds.exactCenterX(), app.localBounds.exactCenterY());

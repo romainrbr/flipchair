@@ -22,6 +22,7 @@ import android.os.Handler
 import android.util.Log
 import android.view.Display.DEFAULT_DISPLAY
 import android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+import android.view.WindowManagerGlobal
 import com.android.app.displaylib.DefaultDisplayOnlyInstanceRepositoryImpl
 import com.android.app.displaylib.DisplayLibBackground
 import com.android.app.displaylib.DisplayLibComponent
@@ -228,8 +229,10 @@ object DisplayLibModule {
         coroutineDispatcherProvider: DispatcherProvider,
     ): DisplayLibComponent {
         val displayManager = context.getSystemService(DisplayManager::class.java)
+        val windowManager = checkNotNull(WindowManagerGlobal.getWindowManagerService())
         return createDisplayLibComponent(
             displayManager,
+            windowManager,
             bgHandler,
             bgApplicationScope,
             coroutineDispatcherProvider.background,

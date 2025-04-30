@@ -175,6 +175,7 @@ import com.android.launcher3.util.StableViewInfo;
 import com.android.launcher3.util.StartActivityParams;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.views.FloatingIconView;
+import com.android.quickstep.LauncherActivityInterface;
 import com.android.quickstep.OverviewCommandHelper;
 import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.OverviewComponentObserver.OverviewChangeListener;
@@ -306,7 +307,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         super.setupViews();
 
         mActionsView = findViewById(R.id.overview_actions_view);
-        RecentsView<?,?> overviewPanel = getOverviewPanel();
+        RecentsView<?, LauncherState> overviewPanel = getOverviewPanel();
         SystemUiProxy systemUiProxy = SystemUiProxy.INSTANCE.get(this);
         mSplitSelectStateController =
                 new SplitSelectStateController(this, getStateManager(),
@@ -1588,5 +1589,10 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     public int getOverviewBlurStyleResId() {
         return isOverviewBackgroundBlurEnabled() ? R.style.OverviewBlurStyle
                 : R.style.OverviewBlurFallbackStyle;
+    }
+
+    @Override
+    public LauncherActivityInterface getContainerInterface() {
+        return LauncherActivityInterface.INSTANCE;
     }
 }

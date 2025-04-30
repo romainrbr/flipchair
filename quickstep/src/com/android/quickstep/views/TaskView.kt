@@ -1508,7 +1508,7 @@ constructor(
                     // checking whether to handle resume, but that can come in before
                     // startHome() changes the state, so force-refresh here to ensure the
                     // taskbar is updated
-                    it.mSizeStrategy.taskbarController?.refreshResumedState()
+                    it.mContainerInterface.taskbarController?.refreshResumedState()
                 }
             }
         }

@@ -238,6 +238,11 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
     }
 
     @Override
+    public FallbackActivityInterface getContainerInterface() {
+        return FallbackActivityInterface.INSTANCE;
+    }
+
+    @Override
     public FallbackRecentsView getOverviewPanel() {
         return mFallbackRecentsView;
     }

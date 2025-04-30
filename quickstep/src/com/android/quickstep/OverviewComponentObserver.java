@@ -324,6 +324,7 @@ public final class OverviewComponentObserver {
      * @param displayId The display id
      * @return the control helper for the given display
      */
+    @Nullable
     public BaseContainerInterface<?, ?> getContainerInterface(int displayId) {
         return (enableOverviewOnConnectedDisplays() && displayId != DEFAULT_DISPLAY)
                 ? mFallbackWindowInterfaceRepository.get(displayId)

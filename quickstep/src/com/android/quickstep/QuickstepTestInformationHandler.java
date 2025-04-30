@@ -12,6 +12,7 @@ import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.R;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.testing.TestInformationHandler;
 import com.android.launcher3.testing.shared.TestProtocol;
@@ -22,6 +23,7 @@ import com.android.quickstep.util.TISBindHelper;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.recents.model.Task;
+import com.android.wm.shell.shared.bubbles.DeviceConfig;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -96,6 +98,14 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_GET_OVERVIEW_PAGE_SPACING: {
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
                         mDeviceProfile.overviewPageSpacing);
+                return response;
+            }
+
+            case TestProtocol.REQUEST_GET_BUBBLE_BAR_DROP_TARGET_SIZE: {
+                int dimenResId = DeviceConfig.isSmallTablet(mContext)
+                        ? R.dimen.drag_zone_bubble_fold : R.dimen.drag_zone_bubble_tablet;
+                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
+                        mContext.getResources().getDimensionPixelSize(dimenResId));
                 return response;
             }
 

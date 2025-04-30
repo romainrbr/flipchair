@@ -154,6 +154,9 @@ public final class TestProtocol {
     public static final String REQUEST_GET_OVERVIEW_TASK_SIZE = "get-overivew-task-size";
     public static final String REQUEST_GET_OVERVIEW_GRID_TASK_SIZE = "get-overivew-grid-task-size";
     public static final String REQUEST_GET_OVERVIEW_PAGE_SPACING = "get-overview-page-spacing";
+
+    public static final String REQUEST_GET_BUBBLE_BAR_DROP_TARGET_SIZE =
+            "request-get-bubble-bar-drop-target-size";
     public static final String REQUEST_GET_OVERVIEW_CURRENT_PAGE_INDEX =
             "get-overview-current-page-index";
     public static final String REQUEST_GET_OVERVIEW_FIRST_TASKVIEW_INDEX =

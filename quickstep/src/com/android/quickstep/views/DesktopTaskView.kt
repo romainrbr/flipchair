@@ -436,6 +436,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         viewModel = null
         visibility = VISIBLE
         taskContainers.forEach { removeAndRecycleThumbnailView(it) }
+        if (enableOverviewIconMenu()) {
+            (iconView as IconAppChipView).reset()
+        }
     }
 
     override fun setOrientationState(orientationState: RecentsOrientedState) {

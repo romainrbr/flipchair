@@ -213,6 +213,8 @@ public final class LauncherInstrumentation {
 
     private boolean mWaitingForMotionUpEvent;
 
+    private final Integer taskbarPrimaryDisplayId;
+
     private static Pattern getKeyEventPattern(String action, String keyCode) {
         return Pattern.compile("Key event: KeyEvent.*action=" + action + ".*keyCode=" + keyCode);
     }
@@ -326,6 +328,8 @@ public final class LauncherInstrumentation {
                 SystemClock.sleep(100);
             }
         }
+
+        taskbarPrimaryDisplayId = getTaskbarPrimaryDisplayId();
     }
 
     /**
@@ -469,6 +473,11 @@ public final class LauncherInstrumentation {
     public boolean hadNontestEvents() {
         return getTestInfo(TestProtocol.REQUEST_GET_HAD_NONTEST_EVENTS)
                 .getBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD);
+    }
+
+    Integer getTaskbarPrimaryDisplayId() {
+        final Bundle testInfo = getTestInfo(TestProtocol.REQUEST_TASKBAR_PRIMARY_DISPLAY_ID);
+        return testInfo != null ? testInfo.getInt(TestProtocol.TEST_INFO_RESPONSE_FIELD) : null;
     }
 
     void setActiveContainer(VisibleContainer container) {
@@ -884,22 +893,29 @@ public final class LauncherInstrumentation {
         final int waitTime = waitForCorrectState ? WAIT_TIME_MS : 0;
         final NavigationModel navigationModel = getNavigationModel();
         String resPackage = getNavigationButtonResPackage();
+        final BySelector recentAppsSelector = By.res(resPackage, "recent_apps");
+        final BySelector homeSelector = By.res(resPackage, "home");
+        if (taskbarPrimaryDisplayId != null) {
+            recentAppsSelector.displayId(taskbarPrimaryDisplayId);
+            homeSelector.displayId(taskbarPrimaryDisplayId);
+        }
+
         if (navigationModel == NavigationModel.THREE_BUTTON) {
-            if (!mDevice.wait(Until.hasObject(By.res(resPackage, "recent_apps")), waitTime)) {
+            if (!mDevice.wait(Until.hasObject(recentAppsSelector), waitTime)) {
                 return "Recents button not present in 3-button mode";
             }
         } else {
-            if (!mDevice.wait(Until.gone(By.res(resPackage, "recent_apps")), waitTime)) {
+            if (!mDevice.wait(Until.gone(recentAppsSelector), waitTime)) {
                 return "Recents button is present in non-3-button mode";
             }
         }
 
         if (navigationModel == NavigationModel.ZERO_BUTTON) {
-            if (!mDevice.wait(Until.gone(By.res(resPackage, "home")), waitTime)) {
+            if (!mDevice.wait(Until.gone(homeSelector), waitTime)) {
                 return "Home button is present in gestural mode";
             }
         } else {
-            if (!mDevice.wait(Until.hasObject(By.res(resPackage, "home")), waitTime)) {
+            if (!mDevice.wait(Until.hasObject(homeSelector), waitTime)) {
                 return "Home button not present in non-gestural mode";
             }
         }

@@ -110,6 +110,7 @@ import com.android.systemui.unfold.UnfoldTransitionProgressProvider;
 import com.android.systemui.unfold.util.ScopedUnfoldTransitionProgressProvider;
 
 import java.io.PrintWriter;
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -1757,14 +1758,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
 
     /** Creates a {@link PendingIntent} for showing / hiding the all apps UI. */
     public PendingIntent createAllAppsPendingIntent(Executor uiExecutor) {
-        return new PendingIntent(new IIntentSender.Stub() {
-            @Override
-            public void send(int code, Intent intent, String resolvedType,
-                    IBinder allowlistToken, IIntentReceiver finishedReceiver,
-                    String requiredPermission, Bundle options) {
-                uiExecutor.execute(TaskbarManagerImpl.this::toggleAllAppsSearch);
-            }
-        });
+        return new PendingIntent(new AllAppsIntentSender(uiExecutor, this));
     }
 
     /**
@@ -1816,4 +1810,25 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
     private final DeviceProfile.OnDeviceProfileChangeListener mDebugActivityDeviceProfileChanged =
             dp -> debugPrimaryTaskbar("mActivity onDeviceProfileChanged", true);
 
+    /** Use weak reference to avoid leaking TIS via {@link TaskbarManagerImpl} */
+    private static class AllAppsIntentSender extends IIntentSender.Stub {
+
+        private final Executor mUiExecutor;
+        private final WeakReference<TaskbarManagerImpl> mWeakTaskbarManager;
+
+        AllAppsIntentSender(Executor uiExecutor, TaskbarManagerImpl taskbarManager) {
+            mUiExecutor = uiExecutor;
+            mWeakTaskbarManager = new WeakReference<>(taskbarManager);
+        }
+
+        @Override
+        public void send(int i, Intent intent, String s, IBinder iBinder,
+                IIntentReceiver iIntentReceiver, String s1, Bundle bundle) {
+            TaskbarManagerImpl taskbarManager = mWeakTaskbarManager.get();
+            if (taskbarManager == null) {
+                return;
+            }
+            mUiExecutor.execute(taskbarManager::toggleAllAppsSearch);
+        }
+    };
 }

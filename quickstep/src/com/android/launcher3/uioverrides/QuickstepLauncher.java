@@ -88,6 +88,7 @@ import android.os.Trace;
 import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
@@ -463,10 +464,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         if (!Flags.allAppsBlur() && !enableOverviewBackgroundWallpaperBlur()) {
             return;
         }
-        getTheme().applyStyle(getBlurStyleResId(), true);
+        int blurStyleResId = getBlurStyleResId();
+        getTheme().applyStyle(blurStyleResId, true);
         if (Flags.allAppsBlur()) {
-            getAppsView().getContext().getTheme().applyStyle(getBlurStyleResId(), true);
-            getAppsView().onThemeChanged();
+            getAppsView().onThemeChanged(
+                    new ContextThemeWrapper(getApplicationContext(), blurStyleResId));
         }
         if (enableOverviewBackgroundWallpaperBlur()) {
             getScrimView().setBackgroundColor(

@@ -704,7 +704,7 @@ public abstract class RecentsView<
 
     // Used to keep track of the last requested task list id, so that we do not request to load the
     // tasks again if we have already requested it and the task list has not changed
-    private int mTaskListChangeId = -1;
+    private int mAppliedTaskListChangeId = -1;
 
     // Only valid until the launcher state changes to NORMAL
     /**
@@ -1064,7 +1064,7 @@ public abstract class RecentsView<
      * Invalidates the list of tasks so that an update occurs to the list of tasks if requested.
      */
     private void invalidateTaskList() {
-        mTaskListChangeId = -1;
+        mAppliedTaskListChangeId = -1;
     }
 
     public OverScroller getScroller() {
@@ -1934,7 +1934,7 @@ public abstract class RecentsView<
         return super.isPageScrollsInitialized() && mLoadPlanEverApplied;
     }
 
-    protected void applyLoadPlan(List<GroupTask> taskGroups) {
+    protected void applyLoadPlan(List<GroupTask> taskGroups, int taskListChangeId) {
         if (enableRefactorTaskThumbnail() && !(isAttachedToWindow()
                 && RecentsDependencies.Companion.hasScope(mContext))) {
             // This can happen if a TaskView callback is triggered after the view is destroyed
@@ -1945,7 +1945,8 @@ public abstract class RecentsView<
         }
         if (mPendingAnimation != null) {
             final List<GroupTask> finalTaskGroups = taskGroups;
-            mPendingAnimation.addEndListener(success -> applyLoadPlan(finalTaskGroups));
+            mPendingAnimation.addEndListener(
+                    success -> applyLoadPlan(finalTaskGroups, taskListChangeId));
             return;
         }
 
@@ -2179,6 +2180,7 @@ public abstract class RecentsView<
             mIgnoreResetTaskId = INVALID_TASK_ID;
         }
 
+        mAppliedTaskListChangeId = taskListChangeId;
         resetTaskVisuals();
         onTaskStackUpdated();
         updateEnabledOverlays();
@@ -2609,7 +2611,7 @@ public abstract class RecentsView<
      */
     public void loadVisibleTaskData(@TaskView.TaskDataChanges int dataChanges) {
         boolean hasLeftOverview = !mOverviewStateEnabled && mScroller.isFinished();
-        if (hasLeftOverview || mTaskListChangeId == -1) {
+        if (hasLeftOverview || mAppliedTaskListChangeId == -1) {
             // Skip loading visible task data if we've already left the overview state, or if the
             // task list hasn't been loaded yet (the task views will not reflect the task list)
             return;
@@ -2762,7 +2764,7 @@ public abstract class RecentsView<
         setCurrentTask(-1);
         mCurrentPageScrollDiff = 0;
         mIgnoreResetTaskId = -1;
-        mTaskListChangeId = -1;
+        mAppliedTaskListChangeId = -1;
         setFocusedTaskViewId(INVALID_TASK_ID);
         mAnyTaskHasBeenDismissed = false;
 
@@ -2899,15 +2901,15 @@ public abstract class RecentsView<
      * Reloads the view if anything in recents changed.
      */
     public void reloadIfNeeded() {
-        if (!mModel.isTaskListValid(mTaskListChangeId)) {
-            mTaskListChangeId = mModel.getTasks(this::applyLoadPlan, RecentsFilterState
+        if (!mModel.isTaskListValid(mAppliedTaskListChangeId)) {
+            mModel.getTasks(this::applyLoadPlan, RecentsFilterState
                     .getFilter(mFilterState.getPackageNameToFilter(), mContainer.getDisplayId()));
-            Log.d(TAG, "reloadIfNeeded - getTasks: " + mTaskListChangeId);
+            Log.d(TAG, "reloadIfNeeded - getTasks: " + mAppliedTaskListChangeId);
             if (enableRefactorTaskThumbnail()) {
                 mRecentsViewModel.refreshAllTaskData();
             }
         } else {
-            Log.d(TAG, "reloadIfNeeded - task list still valid: " + mTaskListChangeId);
+            Log.d(TAG, "reloadIfNeeded - task list still valid: " + mAppliedTaskListChangeId);
         }
     }
 

@@ -167,6 +167,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             FLAG_NOTIFICATION_SHADE_EXPANDED | FLAG_VOICE_INTERACTION_WINDOW_SHOWING;
 
     private static final String NAV_BUTTONS_SEPARATE_WINDOW_TITLE = "Taskbar Nav Buttons";
+    private static final String SUW_THEME_SYSTEM_PROPERTY = "setupwizard.theme";
+    private static final String GLIF_EXPRESSIVE_THEME = "glif_expressive";
+    private static final String GLIF_EXPRESSIVE_LIGHT_THEME = "glif_expressive_light";
 
     private static final double SQUARE_ASPECT_RATIO_BOTTOM_BOUND = 0.95;
     private static final double SQUARE_ASPECT_RATIO_UPPER_BOUND = 1.05;
@@ -278,9 +281,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         if (mContext.isPhoneMode()) {
             mTaskbarTransitions = new TaskbarTransitions(mContext, mNavButtonsView);
         }
-        String SUWTheme = SystemProperties.get("setupwizard.theme", "");
-        mIsExpressiveThemeEnabled = SUWTheme.equals("glif_expressive")
-                || SUWTheme.equals("glif_expressive_light");
+        String SUWTheme = SystemProperties.get(SUW_THEME_SYSTEM_PROPERTY, "");
+        mIsExpressiveThemeEnabled = SUWTheme.equals(GLIF_EXPRESSIVE_THEME)
+                || SUWTheme.equals(GLIF_EXPRESSIVE_LIGHT_THEME);
     }
 
     /**
@@ -525,6 +528,20 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         mSpace.setOnClickListener(view -> navButtonController.onButtonClick(BUTTON_SPACE, view));
         mSpace.setOnLongClickListener(view ->
                 navButtonController.onButtonLongClick(BUTTON_SPACE, view));
+    }
+
+    /**
+     * Method to determine whether the Navigation Bar is viewable in Setup Wizard
+     *
+     * @return {@code true} if the device is in Setup Wizard, the expressive theme is enabled,
+     * and Simple View is NOT enabled
+     */
+    boolean isNavbarHiddenInSUW() {
+        if (mContext == null) {
+            return false;
+        }
+        return !mContext.isUserSetupComplete() && mIsExpressiveThemeEnabled
+                && !mContext.isSimpleViewEnabled();
     }
 
     /**

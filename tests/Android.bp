@@ -163,6 +163,7 @@ filegroup {
         "src/**/*Test.kt",
         "src/**/RoboApiWrapper.kt",
         "src/**/EventsRule.kt",
+        "src/**/LauncherCustomizer.kt",
         "multivalentTests/src/**/*Test.java",
         "multivalentTests/src/**/*Test.kt",
     ],

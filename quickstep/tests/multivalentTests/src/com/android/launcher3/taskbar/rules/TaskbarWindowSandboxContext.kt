@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
+import android.view.Display
 import android.view.Display.DEFAULT_DISPLAY
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.util.SandboxApplication
@@ -30,6 +31,7 @@ import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+import org.mockito.kotlin.whenever
 
 /**
  * [SandboxApplication] for running Taskbar tests.
@@ -51,6 +53,20 @@ private constructor(
             override fun after() = virtualDisplay.release()
         }
 
+    // Filter out DEFAULT_DISPLAY in case code accesses displays property. The primary virtual
+    // display has a different ID.
+    private val sandboxDisplayManagerRule =
+        object : ExternalResource() {
+            override fun before() {
+                val dm = base.spyService(DisplayManager::class.java)
+                whenever(dm.displays).thenAnswer { i ->
+                    @Suppress("UNCHECKED_CAST")
+                    val displays = i.callRealMethod() as? Array<Display> ?: emptyArray<Display>()
+                    displays.filter { it.displayId != DEFAULT_DISPLAY }.toTypedArray()
+                }
+            }
+        }
+
     private val singletonSetupRule =
         object : ExternalResource() {
             override fun before() {
@@ -66,6 +82,7 @@ private constructor(
     override fun apply(statement: Statement, description: Description): Statement {
         return RuleChain.outerRule(virtualDisplayRule)
             .around(base)
+            .around(sandboxDisplayManagerRule)
             .around(singletonSetupRule)
             .apply(statement, description)
     }

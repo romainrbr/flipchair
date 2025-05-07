@@ -23,6 +23,16 @@ flag {
 }
 
 flag {
+    name: "enable_coroutine_threading_improvements"
+    namespace: "launcher_overview"
+    description: "Enables changes to the threading model of Launcher's coroutines implementation"
+    bug: "416206104"
+    metadata {
+        purpose: PURPOSE_BUGFIX
+    }
+}
+
+flag {
     name: "enable_large_desktop_windowing_tile"
     namespace: "launcher_overview"
     description: "Makes the desktop tiles larger and moves them to the front of the list in Overview."

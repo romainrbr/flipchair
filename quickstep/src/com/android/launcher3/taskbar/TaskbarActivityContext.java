@@ -811,7 +811,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     /** Returns whether taskbar should start align. */
     public boolean shouldStartAlignTaskbar() {
-        return isThreeButtonNav() && mDeviceProfile.startAlignTaskbar;
+        return isThreeButtonNav() && mDeviceProfile.startAlignTaskbar && isPrimaryDisplay();
     }
 
     public boolean isGestureNav() {

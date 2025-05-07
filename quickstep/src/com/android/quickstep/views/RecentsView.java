@@ -941,6 +941,9 @@ public abstract class RecentsView<
             mAddDesktopButton.setOnClickListener(this::createDesk);
 
             mDesktopVisibilityController = DesktopVisibilityController.INSTANCE.get(mContext);
+            // Update its visibility based on whether we can create a desk or not.
+            mUtils.onCanCreateDesksChanged(
+                    mDesktopVisibilityController.getCanCreateDesks());
         }
 
         mTaskViewPool = new ViewPool<>(context, this, R.layout.task, 20 /* max size */,

@@ -380,7 +380,7 @@
         <item name="android:minHeight">36dp</item>
     </style>
 
-    <style name="BlurStyle">
+    <style name="AllAppsBlurStyle">
         <item name="allAppsScrimColor">@androidprv:color/shade_panel_scrim_color</item>
         <item name="groupHighlight">@androidprv:color/surface_effect_1</item>
         <item name="focusHighlight">@androidprv:color/surface_effect_2</item>
@@ -393,7 +393,7 @@
         <item name="bottomSheetDragHandleColor">@androidprv:color/surface_effect_1</item>
     </style>
 
-    <style name="BlurFallbackStyle">
+    <style name="AllAppsBlurFallbackStyle">
         <item name="allAppsScrimColor">@color/widgets_picker_scrim</item>
         <item name="groupHighlight">@color/materialColorSurfaceContainerHigh</item>
         <item name="focusHighlight">@color/materialColorSurfaceBright</item>

@@ -944,7 +944,7 @@ constructor(
                 // onAttach or another moment in the lifecycle.
                 val coroutineJobsToCancel = coroutineJobs.toList()
                 coroutineJobs.clear()
-                coroutineScope.launch(dispatcherProvider.background) {
+                coroutineScope.launch(dispatcherProvider.lightweightBackground) {
                     traceSection("TaskView.onDetachedFromWindow.cancellingJobs") {
                         coroutineJobsToCancel.forEach {
                             it.cancel("TaskView detaching from window")

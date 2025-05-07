@@ -339,10 +339,4 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     public boolean canLaunchFullscreenTask() {
         return !mContainer.isInState(OVERVIEW_SPLIT_SELECT);
     }
-
-    /** Returns if app pairs are supported in this launcher. */
-    @Override
-    public boolean supportsAppPairs() {
-        return false;
-    }
 }

@@ -187,6 +187,7 @@ import com.android.quickstep.BaseContainerInterface;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.HighResLoadingState;
 import com.android.quickstep.OverviewCommandHelper;
+import com.android.quickstep.OverviewComponentObserver;
 import com.android.quickstep.RecentsAnimationController;
 import com.android.quickstep.RecentsAnimationTargets;
 import com.android.quickstep.RecentsFilterState;
@@ -831,6 +832,8 @@ public abstract class RecentsView<
     @Nullable
     private DesktopRecentsTransitionController mDesktopRecentsTransitionController;
 
+    private boolean mIs3PLauncher = false;
+
     private MultiWindowModeChangedListener mMultiWindowModeChangedListener =
             new MultiWindowModeChangedListener() {
                 @Override
@@ -1227,10 +1230,11 @@ public abstract class RecentsView<
 
     public void init(OverviewActionsView actionsView, SplitSelectStateController splitController,
             @Nullable DesktopRecentsTransitionController desktopRecentsTransitionController) {
+        mIs3PLauncher = !OverviewComponentObserver.INSTANCE.get(mContext).isHomeAndOverviewSame();
         mActionsView = actionsView;
         mActionsView.updateHiddenFlags(HIDDEN_NO_TASKS, !hasTaskViews());
         // Update flags for 1p/3p launchers
-        mActionsView.updateFor3pLauncher(!supportsAppPairs());
+        mActionsView.updateFor3pLauncher(mIs3PLauncher);
         mSplitSelectStateController = splitController;
         mDesktopRecentsTransitionController = desktopRecentsTransitionController;
     }
@@ -4373,17 +4377,14 @@ public abstract class RecentsView<
         mActionsView.updateHiddenFlags(HIDDEN_SPLIT_SELECT_ACTIVE, isSplitSelectionActive());
         // Update flags to see if actions bar should show buttons for a single task or a pair of
         // tasks.
-        boolean canSaveAppPair = isCurrentSplit && supportsAppPairs() &&
-                getSplitSelectController().getAppPairsController().canSaveAppPair(groupedTaskView);
+        boolean canSaveAppPair = isCurrentSplit
+                && !mIs3PLauncher
+                && getSplitSelectController().getAppPairsController().canSaveAppPair(
+                        groupedTaskView);
         mActionsView.updateForGroupedTask(isCurrentSplit, canSaveAppPair);
 
         boolean isCurrentDesktop = taskView instanceof DesktopTaskView;
         mActionsView.updateHiddenFlags(HIDDEN_DESKTOP, isCurrentDesktop);
-    }
-
-    /** Returns if app pairs are supported in this launcher. Overridden in subclasses. */
-    public boolean supportsAppPairs() {
-        return true;
     }
 
     /**

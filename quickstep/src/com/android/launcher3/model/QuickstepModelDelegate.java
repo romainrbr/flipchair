@@ -20,24 +20,19 @@ import static android.text.format.DateUtils.formatElapsedTime;
 
 import static com.android.launcher3.EncryptionType.ENCRYPTED;
 import static com.android.launcher3.LauncherPrefs.nonRestorableItem;
-import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
+import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_PREDICTION;
 import static com.android.launcher3.LauncherSettings.Favorites.DESKTOP_ICON_FLAG;
-import static com.android.launcher3.hybridhotseat.HotseatPredictionModel.convertDataModelToAppTargetBundle;
 import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
-import static com.android.launcher3.model.PredictionHelper.getAppTargetFromItemInfo;
-import static com.android.launcher3.model.PredictionHelper.wrapAppTargetWithItemLocation;
+import static com.android.launcher3.model.PredictionHelper.getBundleForHotseatPredictions;
+import static com.android.launcher3.model.PredictionHelper.getBundleForWidgetPredictions;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
-
-import static java.util.stream.Collectors.toCollection;
 
 import android.app.StatsManager;
 import android.app.prediction.AppPredictionContext;
-import android.app.prediction.AppTarget;
 import android.app.prediction.AppTargetEvent;
 import android.content.Context;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.StatsEvent;
@@ -55,9 +50,9 @@ import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
-import com.android.launcher3.model.BgDataModel.FixedContainerItems;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.pm.UserCache;
 import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.quickstep.logging.SettingsChangeLogger;
@@ -66,7 +61,6 @@ import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.systemui.shared.system.SysUiStatsLog;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -76,7 +70,6 @@ import javax.inject.Named;
  */
 public class QuickstepModelDelegate extends ModelDelegate {
 
-    private static final String BUNDLE_KEY_ADDED_APP_WIDGETS = "added_app_widgets";
     private static final int NUM_OF_RECOMMENDED_WIDGETS_PREDICATION = 20;
 
     private static final boolean IS_DEBUG = false;
@@ -142,18 +135,18 @@ public class QuickstepModelDelegate extends ModelDelegate {
     private void loadAndBindPredictedItems(
             int numColumns, @NonNull PredictorState state) {
         PredictedItemFactory parser = mItemParserFactory.newParser(numColumns, state);
-        FixedContainerItems fci = new FixedContainerItems(state.containerId,
+        PredictedContainerInfo fci = new PredictedContainerInfo(state.containerId,
                 state.storage.read(mContext, parser, mUserCache::getUserForSerialNumber));
-        mDataModel.extraItems.put(state.containerId, fci);
+        mDataModel.itemsIdMap.put(state.containerId, fci);
     }
 
     @CallSuper
     @Override
     public void loadAndBindOtherItems() {
-        FixedContainerItems widgetPredictionFCI = new FixedContainerItems(
+        PredictedContainerInfo widgetPredictionFCI = new PredictedContainerInfo(
                 mWidgetsRecommendationState.containerId, new ArrayList<>());
         // Widgets prediction isn't used frequently. And thus, it is not persisted on disk.
-        mDataModel.extraItems.put(mWidgetsRecommendationState.containerId, widgetPredictionFCI);
+        mDataModel.itemsIdMap.put(mWidgetsRecommendationState.containerId, widgetPredictionFCI);
     }
 
     public void markActive() {
@@ -318,7 +311,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
         mWidgetsRecommendationState.registerPredictor(mContext,
                 new AppPredictionContext.Builder(mContext)
                     .setUiSurface("widgets")
-                    .setExtras(getBundleForWidgetsOnWorkspace(mContext, mDataModel))
+                    .setExtras(getBundleForWidgetPredictions(mContext, mDataModel))
                     .setPredictedTargetCount(NUM_OF_RECOMMENDED_WIDGETS_PREDICATION)
                     .build(),
                 mModel,
@@ -338,7 +331,7 @@ public class QuickstepModelDelegate extends ModelDelegate {
                 new AppPredictionContext.Builder(context)
                     .setUiSurface("hotseat")
                     .setPredictedTargetCount(mIDP.numDatabaseHotseatIcons)
-                    .setExtras(convertDataModelToAppTargetBundle(context, mDataModel))
+                    .setExtras(getBundleForHotseatPredictions(context, mDataModel))
                     .build(),
                 mModel, PredictionUpdateTask::new);
     }
@@ -369,22 +362,5 @@ public class QuickstepModelDelegate extends ModelDelegate {
             // unpin app icons.
             recreateHotseatPredictor();
         }
-    }
-
-    private Bundle getBundleForWidgetsOnWorkspace(Context context, BgDataModel dataModel) {
-        Bundle bundle = new Bundle();
-        ArrayList<AppTargetEvent> widgetEvents =
-                dataModel.itemsIdMap.stream()
-                        .filter(PredictionHelper::isTrackedForWidgetPrediction)
-                        .map(item -> {
-                            AppTarget target = getAppTargetFromItemInfo(context, item);
-                            if (target == null) return null;
-                            return wrapAppTargetWithItemLocation(
-                                    target, AppTargetEvent.ACTION_PIN, item);
-                        })
-                        .filter(Objects::nonNull)
-                        .collect(toCollection(ArrayList::new));
-        bundle.putParcelableArrayList(BUNDLE_KEY_ADDED_APP_WIDGETS, widgetEvents);
-        return bundle;
     }
 }

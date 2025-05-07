@@ -6449,6 +6449,13 @@ public abstract class RecentsView<
                 && !taskView.isLargeTile();
     }
 
+    /**
+     * @return true if the task in on the top of the grid
+     */
+    public boolean isOnGridTopRow(TaskView taskView) {
+        return showAsGrid() && mTopRowIdSet.contains(taskView.getTaskViewId());
+    }
+
     public Consumer<MotionEvent> getEventDispatcher(float navbarRotation) {
         float degreesRotated;
         if (navbarRotation == 0) {

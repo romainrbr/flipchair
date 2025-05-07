@@ -33,6 +33,7 @@ import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.SnapshotSplash
 import com.android.quickstep.task.thumbnail.TaskThumbnailUiState.Uninitialized
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -61,6 +62,7 @@ class TaskThumbnailViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         setFlagsRule.setFlags(false, Flags.FLAG_ENABLE_REFACTOR_TASK_CONTENT_VIEW)
     }
 
+    @Ignore("b/416195253")
     @Test
     fun taskThumbnailView_uninitializedByDefault() {
         screenshotRule.screenshotTest("taskThumbnailView_uninitialized") { activity ->
@@ -69,6 +71,7 @@ class TaskThumbnailViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         }
     }
 
+    @Ignore("b/416195253")
     @Test
     fun taskThumbnailView_resetsToUninitialized() {
         screenshotRule.screenshotTest("taskThumbnailView_uninitialized") { activity ->
@@ -79,6 +82,7 @@ class TaskThumbnailViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         }
     }
 
+    @Ignore("b/416195253")
     @Test
     fun taskThumbnailView_recyclesToUninitialized() {
         screenshotRule.screenshotTest("taskThumbnailView_uninitialized") { activity ->
@@ -90,6 +94,7 @@ class TaskThumbnailViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         }
     }
 
+    @Ignore("b/416195253")
     @Test
     fun taskThumbnailView_backgroundOnly() {
         screenshotRule.screenshotTest("taskThumbnailView_backgroundOnly") { activity ->

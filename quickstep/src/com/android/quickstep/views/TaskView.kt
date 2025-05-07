@@ -753,7 +753,9 @@ constructor(
                     AccessibilityNodeInfo.CollectionItemInfo(
                         0,
                         1,
-                        it.getAccessibilityChildren().indexOf(this@TaskView),
+                        // We only care about TaskView's for the `CollectionInfo` that Talkback uses
+                        // to read out.
+                        it.taskViews.reversed().indexOf(this@TaskView),
                         1,
                         false,
                     )

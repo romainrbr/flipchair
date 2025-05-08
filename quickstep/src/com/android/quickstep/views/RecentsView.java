@@ -657,7 +657,10 @@ public abstract class RecentsView<
                 return;
             }
 
-            reloadIfNeeded();
+            // If PiP2 is enabled, we will trigger the reload only after the Transition is finished.
+            if (!PipFlags.isPip2ExperimentEnabled()) {
+                reloadIfNeeded();
+            }
             enableLayoutTransitions();
         }
 
@@ -6920,6 +6923,16 @@ public abstract class RecentsView<
                 // Hide the task bar when leaving PiP to prevent it from flickering once
                 // the app settles in full-screen mode.
                 mRecentsView.mSizeStrategy.getTaskbarController().onExpandPip();
+            });
+        }
+
+        @Override
+        public void onExitPip() {
+            MAIN_EXECUTOR.execute(() -> {
+                if (mRecentsView == null || !PipFlags.isPip2ExperimentEnabled()) {
+                    return;
+                }
+                mRecentsView.reloadIfNeeded();
             });
         }
     }

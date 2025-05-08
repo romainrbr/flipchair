@@ -807,7 +807,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     public void onAssistantVisibilityChanged(float visibility) {
-        mHotseat.getQsb().setAlpha(1f - visibility);
+        mHotseat.setQsbAlpha(1f - visibility, Hotseat.ALPHA_CHANNEL_ASSISTANT_VISIBILITY);
     }
 
     /**

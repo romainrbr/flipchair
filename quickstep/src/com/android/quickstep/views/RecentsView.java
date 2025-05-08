@@ -157,6 +157,7 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.SpringProperty;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
 import com.android.launcher3.config.FeatureFlags;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.desktop.DesktopRecentsTransitionController;
 import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.logging.StatsLogManager;
@@ -873,7 +874,8 @@ public abstract class RecentsView<
     protected final RecentsViewModel mRecentsViewModel;
     private final RecentsViewModelHelper mHelper;
     protected final RecentsViewUtils mUtils = new RecentsViewUtils(this);
-    protected final RecentsDismissUtils mDismissUtils = new RecentsDismissUtils(this);
+    protected final RecentsDismissUtils mDismissUtils = LauncherComponentProvider.get(
+            getContext()).getRecentsDismissUtilsFactory().create(this);
 
     private final Matrix mTmpMatrix = new Matrix();
 
@@ -2191,7 +2193,7 @@ public abstract class RecentsView<
         return mModel.isLoadingTasksInBackground();
     }
 
-    private void removeAllTaskViews() {
+    protected void removeAllTaskViews() {
         // This handles an edge case where applyLoadPlan happens during a gesture when the only
         // Task is one with excludeFromRecents, in which case we should not remove it.
         CollectionsKt
@@ -4572,7 +4574,11 @@ public abstract class RecentsView<
 
     @SuppressWarnings("unused")
     private void dismissAllTasks(View view) {
-        runDismissAnimation(createAllTasksDismissAnimation(DISMISS_TASK_DURATION));
+        if (enableExpressiveDismissTaskMotion()) {
+            mDismissUtils.dismissAllTasks();
+        } else {
+            runDismissAnimation(createAllTasksDismissAnimation(DISMISS_TASK_DURATION));
+        }
         mContainer.getStatsLogManager().logger().log(LAUNCHER_TASK_CLEAR_ALL);
     }
 
@@ -7023,12 +7029,11 @@ public abstract class RecentsView<
      * spring in response to the perceived impact of the settling task.
      */
     public RecentsDismissUtils.SpringSet runTaskDismissSettlingSpringAnimation(
-            TaskView draggedTaskView, float velocity, boolean isDismissing, int dismissLength,
-            int dismissThreshold, float finalPosition, boolean shouldRemoveTaskView,
+            TaskView draggedTaskView, boolean isDismissing,
+            RecentsDismissUtils.DismissedTaskData dismissedTaskData, boolean shouldRemoveTaskView,
             boolean isSplitSelection) {
-        return mDismissUtils.createTaskDismissSpringAnimation(draggedTaskView, velocity,
-                isDismissing, dismissLength, dismissThreshold, finalPosition, shouldRemoveTaskView,
-                isSplitSelection);
+        return mDismissUtils.createTaskDismissSpringAnimation(draggedTaskView, isDismissing,
+                dismissedTaskData, shouldRemoveTaskView, isSplitSelection);
     }
 
     /**

@@ -40,6 +40,7 @@ import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.FlagDebugUtils.formatFlagChange;
 import static com.android.quickstep.util.SystemActionConstants.ACTION_SHOW_TASKBAR;
 import static com.android.quickstep.util.SystemActionConstants.SYSTEM_ACTION_ID_TASKBAR;
+import static com.android.wm.shell.shared.desktopmode.DesktopModeStatus.enableMultipleDesktops;
 
 import android.animation.AnimatorSet;
 import android.annotation.SuppressLint;
@@ -73,6 +74,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.app.displaylib.PerDisplayRepository;
+import com.android.internal.util.LatencyTracker;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InvariantDeviceProfile;
 import com.android.launcher3.Launcher;
@@ -332,6 +334,10 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
             new DesktopVisibilityController.TaskbarDesktopModeListener() {
                 @Override
                 public void onExitDesktopMode(int duration) {
+                    if (enableMultipleDesktops(mBaseContext)) {
+                        LatencyTracker.getInstance(mBaseContext).onActionStart(
+                                LatencyTracker.ACTION_DESKTOP_MODE_EXIT_MODE_ON_LAST_WINDOW_CLOSE);
+                    }
                     for (Entry<Integer, TaskbarActivityContext> entry : mTaskbars.entrySet()) {
                         int displayId = entry.getKey();
                         if (isExternalDisplay(displayId)) {

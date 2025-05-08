@@ -210,6 +210,7 @@ import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.notification.NotificationListener;
 import com.android.launcher3.pm.PinRequestHelper;
@@ -231,7 +232,6 @@ import com.android.launcher3.util.CannedAnimationCoordinator;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ContextTracker;
 import com.android.launcher3.util.IntSet;
-import com.android.launcher3.util.IntSparseArrayMap;
 import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.KeyboardShortcutsDelegate;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
@@ -2198,8 +2198,7 @@ public class Launcher extends StatefulActivity<LauncherState>
     }
 
     @Override
-    public void bindCompleteModelAsync(
-            IntSparseArrayMap<ItemInfo> itemIdMap, boolean isBindingSync) {
+    public void bindCompleteModelAsync(WorkspaceData itemIdMap, boolean isBindingSync) {
         mModelCallbacks.bindCompleteModelAsync(itemIdMap, isBindingSync);
     }
 

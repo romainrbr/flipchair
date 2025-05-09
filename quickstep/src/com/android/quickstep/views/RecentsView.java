@@ -1742,15 +1742,6 @@ public abstract class RecentsView<
     }
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        boolean intercept = super.onInterceptTouchEvent(ev);
-        if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            Log.d("b/318590728", "onInterceptTouchEvent: " + ev);
-        }
-        return intercept;
-    }
-
-    @Override
     public boolean onTouchEvent(MotionEvent ev) {
         super.onTouchEvent(ev);
 

@@ -3272,7 +3272,9 @@ public abstract class RecentsView<
         int snappedPage = isKeyboardTaskFocusPending() ? mKeyboardTaskFocusIndex : getNextPage();
         TaskView snappedTaskView = getTaskViewAt(snappedPage);
         TaskView homeTaskView = getHomeTaskView();
-        TaskView expectedCurrentTaskView = mUtils.getExpectedCurrentTask(getRunningTaskView(),
+        // Determine the currentTaskView when going from Home to Overview, and ensure it can be
+        // snapped to its expected position.
+        TaskView expectedCurrentTaskView = mUtils.getExpectedCurrentTask(/* runningTaskView= */null,
                 getFocusedTaskView());
         TaskView nextFocusedTaskView = null;
 

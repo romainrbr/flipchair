@@ -4976,7 +4976,7 @@ public abstract class RecentsView<
             float modalTranslation = i == modalMidpoint
                     ? modalMidpointOffsetSize
                     : showAsGrid
-                            ? gridOffsetSize
+                            ? mIsRtl ? gridOffsetSize : -gridOffsetSize
                             : i < modalMidpoint ? modalLeftOffsetSize : modalRightOffsetSize;
             boolean skipTranslationOffset =
                     i == getRunningTaskIndex() && child instanceof DesktopTaskView;

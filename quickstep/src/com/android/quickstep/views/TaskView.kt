@@ -346,7 +346,7 @@ constructor(
      * The modalness of this view is how it should be displayed when it is shown on its own in the
      * modal state of overview. 0 being in context with other tasks, 1 being shown on its own.
      */
-    protected var modalness = 0f
+    var modalness = 0f
         set(value) {
             if (field == value) {
                 return

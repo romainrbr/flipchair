@@ -35,6 +35,7 @@ import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.app.animation.Interpolators.clampToProgress;
 import static com.android.launcher3.AbstractFloatingView.TYPE_REBIND_SAFE;
 import static com.android.launcher3.BaseActivity.STATE_HANDLER_INVISIBILITY_FLAGS;
+import static com.android.launcher3.Flags.enableCoroutineThreadingImprovements;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
 import static com.android.launcher3.Flags.enableLargeDesktopWindowingTile;
@@ -2778,6 +2779,14 @@ public abstract class RecentsView<
             setEnableDrawingLiveTile(false);
         }
         mBlurUtils.setDrawLiveTileBelowRecents(false);
+
+        if (enableCoroutineThreadingImprovements()) {
+            // TODO(b/391842220): This should not need to be explicitly called from here. When TVs
+            //  are added and removed with the RecentsView lifecycle, this can be removed.
+            //  This is was added because without it cancelling jobs was happening after work was
+            //  scheduled for those jobs resulting in delays.
+            mUtils.getTaskViews().forEach(TaskView::cancelJobs);
+        }
         // These are relatively expensive and don't need to be done this frame (RecentsView isn't
         // visible anyway), so defer by a frame to get off the critical path, e.g. app to home.
         // Defer onto the main thread rather than the view message queue since this will not always

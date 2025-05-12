@@ -90,6 +90,8 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/components/ScrollableFloatingToolbar.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/LeadingIconToolbarTab.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/TitledBottomSheet.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/TwoPaneLayout.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/SinglePaneLayout.kt",
     ],
     static_libs: [
         "androidx.compose.foundation_foundation",

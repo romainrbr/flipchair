@@ -92,6 +92,7 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/components/TitledBottomSheet.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/TwoPaneLayout.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/SinglePaneLayout.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetsSearchBar.kt",
     ],
     static_libs: [
         "androidx.compose.foundation_foundation",
@@ -104,6 +105,8 @@ android_library {
         "androidx.compose.material_material-icons-extended",
         "androidx.activity_activity-compose",
         "widget_picker_window_size_class",
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
     ],
 }
 

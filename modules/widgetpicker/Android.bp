@@ -93,6 +93,7 @@ android_library {
         "src/com/android/launcher3/widgetpicker/ui/components/TwoPaneLayout.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/SinglePaneLayout.kt",
         "src/com/android/launcher3/widgetpicker/ui/components/WidgetsSearchBar.kt",
+        "src/com/android/launcher3/widgetpicker/ui/components/WidgetAppIcon.kt",
     ],
     static_libs: [
         "androidx.compose.foundation_foundation",

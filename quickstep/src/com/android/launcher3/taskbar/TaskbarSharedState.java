@@ -92,6 +92,16 @@ public class TaskbarSharedState {
         return bubbleInfoItems != null && !bubbleInfoItems.isEmpty();
     }
 
+    /** Clears stored bubble bar data. */
+    public void clearBubbleData() {
+        bubbleInfoItems = null;
+        selectedBubbleKey = null;
+        bubbleBarLocation = null;
+        bubbleBarExpanded = false;
+        bubbleBarStashed = false;
+        suppressedBubbleInfoItems = null;
+    }
+
     // LauncherTaskbarUIController#mTaskbarInAppDisplayProgressMultiProp
     public float[] inAppDisplayProgressMultiPropValues = new float[DISPLAY_PROGRESS_COUNT];
 

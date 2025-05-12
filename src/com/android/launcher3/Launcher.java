@@ -239,7 +239,6 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.util.TraceHelper;
-import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingSurfaceView;
 import com.android.launcher3.views.OptionsPopupView;
@@ -2654,14 +2653,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     /** Enables/disabled the hotseat prediction icon long press edu for testing. */
     @VisibleForTesting
     public void enableHotseatEdu(boolean enable) {}
-
-
-    /**
-     * Just a wrapper around the type cast to allow easier tracking of calls.
-     */
-    public static <T extends Launcher> T cast(ActivityContext activityContext) {
-        return (T) activityContext;
-    }
 
     public boolean supportsAdaptiveIconAnimation(View clickedView) {
         return false;

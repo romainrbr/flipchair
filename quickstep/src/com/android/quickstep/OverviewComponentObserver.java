@@ -344,9 +344,8 @@ public final class OverviewComponentObserver {
      * Starts the intent for the current home activity.
      */
     public static void startHomeIntentSafely(@NonNull Context context, @Nullable Bundle options,
-            @NonNull String reason) {
-        Intent intent = OverviewComponentObserver.INSTANCE.get(context).getHomeIntent(
-                DEFAULT_DISPLAY);
+            @NonNull String reason, int displayId) {
+        Intent intent = OverviewComponentObserver.INSTANCE.get(context).getHomeIntent(displayId);
         startHomeIntentSafely(context, intent, options, reason);
     }
 

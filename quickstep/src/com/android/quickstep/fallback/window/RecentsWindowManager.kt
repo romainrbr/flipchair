@@ -341,6 +341,7 @@ constructor(
     fun cleanupRecentsWindow() {
         RecentsWindowProtoLogProxy.logCleanup(isShowing())
         if (isShowing()) {
+            AbstractFloatingView.closeAllOpenViews(this, /* animate= */ false)
             windowManager.removeViewImmediate(windowView)
         }
         stateManager.moveToRestState()

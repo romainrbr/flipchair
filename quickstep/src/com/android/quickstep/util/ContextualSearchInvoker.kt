@@ -161,11 +161,7 @@ internal constructor(
             statsLogManager.logger().log(LAUNCHER_LAUNCH_OMNI_FAILED_NOT_AVAILABLE)
             return false
         }
-        if (isFakeLandscape()) {
-            // TODO (b/383421642): Fake landscape is to be removed in 25Q3 and this entire block
-            // can be removed when that happens.
-            return false
-        }
+
         return true
     }
 
@@ -200,13 +196,6 @@ internal constructor(
         }
         return true
     }
-
-    private fun isFakeLandscape(): Boolean =
-        getRecentsContainerInterface()
-            ?.getCreatedContainer()
-            ?.getOverviewPanel<RecentsView<*, *>>()
-            ?.getPagedOrientationHandler()
-            ?.isLayoutNaturalToLauncher == false
 
     private fun isInSplitscreen(): Boolean {
         return topTaskTracker.getRunningSplitTaskIds().isNotEmpty()

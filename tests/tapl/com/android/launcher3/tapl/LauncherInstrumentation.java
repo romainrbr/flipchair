@@ -1149,12 +1149,20 @@ public final class LauncherInstrumentation {
         }
     }
 
-    void executeAndWaitForLauncherStop(Runnable command, String actionName) {
-        executeAndWaitForLauncherEvent(
-                () -> command.run(),
-                event -> TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
-                        .equals(event.getClassName().toString()),
-                () -> "Launcher activity didn't stop", actionName);
+    void executeAndWaitForLauncherHidden(Runnable command, String actionName) {
+        // Since LAUNCHER_ACTIVITY_STOPPED_MESSAGE is only ever sent from Launcher.onStop or
+        // RecentsActivity.onStop, we never receive this signal on 3P launchers with recents
+        // window enabled. So, instead we should wait for the recent window's state manager to
+        // report the normal state.
+        if (is3PLauncher() && isRecentsWindowEnabled()) {
+            runToState(command, NORMAL_STATE_ORDINAL, actionName);
+        } else {
+            executeAndWaitForLauncherEvent(
+                    () -> command.run(),
+                    event -> TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
+                            .equals(event.getClassName().toString()),
+                    () -> "Launcher activity didn't stop", actionName);
+        }
     }
 
     /**

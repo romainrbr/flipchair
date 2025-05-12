@@ -301,8 +301,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     protected void setupViews() {
-        getTheme().applyStyle(getOverviewBlurStyleResId(), true);
         getAppWidgetHolder().setOnViewCreationCallback(new QuickstepInteractionHandler(this));
+        mDepthController = new DepthController(this);
+        getTheme().applyStyle(getOverviewBlurStyleResId(), true);
         super.setupViews();
 
         mActionsView = findViewById(R.id.overview_actions_view);
@@ -332,7 +333,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         mAppTransitionManager.registerRemoteTransitions();
 
         mTISBindHelper = new TISBindHelper(this, this::onTISConnected);
-        mDepthController = new DepthController(this);
+
         if (DesktopModeStatus.canEnterDesktopModeOrShowAppHandle(this)) {
             mSplitSelectStateController.initSplitFromDesktopController(this);
         }

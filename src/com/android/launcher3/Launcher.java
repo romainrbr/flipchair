@@ -2240,7 +2240,8 @@ public class Launcher extends StatefulActivity<LauncherState>
                     if (FeatureFlags.IS_STUDIO_BUILD) {
                         throw (new RuntimeException(desc));
                     } else {
-                        getModelWriter().deleteItemFromDatabase(item, desc);
+                        // b/417021465 - Avoid mutating the model in the UI layer.
+                        Log.e(TAG, desc, new Exception());
                         continue;
                     }
                 }

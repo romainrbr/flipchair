@@ -47,6 +47,7 @@ android_test {
         "androidx.test.ext.junit",
         "androidx.test.rules",
         "androidx.test.runner",
+        "platform-test-rules",
         "platform-screenshot-diff-core",
         "platform-parametric-runner-lib",
         "ScreenshotComposeUtilsLib",

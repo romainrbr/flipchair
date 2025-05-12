@@ -470,14 +470,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     @Override
     public void updateBlurStyle() {
-        if (!Flags.allAppsBlur() && !enableOverviewBackgroundWallpaperBlur()) {
-            return;
-        }
         if (Flags.allAppsBlur()) {
-            int blurStyleResId = getAllAppsBlurStyleResId();
-            getTheme().applyStyle(blurStyleResId, true);
+            int allAppsBlurStyleResId = getAllAppsBlurStyleResId();
+            getTheme().applyStyle(allAppsBlurStyleResId, true);
             getAppsView().onThemeChanged(
-                    new ContextThemeWrapper(getApplicationContext(), blurStyleResId));
+                    new ContextThemeWrapper(getApplicationContext(), allAppsBlurStyleResId));
         }
         if (enableOverviewBackgroundWallpaperBlur()) {
             getTheme().applyStyle(getOverviewBlurStyleResId(), true);

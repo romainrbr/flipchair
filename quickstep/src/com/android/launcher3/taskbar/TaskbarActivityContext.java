@@ -236,9 +236,9 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
     private boolean mImeDrawsImeNavBar;
 
     private final boolean mIsSafeModeEnabled;
-    private final boolean mIsUserSetupComplete;
-    private final boolean mIsNavBarForceVisible;
-    private final boolean mIsNavBarKidsMode;
+    private boolean mIsUserSetupComplete;
+    private boolean mIsNavBarForceVisible;
+    private boolean mIsNavBarKidsMode;
 
     private boolean mIsDestroyed = false;
     private boolean mAddedWindow = false;
@@ -283,15 +283,6 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
         mImeDrawsImeNavBar = getBoolByName(IME_DRAWS_IME_NAV_BAR_RES_NAME, resources, false);
         mIsSafeModeEnabled = TraceHelper.allowIpcs("isSafeMode",
                 () -> getPackageManager().isSafeMode());
-
-        // TODO(b/244231596) For shared Taskbar window, update this value in applyDeviceProfile()
-        //  instead so to get correct value when recreating the taskbar
-        SettingsCache settingsCache = SettingsCache.INSTANCE.get(this);
-        mIsUserSetupComplete = settingsCache.getValue(
-                Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE), 0);
-        mIsNavBarKidsMode = settingsCache.getValue(
-                Settings.Secure.getUriFor(Settings.Secure.NAV_BAR_KIDS_MODE), 0);
-        mIsNavBarForceVisible = mIsNavBarKidsMode;
 
         // Get display and corners first, as views might use them in constructor.
         Context c = getApplicationContext();
@@ -502,6 +493,13 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     .build();
         }
         mNavMode = getNavigationMode();
+
+        SettingsCache settingsCache = SettingsCache.INSTANCE.get(this);
+        mIsUserSetupComplete = settingsCache.getValue(
+                Settings.Secure.getUriFor(Settings.Secure.USER_SETUP_COMPLETE), 0);
+        mIsNavBarKidsMode = settingsCache.getValue(
+                Settings.Secure.getUriFor(Settings.Secure.NAV_BAR_KIDS_MODE), 0);
+        mIsNavBarForceVisible = mIsNavBarKidsMode;
     }
 
     /** Called when the visibility of the bubble bar changed. */

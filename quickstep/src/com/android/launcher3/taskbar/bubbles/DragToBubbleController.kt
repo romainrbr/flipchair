@@ -46,7 +46,9 @@ class DragToBubbleController(
      * are no drop target views currently present or being animated, the action will be executed
      * immediately.
      */
-    fun runAfterDropTargetsHidden(resetTaskbarFullscreen: Runnable) {}
+    fun runAfterDropTargetsHidden(afterHiddenAction: Runnable) {
+        afterHiddenAction.run()
+    }
 
     override fun onDragStart(dragObject: DragObject, options: DragOptions) {}
 

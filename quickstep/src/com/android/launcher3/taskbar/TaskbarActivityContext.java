@@ -1287,7 +1287,10 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                 && !AbstractFloatingView.hasOpenView(
                 this, TYPE_ALL & ~TYPE_TASKBAR_OVERLAY_PROXY)) {
             // Reverts Taskbar window to its original size
-            setTaskbarWindowFullscreen(false);
+            Runnable resetTaskbarFullscreen = () -> setTaskbarWindowFullscreen(false);
+            mControllers.bubbleControllers.ifPresentOrElse(
+                    bc -> bc.dragToBubbleController.runAfterDropTargetsHidden(
+                            resetTaskbarFullscreen), resetTaskbarFullscreen);
         }
 
         setAutohideSuspendFlag(FLAG_AUTOHIDE_SUSPEND_DRAGGING, isDragInProgress);

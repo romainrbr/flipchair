@@ -5889,34 +5889,17 @@ public abstract class RecentsView<
 
     @Override
     public void addChildrenForAccessibility(ArrayList<View> outChildren) {
-        outChildren.addAll(getAccessibilityChildren());
-    }
-
-    public List<View> getAccessibilityChildren() {
-        return mUtils.getAccessibilityChildren();
+        outChildren.addAll(mUtils.getAccessibilityChildren());
     }
 
     @Override
     public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfo(info);
+        // We only care about TaskView's for the `CollectionInfo` that Talkback uses to read out.
         final AccessibilityNodeInfo.CollectionInfo
                 collectionInfo = new AccessibilityNodeInfo.CollectionInfo(
-                1, getAccessibilityChildren().size(), false);
+                1, getTaskViewCount(), false);
         info.setCollectionInfo(collectionInfo);
-    }
-
-    @Override
-    public void onInitializeAccessibilityEvent(AccessibilityEvent event) {
-        super.onInitializeAccessibilityEvent(event);
-        event.setScrollable(hasTaskViews());
-
-        if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
-            final List<View> accessibilityChildren = getAccessibilityChildren();
-            final int[] visibleTasks = getVisibleChildrenRange();
-            event.setFromIndex(accessibilityChildren.indexOf(getChildAt(visibleTasks[1])));
-            event.setToIndex(accessibilityChildren.indexOf(getChildAt(visibleTasks[0])));
-            event.setItemCount(accessibilityChildren.size());
-        }
     }
 
     @Override

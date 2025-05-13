@@ -77,6 +77,7 @@ import com.android.launcher3.Flags;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.anim.AnimatedFloat;
+import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.desktop.DesktopAppLaunchTransitionManager;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.statemanager.StatefulActivity;
@@ -817,7 +818,8 @@ public class TouchInteractionService extends Service {
         mOverviewCommandHelper = new OverviewCommandHelper(this,
                 mOverviewComponentObserver, mDisplayRepository, mTaskbarManager,
                 mTaskAnimationManagerRepository);
-        mActionCornerHandler = new ActionCornerHandler(mOverviewCommandHelper);
+        mActionCornerHandler = LauncherComponentProvider.get(
+                this).getActionCornerHandlerFactory().create(mOverviewCommandHelper);
         mUserUnlocked = true;
         mInputConsumer.registerInputConsumer();
         mDeviceStateRepository.forEach(/* createIfAbsent= */ true, deviceState ->

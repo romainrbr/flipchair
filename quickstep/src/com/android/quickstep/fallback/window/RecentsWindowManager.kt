@@ -153,6 +153,16 @@ constructor(
 
     private var taskbarUIController: TaskbarUIController? = null
     private val tisBindHelper: TISBindHelper = TISBindHelper(this) {}
+    private val splitSelectStateController: SplitSelectStateController =
+        SplitSelectStateController(
+            /* container= */ this,
+            stateManager,
+            /* depthController= */ null,
+            statsLogManager,
+            systemUiProxy,
+            recentsModel,
+            /* activityBackCallback= */ null,
+        )
 
     // Callback array that corresponds to events defined in @ActivityEvent
     private val eventCallbacks =
@@ -269,15 +279,7 @@ constructor(
                     ?.apply {
                         init(
                             actionsView,
-                            SplitSelectStateController(
-                                /* container= */ this@RecentsWindowManager,
-                                stateManager,
-                                /* depthController= */ null,
-                                statsLogManager,
-                                systemUiProxy,
-                                recentsModel,
-                                /* activityBackCallback= */ null,
-                            ),
+                            splitSelectStateController,
                             DesktopRecentsTransitionController(
                                 stateManager,
                                 systemUiProxy,
@@ -429,6 +431,10 @@ constructor(
 
     override fun <T : View?> getOverviewPanel(): T {
         return recentsView as T
+    }
+
+    override fun getSplitSelectStateController(): SplitSelectStateController {
+        return splitSelectStateController
     }
 
     override fun getRootView(): View? {

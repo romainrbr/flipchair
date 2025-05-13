@@ -1588,4 +1588,9 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     public LauncherActivityInterface getContainerInterface() {
         return LauncherActivityInterface.INSTANCE;
     }
+
+    @Override
+    public SplitSelectStateController getSplitSelectStateController() {
+        return mSplitSelectStateController;
+    }
 }

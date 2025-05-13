@@ -706,7 +706,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         }
 
         if (!getDeviceProfile().isMultiWindowMode) {
-            list.add(new StatusBarTouchController(this));
+            list.add(new StatusBarTouchController(
+                    this, () -> this.isInState(LauncherState.NORMAL)));
         }
 
         if (enableExpressiveDismissTaskMotion()) {

@@ -26,7 +26,6 @@ import android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.R
-import com.android.launcher3.taskbar.bubbles.testing.FakeBubbleViewFactory
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
 import org.junit.Rule

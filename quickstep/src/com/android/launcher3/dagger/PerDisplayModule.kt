@@ -124,22 +124,15 @@ object PerDisplayRepositoriesModule {
     @Provides
     @LauncherAppSingleton
     fun provideFallbackWindowInterfaceRepo(
-        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface>,
-        instanceFactory: FallbackWindowInterface.Factory,
-        recentsWindowManagerRepository: PerDisplayRepository<RecentsWindowManager>,
+        repositoryFactory: PerDisplayInstanceRepositoryImpl.Factory<FallbackWindowInterface>
     ): PerDisplayRepository<FallbackWindowInterface> {
         return if (enableOverviewOnConnectedDisplays()) {
             repositoryFactory.create(
                 "FallbackWindowInterfaceRepo",
-                { displayId ->
-                    recentsWindowManagerRepository[displayId]?.let { instanceFactory.create(it) }
-                },
+                { _ -> FallbackWindowInterface() },
             )
         } else {
-            SingleInstanceRepositoryImpl(
-                "FallbackWindowInterfaceRepo",
-                instanceFactory.create(recentsWindowManagerRepository[DEFAULT_DISPLAY]),
-            )
+            SingleInstanceRepositoryImpl("FallbackWindowInterfaceRepo", FallbackWindowInterface())
         }
     }
 

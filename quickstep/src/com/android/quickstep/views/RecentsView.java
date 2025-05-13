@@ -520,7 +520,7 @@ public abstract class RecentsView<
     private static final float FOREGROUND_SCRIM_TINT = 0.32f;
 
     protected final RecentsOrientedState mOrientationState;
-    protected final BaseContainerInterface<STATE_TYPE, ?> mSizeStrategy;
+    protected final BaseContainerInterface<STATE_TYPE, ?> mContainerInterface;
     @Nullable
     protected RecentsAnimationController mRecentsAnimationController;
     @Nullable
@@ -895,10 +895,9 @@ public abstract class RecentsView<
         setEnableFreeScroll(true);
 
         mContainer = RecentsViewContainer.containerFromContext(context);
-        mSizeStrategy = getContainerInterface(mContainer.getDisplayId());
-
+        mContainerInterface = mContainer.getContainerInterface();
         mOrientationState = new RecentsOrientedState(
-                context, mSizeStrategy, this::animateRecentsRotationInPlace);
+                context, mContainerInterface, this::animateRecentsRotationInPlace);
         final int rotation = mContainer.getDisplay().getRotation();
         mOrientationState.setRecentsRotation(rotation);
 
@@ -2392,8 +2391,8 @@ public abstract class RecentsView<
                 dp.widthPx - mInsets.right - mLastComputedTaskSize.right,
                 dp.heightPx - mInsets.bottom - mLastComputedTaskSize.bottom);
 
-        mSizeStrategy.calculateGridSize(dp, mContainer, mLastComputedGridSize);
-        mSizeStrategy.calculateGridTaskSize(mContainer, dp, mLastComputedGridTaskSize,
+        mContainerInterface.calculateGridSize(dp, mContainer, mLastComputedGridSize);
+        mContainerInterface.calculateGridTaskSize(mContainer, dp, mLastComputedGridTaskSize,
                 getPagedOrientationHandler());
 
         mTaskGridVerticalDiff = mLastComputedGridTaskSize.top - mLastComputedTaskSize.top;
@@ -2436,7 +2435,7 @@ public abstract class RecentsView<
     }
 
     public void getTaskSize(Rect outRect) {
-        mSizeStrategy.calculateTaskSize(mContainer, mContainer.getDeviceProfile(), outRect,
+        mContainerInterface.calculateTaskSize(mContainer, mContainer.getDeviceProfile(), outRect,
                 getPagedOrientationHandler());
     }
 
@@ -2503,8 +2502,8 @@ public abstract class RecentsView<
 
     /** Gets the task size for modal state. */
     public void getModalTaskSize(Rect outRect) {
-        mSizeStrategy.calculateModalTaskSize(mContainer, mContainer.getDeviceProfile(), outRect,
-                getPagedOrientationHandler());
+        mContainerInterface.calculateModalTaskSize(mContainer, mContainer.getDeviceProfile(),
+                outRect, getPagedOrientationHandler());
     }
 
     @Override
@@ -5967,13 +5966,13 @@ public abstract class RecentsView<
 
         RemoteTargetGluer gluer;
         if (recentsAnimationTargets.hasDesktopTasks(mContext)) {
-            gluer = new RemoteTargetGluer(getContext(), getSizeStrategy(), recentsAnimationTargets,
-                    true /* forDesktop */);
+            gluer = new RemoteTargetGluer(getContext(), getContainerInterface(),
+                    recentsAnimationTargets, true /* forDesktop */);
             mRemoteTargetHandles = gluer.assignTargetsForDesktop(
                     recentsAnimationTargets, /* transitionInfo= */ null);
         } else {
-            gluer = new RemoteTargetGluer(getContext(), getSizeStrategy(), recentsAnimationTargets,
-                    false);
+            gluer = new RemoteTargetGluer(getContext(), getContainerInterface(),
+                    recentsAnimationTargets, false);
             mRemoteTargetHandles = gluer.assignTargetsForSplitScreen(recentsAnimationTargets);
         }
         mSplitBoundsConfig = gluer.getSplitBounds();
@@ -6653,15 +6652,9 @@ public abstract class RecentsView<
         return mTaskOverlayFactory;
     }
 
-    public BaseContainerInterface getSizeStrategy() {
-        return mSizeStrategy;
+    public BaseContainerInterface<STATE_TYPE, ?> getContainerInterface() {
+        return mContainerInterface;
     }
-
-
-    /**
-     * Returns the container interface
-     */
-    protected abstract BaseContainerInterface<STATE_TYPE, ?> getContainerInterface(int displayId);
 
     /**
      * Set all the task views to color tint scrim mode, dimming or tinting them all. Allows the
@@ -6709,7 +6702,7 @@ public abstract class RecentsView<
     /** Returns {@code true} if the overview tasks are displayed as a grid. */
     public boolean showAsGrid() {
         return mOverviewGridEnabled || (mCurrentGestureEndTarget != null
-                && mSizeStrategy.stateFromGestureEndTarget(mCurrentGestureEndTarget)
+                && mContainerInterface.stateFromGestureEndTarget(mCurrentGestureEndTarget)
                 .displayOverviewTasksAsGrid(mContainer.getDeviceProfile()));
     }
 
@@ -6921,12 +6914,12 @@ public abstract class RecentsView<
         public void onExpandPip() {
             MAIN_EXECUTOR.execute(() -> {
                 if (mRecentsView == null
-                        || mRecentsView.mSizeStrategy.getTaskbarController() == null) {
+                        || mRecentsView.mContainerInterface.getTaskbarController() == null) {
                     return;
                 }
                 // Hide the task bar when leaving PiP to prevent it from flickering once
                 // the app settles in full-screen mode.
-                mRecentsView.mSizeStrategy.getTaskbarController().onExpandPip();
+                mRecentsView.mContainerInterface.getTaskbarController().onExpandPip();
             });
         }
 

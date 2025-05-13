@@ -32,6 +32,7 @@ import com.android.launcher3.logger.LauncherAtom;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.ScrimView;
+import com.android.quickstep.BaseContainerInterface;
 
 /**
  * Interface to be implemented by the parent view of RecentsView
@@ -56,6 +57,11 @@ public interface RecentsViewContainer extends ActivityContext {
      * Returns {@link ScrimView}
      */
     ScrimView getScrimView();
+
+    /**
+     * Returns the BaseContainerInterface to interact with RecentsViewContainer.
+     */
+    <T extends BaseContainerInterface<?, ?>> T getContainerInterface();
 
     /**
      * Returns the Overview Panel as a View

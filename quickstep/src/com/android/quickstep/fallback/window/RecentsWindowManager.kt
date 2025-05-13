@@ -58,6 +58,8 @@ import com.android.launcher3.util.SystemUiController
 import com.android.launcher3.util.WallpaperColorHints
 import com.android.launcher3.views.BaseDragLayer
 import com.android.launcher3.views.ScrimView
+import com.android.quickstep.BaseContainerInterface
+import com.android.quickstep.FallbackWindowInterface
 import com.android.quickstep.HomeVisibilityState
 import com.android.quickstep.OverviewComponentObserver
 import com.android.quickstep.RecentsAnimationCallbacks
@@ -104,6 +106,7 @@ class RecentsWindowManager
 @AssistedInject
 constructor(
     @Assisted windowContext: Context,
+    @Assisted private val fallbackWindowInterface: FallbackWindowInterface,
     wallpaperColorHints: WallpaperColorHints,
     private val systemUiProxy: SystemUiProxy,
     private val recentsModel: RecentsModel,
@@ -219,6 +222,7 @@ constructor(
         }
 
     init {
+        fallbackWindowInterface.setRecentsWindowManager(this)
         homeVisibilityState.addListener(homeVisibilityListener)
     }
 
@@ -234,6 +238,7 @@ constructor(
 
     override fun destroy() {
         super.destroy()
+        fallbackWindowInterface.setRecentsWindowManager(null)
         Executors.MAIN_EXECUTOR.execute {
             tisBindHelper.onDestroy()
             onViewDestroyed()
@@ -416,6 +421,10 @@ constructor(
         return scrimView
     }
 
+    override fun <T : BaseContainerInterface<*, *>?> getContainerInterface(): T {
+        return fallbackWindowInterface as T
+    }
+
     override fun <T : View?> getOverviewPanel(): T {
         return recentsView as T
     }
@@ -512,7 +521,10 @@ constructor(
     @AssistedFactory
     interface Factory {
         /** Creates a new instance of [RecentsWindowManager] for a given [context]. */
-        fun create(@WindowContext context: Context): RecentsWindowManager
+        fun create(
+            @WindowContext context: Context,
+            fallbackWindowInterface: FallbackWindowInterface,
+        ): RecentsWindowManager
     }
 }
 
@@ -522,9 +534,14 @@ class RecentsWindowManagerInstanceProvider
 constructor(
     private val factory: RecentsWindowManager.Factory,
     @WindowContext private val windowContextRepository: PerDisplayRepository<Context>,
+    private val fallbackWindowInterfaceRepository: PerDisplayRepository<FallbackWindowInterface>,
 ) : PerDisplayInstanceProviderWithTeardown<RecentsWindowManager> {
     override fun createInstance(displayId: Int) =
-        windowContextRepository[displayId]?.let { factory.create(it) }
+        windowContextRepository[displayId]?.let { windowContext ->
+            fallbackWindowInterfaceRepository[displayId]?.let { fallbackWindowInterface ->
+                factory.create(windowContext, fallbackWindowInterface)
+            }
+        }
 
     override fun destroyInstance(instance: RecentsWindowManager) {
         instance.destroy()

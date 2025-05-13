@@ -332,10 +332,13 @@ public class TouchInteractionService extends Service {
         @Override
         public void enterStageSplitFromRunningApp(int displayId, boolean leftOrTop) {
             executeForTouchInteractionService(tis -> {
-                RecentsViewContainer container = tis.mOverviewComponentObserver
-                        .getContainerInterface(displayId).getCreatedContainer();
-                if (container != null) {
-                    container.enterStageSplitFromRunningApp(leftOrTop, displayId);
+                BaseContainerInterface<?, ?> containerInterface = tis.mOverviewComponentObserver
+                        .getContainerInterface(displayId);
+                if (containerInterface != null) {
+                    RecentsViewContainer container = containerInterface.getCreatedContainer();
+                    if (container != null) {
+                        container.enterStageSplitFromRunningApp(leftOrTop, displayId);
+                    }
                 }
             });
         }
@@ -1352,12 +1355,13 @@ public class TouchInteractionService extends Service {
             if (deviceState != null) {
                 deviceState.dump(pw);
             }
-            RecentsViewContainer createdOverviewContainer =
+            BaseContainerInterface<?, ?> containerInterface =
                     mOverviewComponentObserver == null ? null
                             : mOverviewComponentObserver.getContainerInterface(
-                                    displayId).getCreatedContainer();
-            boolean resumed = mOverviewComponentObserver != null
-                    && mOverviewComponentObserver.getContainerInterface(displayId).isResumed();
+                                    displayId);
+            RecentsViewContainer createdOverviewContainer = containerInterface == null ? null :
+                    containerInterface.getCreatedContainer();
+            boolean resumed = containerInterface != null && containerInterface.isResumed();
             pw.println("\tcreatedOverviewActivity=" + createdOverviewContainer);
             pw.println("\tresumed=" + resumed);
             if (createdOverviewContainer != null) {

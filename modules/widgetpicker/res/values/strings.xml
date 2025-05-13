@@ -15,6 +15,12 @@
   -->
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- The format string for the cell dimensions of a widget in the widget picker e.g. 2x2 -->
+    <!-- There is a special version of this format string for Farsi (%1$dx%2$d) -->
+    <string name="widget_span_dimensions_format">%1$d \u00d7 %2$d</string>
+    <!-- Accessibility spoken message format for the cell dimensions of a widget in the widget picker -->
+    <string name="widget_span_dimensions_accessible_format">%1$d wide by %2$d high</string>
+
     <!-- Search bar strings -->
     <!-- Placeholder text displayed in the widget's search bar [CHAR_LIMIT=50] -->
     <string name="widgets_search_bar_hint">Search</string>

@@ -152,7 +152,7 @@ constructor(
     private var callbacks: RecentsAnimationCallbacks? = null
 
     private var taskbarUIController: TaskbarUIController? = null
-    private var tisBindHelper: TISBindHelper = TISBindHelper(this) {}
+    private val tisBindHelper: TISBindHelper = TISBindHelper(this) {}
 
     // Callback array that corresponds to events defined in @ActivityEvent
     private val eventCallbacks =
@@ -239,8 +239,8 @@ constructor(
     override fun destroy() {
         super.destroy()
         fallbackWindowInterface.setRecentsWindowManager(null)
+        tisBindHelper.onDestroy()
         Executors.MAIN_EXECUTOR.execute {
-            tisBindHelper.onDestroy()
             onViewDestroyed()
             cleanupRecentsWindow()
             callbacks?.removeListener(recentsAnimationListener)

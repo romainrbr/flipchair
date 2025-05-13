@@ -491,7 +491,7 @@ public final class RecentsActivity extends StatefulActivity<RecentsState> implem
                 new RemoteAnimationAdapter(runner, HOME_APPEAR_DURATION, 0),
                 new RemoteTransition(runner.toRemoteTransition(), getIApplicationThread(),
                         "StartHomeFromRecents"));
-        startHomeIntentSafely(this, options.toBundle(), TAG);
+        startHomeIntentSafely(this, options.toBundle(), TAG, getDisplayId());
     }
 
     private final RemoteAnimationFactory mAnimationToHomeFactory =

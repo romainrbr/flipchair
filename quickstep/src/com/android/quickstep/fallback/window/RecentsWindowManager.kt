@@ -328,6 +328,7 @@ constructor(
     }
 
     private fun startHomeInternal() {
+        val displayId = displayId
         val runner = LauncherAnimationRunner(mainThreadHandler, animationToHomeFactory, true)
         val options =
             ActivityOptions.makeRemoteAnimation(
@@ -338,7 +339,8 @@ constructor(
                     "StartHomeFromRecents",
                 ),
             )
-        OverviewComponentObserver.startHomeIntentSafely(this, options.toBundle(), TAG)
+        options.launchDisplayId = displayId
+        OverviewComponentObserver.startHomeIntentSafely(this, options.toBundle(), TAG, displayId)
         stateManager.moveToRestState()
     }
 

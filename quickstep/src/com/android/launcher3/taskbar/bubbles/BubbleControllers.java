@@ -27,6 +27,7 @@ import com.android.launcher3.taskbar.bubbles.stashing.BubbleBarLocationOnDemandL
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.RunnableList;
+import com.android.quickstep.SystemUiProxy;
 
 import java.io.PrintWriter;
 import java.util.Optional;
@@ -44,6 +45,7 @@ public class BubbleControllers {
     public final BubblePinController bubblePinController;
     public final Optional<BubbleBarSwipeController> bubbleBarSwipeController;
     public final BubbleCreator bubbleCreator;
+    public final DragToBubbleController dragToBubbleController;
 
     private final RunnableList mPostInitRunnables = new RunnableList();
 
@@ -62,6 +64,7 @@ public class BubbleControllers {
             BubbleBarPinController bubbleBarPinController,
             BubblePinController bubblePinController,
             Optional<BubbleBarSwipeController> bubbleBarSwipeController,
+            DragToBubbleController dragToBubbleController,
             BubbleCreator bubbleCreator) {
         this.bubbleBarController = bubbleBarController;
         this.bubbleBarViewController = bubbleBarViewController;
@@ -73,6 +76,7 @@ public class BubbleControllers {
         this.bubblePinController = bubblePinController;
         this.bubbleBarSwipeController = bubbleBarSwipeController;
         this.bubbleCreator = bubbleCreator;
+        this.dragToBubbleController = dragToBubbleController;
     }
 
     /**
@@ -118,7 +122,8 @@ public class BubbleControllers {
         bubbleBarPinController.init(this, bubbleBarLocationListeners);
         bubblePinController.init(this);
         bubbleBarSwipeController.ifPresent(c -> c.init(this));
-
+        dragToBubbleController.init(bubbleBarViewController, bubbleStashController,
+                SystemUiProxy.INSTANCE.get(taskbarControllers.taskbarActivityContext));
         mPostInitRunnables.executeAllAndDestroy();
     }
 

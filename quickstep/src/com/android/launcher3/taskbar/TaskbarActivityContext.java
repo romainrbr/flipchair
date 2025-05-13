@@ -136,6 +136,7 @@ import com.android.launcher3.taskbar.bubbles.BubbleDismissController;
 import com.android.launcher3.taskbar.bubbles.BubbleDragController;
 import com.android.launcher3.taskbar.bubbles.BubblePinController;
 import com.android.launcher3.taskbar.bubbles.BubbleStashedHandleViewController;
+import com.android.launcher3.taskbar.bubbles.DragToBubbleController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.TaskbarHotseatDimensionsProvider;
 import com.android.launcher3.taskbar.bubbles.stashing.DeviceProfileDimensionsProviderAdapter;
@@ -342,6 +343,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     new BubbleBarPinController(this, bubbleBarContainer, this::getScreenSize),
                     new BubblePinController(this, bubbleBarContainer, this::getScreenSize),
                     bubbleBarSwipeController,
+                    new DragToBubbleController(this, bubbleBarContainer),
                     new BubbleCreator(this)
             ));
         }

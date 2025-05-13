@@ -15,11 +15,24 @@
   -->
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Placeholder text shown when app name is not loaded yet to display in the widget picker [CHAR_LIMIT=25] -->
+    <string name="widgets_list_header_app_name_fallback_label">App name</string>
+    <!-- Label for showing the number of widgets an app has in the full widgets picker.
+     [CHAR_LIMIT=25] -->
+    <string name="widgets_list_header_widgets_count_label">{count, plural,
+        =1 {# widget}
+        other {# widgets}
+    }</string>
+
     <!-- The format string for the cell dimensions of a widget in the widget picker e.g. 2x2 -->
     <!-- There is a special version of this format string for Farsi (%1$dx%2$d) -->
     <string name="widget_span_dimensions_format">%1$d \u00d7 %2$d</string>
     <!-- Accessibility spoken message format for the cell dimensions of a widget in the widget picker -->
     <string name="widget_span_dimensions_accessible_format">%1$d wide by %2$d high</string>
+
+    <!-- Tab / list header label. A user can tap this to access recommended (or featured) widgets.
+     [CHAR_LIMIT=25]  -->
+    <string name="featured_widgets_tab_label">Featured</string>
 
     <!-- Search bar strings -->
     <!-- Placeholder text displayed in the widget's search bar [CHAR_LIMIT=50] -->

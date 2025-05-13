@@ -296,10 +296,6 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 }
             };
 
-    public static QuickstepLauncher getLauncher(Context context) {
-        return fromContext(context);
-    }
-
     @Override
     protected void setupViews() {
         getTheme().applyStyle(getOverviewBlurStyleResId(), true);

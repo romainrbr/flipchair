@@ -7053,12 +7053,4 @@ public abstract class RecentsView<
     public void setDrawAboveRecents(RemoteTargetHandle[] remoteTargetHandles) {
         mBlurUtils.setDrawAboveRecents(remoteTargetHandles);
     }
-
-    /**
-     * Updates the overview components in battery saver mode
-     */
-    public void updateBlurStyle(boolean isBackgroundBlurEnabled) {
-        mActionsView.updateBlurStyle(isBackgroundBlurEnabled);
-        mClearAllButton.updateBlurStyle(isBackgroundBlurEnabled);
-    }
 }

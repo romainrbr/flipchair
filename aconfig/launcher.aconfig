@@ -640,3 +640,9 @@ flag {
   bug: "370950552"
 }
 
+flag {
+    name: "enable_reversible_home_action_corner"
+    namespace: "launcher"
+    description: "Enables home action corner to be reversible"
+    bug: "416664984"
+}

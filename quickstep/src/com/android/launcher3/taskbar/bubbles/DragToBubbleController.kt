@@ -39,18 +39,18 @@ import com.android.wm.shell.shared.bubbles.DraggedObject
 import com.android.wm.shell.shared.bubbles.DraggedObject.LauncherIcon
 import com.android.wm.shell.shared.bubbles.DropTargetManager
 import com.android.wm.shell.shared.bubbles.DropTargetManager.DragZoneChangedListener
+import com.google.common.annotations.VisibleForTesting
 
-// TODO(b/411506181) add tests
 class DragToBubbleController(
     private val context: Context,
     private val bubbleBarContainer: FrameLayout,
 ) : DragController.DragListener {
 
-    private val dropTargetManager: DropTargetManager
+    @VisibleForTesting val dropTargetManager: DropTargetManager
 
-    private lateinit var bubbleBarLeftDropTarget: BubbleBarLocationDropTarget
-    private lateinit var bubbleBarRightDropTarget: BubbleBarLocationDropTarget
-    private lateinit var dragZoneFactory: DragZoneFactory
+    @VisibleForTesting lateinit var bubbleBarLeftDropTarget: BubbleBarLocationDropTarget
+    @VisibleForTesting lateinit var bubbleBarRightDropTarget: BubbleBarLocationDropTarget
+    @VisibleForTesting lateinit var dragZoneFactory: DragZoneFactory
     private lateinit var systemUiProxy: SystemUiProxy
     private lateinit var bubbleBarViewController: BubbleBarViewController
     private val isRtl: Boolean

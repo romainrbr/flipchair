@@ -398,6 +398,7 @@
     <dimen name="transient_taskbar_stashed_height">32dp</dimen>
     <dimen name="transient_taskbar_all_apps_button_translation_x_offset">8dp</dimen>
     <dimen name="transient_taskbar_stash_spring_velocity_dp_per_s">400dp</dimen>
+    <dimen name="transient_taskbar_action_corner_padding">48dp</dimen>
     <dimen name="taskbar_tooltip_vertical_padding">8dp</dimen>
     <dimen name="taskbar_tooltip_horizontal_padding">16dp</dimen>
     <dimen name="taskbar_tooltip_y_offset">4dp</dimen>

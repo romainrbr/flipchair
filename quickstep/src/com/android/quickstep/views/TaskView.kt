@@ -1291,19 +1291,19 @@ constructor(
         with(iconView) {
             if (icon != null) {
                 setDrawable(icon)
-                setOnClickListener {
+                asView().setOnClickListener {
                     if (!confirmSecondSplitSelectApp()) {
                         showTaskMenu(this)
                     }
                 }
-                setOnLongClickListener {
+                asView().setOnLongClickListener {
                     requestDisallowInterceptTouchEvent(true)
                     showTaskMenu(this)
                 }
             } else {
                 setDrawable(null)
-                setOnClickListener(null)
-                setOnLongClickListener(null)
+                asView().setOnClickListener(null)
+                asView().setOnLongClickListener(null)
             }
         }
     }
@@ -1699,8 +1699,8 @@ constructor(
         tempCenterCoordinates: FloatArray,
         transformingTouchDelegate: TransformingTouchDelegate,
     ) {
-        val viewHalfWidth = view.width / 2f
-        val viewHalfHeight = view.height / 2f
+        val viewHalfWidth = view.asView().width / 2f
+        val viewHalfHeight = view.asView().height / 2f
         Utilities.getDescendantCoordRelativeToAncestor(
             view.asView(),
             container.dragLayer,
@@ -1874,7 +1874,7 @@ constructor(
     protected open fun onFullscreenProgressChanged(fullscreenProgress: Float) {
         taskContainers.forEach {
             if (!enableOverviewIconMenu()) {
-                it.iconView.setVisibility(if (fullscreenProgress < 1) VISIBLE else INVISIBLE)
+                it.iconView.asView().visibility = if (fullscreenProgress < 1) VISIBLE else INVISIBLE
             }
             it.overlay.setFullscreenProgress(fullscreenProgress)
         }

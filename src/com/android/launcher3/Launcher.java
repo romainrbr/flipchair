@@ -95,6 +95,7 @@ import static com.android.launcher3.states.RotationHelper.REQUEST_NONE;
 import static com.android.launcher3.testing.shared.TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE;
 import static com.android.launcher3.util.ItemInfoMatcher.forFolderMatch;
 import static com.android.launcher3.util.SettingsCache.TOUCHPAD_NATURAL_SCROLLING;
+import static com.android.launcher3.util.WallpaperThemeManager.setWallpaperDependentTheme;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -230,7 +231,6 @@ import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.Thunk;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.util.TraceHelper;
-import com.android.launcher3.util.WallpaperThemeManager;
 import com.android.launcher3.views.FloatingIconView;
 import com.android.launcher3.views.FloatingSurfaceView;
 import com.android.launcher3.views.OptionsPopupView;
@@ -400,8 +400,6 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     private StartupLatencyLogger mStartupLatencyLogger;
 
-    protected WallpaperThemeManager mWallpaperThemeManager;
-
     public static Launcher getLauncher(Context context) {
         return fromContext(context);
     }
@@ -416,7 +414,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         mStartupLatencyLogger.logStart(LAUNCHER_LATENCY_STARTUP_ACTIVITY_ON_CREATE);
 
         super.onCreate(savedInstanceState);
-        mWallpaperThemeManager = new WallpaperThemeManager(this);
+        setWallpaperDependentTheme(this);
 
         LauncherAppState app = LauncherAppState.getInstance(this);
         mModel = app.getModel();
@@ -1566,6 +1564,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     public void toggleAllApps(boolean focusSearch) {
         toggleAllApps(/* alreadyOnHome= */ true, focusSearch);
     }
+
+    /** Apply the blur or blur fallback style to the current theme. */
+    public void updateBlurStyle() {}
 
     private void toggleAllApps(boolean alreadyOnHome, boolean focusSearch) {
         if (getStateManager().isInStableState(ALL_APPS)) {

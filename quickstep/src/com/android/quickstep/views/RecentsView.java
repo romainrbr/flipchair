@@ -3690,14 +3690,9 @@ public abstract class RecentsView<
         anim.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationStart(Animator animation) {
-                if (mSplitHiddenTaskView == getRunningTaskView()) {
-                    finishRecentsAnimation(true /* toRecents */, false /* shouldPip */,
-                            null /* onFinishComplete */);
-                } else {
-                    switchToScreenshot(
-                            () -> finishRecentsAnimation(true /* toRecents */,
-                                    false /* shouldPip */, null /* onFinishComplete */));
-                }
+                switchToScreenshot(
+                        () -> finishRecentsAnimation(true /* toRecents */,
+                                false /* shouldPip */, null /* onFinishComplete */));
             }
         });
         anim.addEndListener(success -> {

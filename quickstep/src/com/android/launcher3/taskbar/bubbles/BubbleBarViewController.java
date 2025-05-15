@@ -282,7 +282,7 @@ public class BubbleBarViewController {
         mBarView.setController(new BubbleBarView.Controller() {
             @Override
             public float getBubbleBarTranslationY() {
-                return mBubbleStashController.getBubbleBarTranslationY();
+                return mBubbleStashController.getTargetTranslationYForState();
             }
 
             @Override

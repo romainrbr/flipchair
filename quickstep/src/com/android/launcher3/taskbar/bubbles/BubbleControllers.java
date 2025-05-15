@@ -28,6 +28,7 @@ import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.RunnableList;
 import com.android.quickstep.SystemUiProxy;
+import com.android.wm.shell.shared.bubbles.DragZoneFactory;
 
 import java.io.PrintWriter;
 import java.util.Optional;
@@ -122,7 +123,23 @@ public class BubbleControllers {
         bubbleBarPinController.init(this, bubbleBarLocationListeners);
         bubblePinController.init(this);
         bubbleBarSwipeController.ifPresent(c -> c.init(this));
-        dragToBubbleController.init(bubbleBarViewController, bubbleStashController,
+        dragToBubbleController.init(bubbleBarViewController,
+                new DragZoneFactory.BubbleBarPropertiesProvider() {
+                    @Override
+                    public int getHeight() {
+                        return (int) bubbleBarViewController.getBubbleBarCollapsedHeight();
+                    }
+
+                    @Override
+                    public int getWidth() {
+                        return (int) bubbleBarViewController.getBubbleBarCollapsedWidth();
+                    }
+
+                    @Override
+                    public int getBottomPadding() {
+                        return -(int) bubbleStashController.getBubbleBarTranslationY();
+                    }
+                },
                 SystemUiProxy.INSTANCE.get(taskbarControllers.taskbarActivityContext));
         mPostInitRunnables.executeAllAndDestroy();
     }

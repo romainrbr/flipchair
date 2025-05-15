@@ -43,7 +43,6 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.statemanager.StateManager;
-import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiPropertyFactory.MultiProperty;
 import com.android.systemui.shared.system.BlurUtils;
@@ -76,7 +75,7 @@ public class BaseDepthController {
     // b/291401432
     private static final String TAG = "BaseDepthController";
 
-    protected final QuickstepLauncher mLauncher;
+    protected final Launcher mLauncher;
     /** Property to set the depth for state transition. */
     public final MultiProperty stateDepth;
     /** Property to set the depth for widget picker. */
@@ -127,7 +126,7 @@ public class BaseDepthController {
      */
     private EarlyWakeupInfo mEarlyWakeupInfo = new EarlyWakeupInfo();
 
-    public BaseDepthController(QuickstepLauncher activity) {
+    public BaseDepthController(Launcher activity) {
         mLauncher = activity;
         if (Flags.allAppsBlur() || enableOverviewBackgroundWallpaperBlur()) {
             mCrossWindowBlursEnabled =

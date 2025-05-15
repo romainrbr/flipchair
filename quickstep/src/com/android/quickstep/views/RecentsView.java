@@ -2155,17 +2155,7 @@ public abstract class RecentsView<
         }
         if (targetPage != -1 && mCurrentPage != targetPage) {
             int finalTargetPage = targetPage;
-            runOnPageScrollsInitialized(() -> {
-                // TODO(b/246283207): Remove logging once root cause of flake detected.
-                if (Utilities.isRunningInTestHarness()) {
-                    Log.d("b/246283207", "RecentsView#applyLoadPlan() -> "
-                            + "previousCurrentPage: " + previousCurrentPage
-                            + ", targetPage: " + finalTargetPage
-                            + ", getScrollForPage(targetPage): "
-                            + getScrollForPage(finalTargetPage));
-                }
-                setCurrentPage(finalTargetPage);
-            });
+            runOnPageScrollsInitialized(() -> setCurrentPage(finalTargetPage));
         }
 
         traceBegin(Trace.TRACE_TAG_APP, "RecentsView.applyLoadPlan.cleanupStates");

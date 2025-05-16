@@ -2176,7 +2176,8 @@ public abstract class RecentsView<
             mIgnoreResetTaskId = INVALID_TASK_ID;
         }
 
-        mAppliedTaskListChangeId = taskListChangeId;
+        // TODO(b/417535264): Set mAppliedTaskListChangeId at the correct time
+        // mAppliedTaskListChangeId = taskListChangeId;
         resetTaskVisuals();
         onTaskStackUpdated();
         updateEnabledOverlays();
@@ -2906,7 +2907,8 @@ public abstract class RecentsView<
      */
     public void reloadIfNeeded() {
         if (!mModel.isTaskListValid(mAppliedTaskListChangeId)) {
-            mModel.getTasks(this::applyLoadPlan, RecentsFilterState
+            // TODO(b/417535264): remove early setting of mAppliedTaskListChangeId
+            mAppliedTaskListChangeId = mModel.getTasks(this::applyLoadPlan, RecentsFilterState
                     .getFilter(mFilterState.getPackageNameToFilter(), mContainer.getDisplayId()));
             Log.d(TAG, "reloadIfNeeded - getTasks: " + mAppliedTaskListChangeId);
             if (enableRefactorTaskThumbnail()) {

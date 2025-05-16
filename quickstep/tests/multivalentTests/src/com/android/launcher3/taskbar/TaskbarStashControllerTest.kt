@@ -414,6 +414,23 @@ class TaskbarStashControllerTest {
 
     @Test
     @TaskbarMode(TRANSIENT)
+    fun shouldAllowTaskbarToAutoStash_transientTaskbar() {
+        assertThat(stashController.shouldAllowTaskbarToAutoStash()).isTrue()
+    }
+
+    @Test
+    @TaskbarMode(PINNED)
+    fun toggleTaskbarStash_autoStashedDesktopModeTaskbar() {
+        LauncherPrefs.get(context).put(TASKBAR_PINNING_IN_DESKTOP_MODE, false)
+        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
+
+        getInstrumentation().runOnMainSync { stashController.toggleTaskbarStash() }
+
+        assertThat(stashController.isStashed).isTrue()
+    }
+
+    @Test
+    @TaskbarMode(TRANSIENT)
     fun testUpdateAndAnimateTransientTaskbar_finishTaskbarTimeout_taskbarStashes() {
         getInstrumentation().runOnMainSync {
             stashController.updateAndAnimateTransientTaskbar(false)

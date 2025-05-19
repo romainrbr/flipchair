@@ -275,15 +275,10 @@ public class FloatingHeaderView extends LinearLayout implements
         mTabLayout.setVisibility(mTabsHidden ? GONE : visibility);
     }
 
-    /** Returns whether search bar has multi-line support, and is currently in multi-line state. */
-    private boolean isSearchBarMultiline() {
-        return Flags.multilineSearchBar() && mSearchBarOffset > 0;
-    }
-
     private void updateExpectedHeight() {
         updateFloatingRowsHeight();
         mMaxTranslation = 0;
-        boolean shouldAddSearchBarHeight = isSearchBarMultiline() && !Flags.floatingSearchBar();
+        boolean shouldAddSearchBarHeight = mSearchBarOffset > 0 && !Flags.floatingSearchBar();
         if (shouldAddSearchBarHeight) {
             mMaxTranslation += mSearchBarOffset;
         }

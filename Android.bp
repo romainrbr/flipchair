@@ -234,7 +234,6 @@ launcher_compose_java_defaults {
             static_libs: [
                 "androidx.compose.runtime_runtime",
                 "androidx.compose.material3_material3",
-                "PlatformComposeCore",
             ],
 
             // By default, Compose is disabled and we compile the ComposeFacade
@@ -261,7 +260,6 @@ quickstep_compose_java_defaults {
             static_libs: [
                 "androidx.compose.runtime_runtime",
                 "androidx.compose.material3_material3",
-                "PlatformComposeCore",
             ],
 
             // By default, Compose is disabled and we compile the ComposeFacade

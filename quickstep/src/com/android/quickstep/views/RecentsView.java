@@ -6977,6 +6977,7 @@ public abstract class RecentsView<
             return;
         }
         mDesktopRecentsTransitionController.moveToExternalDisplay(taskContainer.getTask().key.id);
+        dismissTaskView(taskContainer.getTaskView(), /*animate*/true, /*removeTask*/false);
         successCallback.run();
     }
 

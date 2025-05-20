@@ -16,6 +16,7 @@
 package com.android.quickstep;
 
 import static android.app.WindowConfiguration.ACTIVITY_TYPE_HOME;
+import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
@@ -26,7 +27,6 @@ import static com.android.quickstep.GestureState.STATE_RECENTS_ANIMATION_INITIAL
 import static com.android.quickstep.GestureState.STATE_RECENTS_ANIMATION_STARTED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NOTIFICATION_PANEL_EXPANDED;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_QUICK_SETTINGS_EXPANDED;
-import static android.view.Display.DEFAULT_DISPLAY;
 
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
@@ -85,6 +85,8 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
     private boolean mRecentsAnimationStartPending = false;
     private boolean mShouldIgnoreMotionEvents = false;
     private final int mDisplayId;
+
+    private boolean mLauncherDestroyCallbackSet = false;
 
     public static final DaggerSingletonObject<PerDisplayRepository<TaskAnimationManager>>
             REPOSITORY_INSTANCE = new DaggerSingletonObject<>(
@@ -180,6 +182,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         RecentsAnimationCallbacks newCallbacks = new RecentsAnimationCallbacks(
                 containerInterface.getCreatedContainer());
         mCallbacks = newCallbacks;
+        mLauncherDestroyCallbackSet = false;
         mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
             @Override
             public void onRecentsAnimationStart(RecentsAnimationController controller,
@@ -509,7 +512,11 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
         if (mCallbacks == null) {
             return;
         }
+        if (mLauncherDestroyCallbackSet) {
+            return;
+        }
         ActiveGestureProtoLogProxy.logQueuingForceFinishRecentsAnimation();
+        mLauncherDestroyCallbackSet = true;
         mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
             @Override
             public void onRecentsAnimationStart(
@@ -521,6 +528,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                         /* forceFinish= */ true,
                         /* forceFinishCb= */ null,
                         controller);
+                mLauncherDestroyCallbackSet = false;
             }
         });
     }
@@ -552,6 +560,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
 
         mController = null;
         mCallbacks = null;
+        mLauncherDestroyCallbackSet = false;
         mTargets = null;
         mTransitionInfo = null;
         mLastGestureState = null;

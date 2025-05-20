@@ -17,8 +17,6 @@
 package com.android.quickstep;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -148,6 +146,10 @@ public class TaskAnimationManagerTest {
                     gestureState,
                     new Intent(),
                     mock(RecentsAnimationCallbacks.RecentsAnimationListener.class));
+
+            // Simulate multiple launcher destroyed events before the recents animation start
+            mTaskAnimationManager.onLauncherDestroyed();
+            mTaskAnimationManager.onLauncherDestroyed();
             mTaskAnimationManager.onLauncherDestroyed();
             listenerCaptor.getValue().onAnimationStart(
                     controllerCompat,
@@ -158,6 +160,8 @@ public class TaskAnimationManagerTest {
                     new Bundle(),
                     new TransitionInfo(0, 0));
         });
+
+        // Verify checks that finish was only called once
         runOnMainSync(() -> verify(controllerCompat)
                 .finish(/* toHome= */ eq(false), anyBoolean(), any()));
     }

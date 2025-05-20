@@ -97,7 +97,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
     }
 
     override fun handleClose(animate: Boolean) {
-        animateOpenOrClosed(true, animated = false)
+        animateOpenOrClosed(closing = true, animated = animate)
     }
 
     override fun isOfType(type: Int): Boolean = (type and TYPE_TASK_MENU) != 0
@@ -171,12 +171,6 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
                 ResourcesCompat.getDrawable(
                     resources,
                     R.drawable.app_chip_menu_item_bg,
-                    context.theme,
-                )
-            menuOptionView.foreground =
-                ResourcesCompat.getDrawable(
-                    resources,
-                    R.drawable.app_chip_menu_item_fg,
                     context.theme,
                 )
         }
@@ -295,7 +289,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
     private fun animateOpen() {
         menuTranslationYBeforeOpen = translationY
         menuTranslationXBeforeOpen = translationX
-        animateOpenOrClosed(false)
+        animateOpenOrClosed(closing = false)
         mIsOpen = true
     }
 

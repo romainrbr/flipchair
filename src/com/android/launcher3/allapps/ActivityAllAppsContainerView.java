@@ -50,7 +50,6 @@ import android.os.UserManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
-import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -855,17 +854,6 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
     boolean isBackgroundBlurEnabled() {
         return Flags.allAppsBlur() && mActivityContext.isAllAppsBackgroundBlurEnabled();
-    }
-
-    /** Refresh the UI according to the current theme. */
-    public void onThemeChanged(ContextThemeWrapper contextThemeWrapper) {
-        updateHeaderScroll(getActiveRecyclerView().computeVerticalScrollOffset());
-        invalidateHeader();
-        forAllRecyclerViews(RecyclerView::invalidateItemDecorations);
-        getSearchUiManager().onThemeChanged();
-        getFloatingHeaderView().updateTheme(contextThemeWrapper);
-        mBottomSheetHandle.setBackground(contextThemeWrapper.getDrawable(
-                R.drawable.bg_rounded_corner_bottom_sheet_handle));
     }
 
     /**

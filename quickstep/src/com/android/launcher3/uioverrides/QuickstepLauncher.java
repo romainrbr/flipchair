@@ -88,7 +88,6 @@ import android.os.Trace;
 import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.view.ContextThemeWrapper;
 import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
@@ -471,16 +470,14 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
 
     /** Apply the blur or blur fallback style to the current theme. */
     public void updateBlurStyle() {
-        if (Flags.allAppsBlur()) {
-            int allAppsBlurStyleResId = getAllAppsBlurStyleResId();
-            getTheme().applyStyle(allAppsBlurStyleResId, true);
-            getAppsView().onThemeChanged(
-                    new ContextThemeWrapper(getApplicationContext(), allAppsBlurStyleResId));
-        }
         if (enableOverviewBackgroundWallpaperBlur()) {
             if (isOverviewBackgroundBlurEnabled() != mOverviewBlurEnabled) {
                 mWallpaperThemeManager.recreateToUpdateTheme();
             }
+        } else if (Flags.allAppsBlur()) {
+            // For all apps, we only need to update the scrim, which draws the panel. But if the
+            // activity was recreated above, this is unnecessary.
+            getAppsView().invalidateHeader();
         }
     }
 

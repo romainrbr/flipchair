@@ -5045,7 +5045,8 @@ public abstract class RecentsView<
      *
      * @param offsetProgress From 0 to 1 where 0 means no offset and 1 means offset offscreen.
      */
-    private float getHorizontalOffsetSize(int childIndex, int midpointIndex, float offsetProgress) {
+    protected float getHorizontalOffsetSize(int childIndex, int midpointIndex,
+            float offsetProgress) {
         if (offsetProgress == 0) {
             // Don't bother calculating everything below if we won't offset anyway.
             return 0;

@@ -949,7 +949,13 @@ public abstract class RecentsView<
                 mContainer.getDisplay())) {
             mAddDesktopButton = (AddDesktopButton) LayoutInflater.from(context).inflate(
                     R.layout.overview_add_desktop_button, this, false);
-            mAddDesktopButton.setOnClickListener(this::createDesk);
+            mAddDesktopButton.setOnClickListener(view -> {
+                AddDesktopButton button = (AddDesktopButton) view;
+                button.animateVisibility(/* toVisible = */ false, () -> {
+                    createDesk(view);
+                    button.animateVisibility(/* toVisible = */ true);
+                });
+            });
 
             mDesktopVisibilityController = DesktopVisibilityController.INSTANCE.get(mContext);
             // Update its visibility based on whether we can create a desk or not.

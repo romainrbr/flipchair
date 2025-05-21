@@ -356,6 +356,11 @@ public class BubbleBarViewController {
         };
     }
 
+    /** Returns the overflow bubble. */
+    public BubbleBarOverflow getOverflowBubble() {
+        return mOverflowBubble;
+    }
+
     private void onBubbleClicked(BubbleView bubbleView) {
         if (mBubbleBarPinning.isAnimating()) return;
         bubbleView.markSeen();

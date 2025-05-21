@@ -2757,6 +2757,7 @@ public abstract class RecentsView<
         mAppliedTaskListChangeId = -1;
         setFocusedTaskViewId(INVALID_TASK_ID);
         mAnyTaskHasBeenDismissed = false;
+        setTaskIconVisible(true);
 
         if (enableRefactorTaskThumbnail()) {
             // TODO(b/353917593): RecentsView is never destroyed, so its dependencies need to
@@ -3012,6 +3013,7 @@ public abstract class RecentsView<
         Log.d(TAG, "onGestureAnimationEnd - mEnableDrawingLiveTile: " + mEnableDrawingLiveTile);
         setRunningTaskHidden(false);
         startIconFadeInOnGestureComplete();
+        setTaskIconVisible(true);
         animateActionsViewIn();
 
         if (mEnableDrawingLiveTile) {

@@ -83,6 +83,21 @@ android_library {
 }
 
 android_library {
+    name: "widget_picker_domain_layer",
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    srcs: [
+        "src/com/android/launcher3/widgetpicker/domain/usecase/GroupWidgetAppsByProfileUseCase.kt",
+        "src/com/android/launcher3/widgetpicker/domain/usecase/FilterWidgetsForHostUseCase.kt",
+    ],
+    static_libs: [
+        "widget_picker_shared_data_types",
+        "widget_picker_dagger_annotations",
+        "dagger2",
+    ],
+}
+
+android_library {
     name: "widget_picker_ui_data_types",
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,

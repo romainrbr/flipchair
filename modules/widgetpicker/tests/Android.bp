@@ -30,7 +30,11 @@ android_app {
     system_ext_specific: true,
     static_libs: [
         "widget_picker_ui_components",
+        "widget_picker_domain_layer",
+        "widget_picker_data_repositories",
     ],
+    kotlincflags: ["-Xjvm-default=all"],
+    use_resource_processor: true,
 }
 
 android_test {
@@ -76,4 +80,72 @@ android_test {
     resource_dirs: [
         "multivalentScreenshotTests/res",
     ],
+}
+
+filegroup {
+    name: "widget-picker-multivalent-tests-src",
+    srcs: [
+        "multivalentTests/src/com/android/launcher3/widgetpicker/TestUtils.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/domain/usecase/GroupWidgetAppsByProfileUseCaseTest.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/domain/usecase/FilterWidgetsForHostUseCaseTest.kt",
+    ],
+}
+
+android_test {
+    name: "WidgetPickerDeviceTests",
+    manifest: "AndroidManifest.xml",
+    srcs: [":widget-picker-multivalent-tests-src"],
+    platform_apis: true,
+    static_libs: [
+        "widget_picker_domain_layer",
+        "widget_picker_data_repositories",
+        "collector-device-lib-platform",
+        "testables",
+        "platform-test-rules",
+        "platform-parametric-runner-lib",
+        "junit",
+        "androidx.test.ext.junit",
+        "androidx.test.rules",
+        "androidx.test.runner",
+    ],
+    libs: [
+        "android.test.base.impl",
+        "android.test.runner.impl",
+        "android.test.mock.impl",
+    ],
+    // Libraries used by mockito inline extended
+    jni_libs: [
+        "libdexmakerjvmtiagent",
+        "libstaticjvmtiagent",
+    ],
+    // Needed to link mokito libraries to run unbundled
+    use_embedded_native_libs: false,
+    // Needed to compile native libs for cuttlefish
+    compile_multilib: "both",
+    instrumentation_for: "WidgetPickerTestApp",
+    plugins: ["dagger2-compiler"],
+    test_suites: ["general-tests"],
+    test_config: "WidgetPickerTests.xml",
+}
+
+android_robolectric_test {
+    enabled: true,
+    name: "WidgetPickerRoboTests",
+    srcs: [":widget-picker-multivalent-tests-src"],
+    java_resource_dirs: ["config"],
+    static_libs: [
+        "widget_picker_domain_layer",
+        "widget_picker_data_repositories",
+        "kotlinx_coroutines_test",
+        "platform-test-rules-deviceless",
+    ],
+    libs: [
+        "android.test.runner.impl",
+        "android.test.base.impl",
+        "android.test.mock.impl",
+        "truth",
+    ],
+    plugins: ["dagger2-compiler"],
+    instrumentation_for: "WidgetPickerTestApp",
+    strict_mode: false,
 }

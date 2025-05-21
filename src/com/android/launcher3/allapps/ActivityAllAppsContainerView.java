@@ -779,9 +779,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
      * request {@link FloatingHeaderView} to update its maxTranslation for multiline search bar.
      */
     public void forceUpdateHeaderHeight(int offset) {
-        if (Flags.multilineSearchBar()) {
-            mHeader.updateSearchBarOffset(offset);
-        }
+        mHeader.updateSearchBarOffset(offset);
     }
 
     @Override

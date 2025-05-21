@@ -5925,7 +5925,6 @@ public abstract class RecentsView<
         return mRemoteTargetHandles;
     }
 
-    // TODO: To be removed in a follow up CL
     public void setRecentsAnimationTargets(RecentsAnimationController recentsAnimationController,
             RecentsAnimationTargets recentsAnimationTargets) {
         Log.d(TAG, "setRecentsAnimationTargets "
@@ -5937,15 +5936,19 @@ public abstract class RecentsView<
             return;
         }
 
-        RemoteTargetGluer gluer;
-        if (recentsAnimationTargets.hasDesktopTasks(mContext)) {
-            gluer = new RemoteTargetGluer(getContext(), getContainerInterface(),
-                    recentsAnimationTargets, true /* forDesktop */);
-            mRemoteTargetHandles = gluer.assignTargetsForDesktop(
-                    recentsAnimationTargets, /* transitionInfo= */ null);
+        boolean forDesktop;
+        if (DesktopModeStatus.enableMultipleDesktops(getContext())) {
+            forDesktop = mActiveGestureGroupedTaskInfo != null
+                    && mActiveGestureGroupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_DESK);
         } else {
-            gluer = new RemoteTargetGluer(getContext(), getContainerInterface(),
-                    recentsAnimationTargets, false);
+            forDesktop = recentsAnimationTargets.hasDesktopTasks(mContext);
+        }
+        RemoteTargetGluer gluer = new RemoteTargetGluer(getContext(), getContainerInterface(),
+                recentsAnimationTargets, forDesktop);
+        if (forDesktop) {
+            mRemoteTargetHandles = gluer.assignTargetsForDesktop(
+                    recentsAnimationTargets, /* transitionInfo = */ null);
+        } else {
             mRemoteTargetHandles = gluer.assignTargetsForSplitScreen(recentsAnimationTargets);
         }
         mSplitBoundsConfig = gluer.getSplitBounds();

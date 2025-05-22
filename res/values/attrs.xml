@@ -366,6 +366,8 @@
     <declare-styleable name="CellSpec">
         <attr name="dimensionType" />
         <attr name="maxAvailableSize" />
+        <attr name="maxLineCount" format="integer" />
+        <attr name="maxLineCountMatchesWorkspace" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="SizeSpec">

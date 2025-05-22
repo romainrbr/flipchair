@@ -44,6 +44,7 @@ import static com.android.launcher3.taskbar.TaskbarStashController.SHOULD_BUBBLE
 import static com.android.launcher3.testing.shared.ResourceUtils.getBoolByName;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.quickstep.util.AnimUtils.completeRunnableListCallback;
+import static com.android.quickstep.util.ExternalDisplaysKt.isExternalDisplay;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_NOTIFICATION_PANEL_VISIBLE;
 import static com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_VOICE_INTERACTION_WINDOW_SHOWING;
 import static com.android.wm.shell.Flags.enableBubbleBar;
@@ -1838,8 +1839,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     return;
                 }
             }
-            if (isTaskbarShowingDesktopTasks()
-                    && DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
+            if (shouldLaunchInDesktop(displayId)) {
                 launchDesktopApp(intent, info, displayId);
             } else {
                 startActivity(intent, null);
@@ -1849,6 +1849,15 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
                     .show();
             Log.e(TAG, "Unable to launch. tag=" + info + " intent=" + intent, e);
         }
+    }
+
+    private boolean shouldLaunchInDesktop(int displayId) {
+        if (!DesktopModeFlags.ENABLE_DESKTOP_APP_LAUNCH_TRANSITIONS_BUGFIX.isTrue()) {
+            return false;
+        }
+        // Always launch in freeform if in external display.
+        return (DesktopExperienceFlags.ENABLE_FREEFORM_DISPLAY_LAUNCH_PARAMS.isTrue()
+                && isExternalDisplay(displayId)) || isTaskbarShowingDesktopTasks();
     }
 
     private void launchDesktopApp(Intent intent, ItemInfo info, int displayId) {

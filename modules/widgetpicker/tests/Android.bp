@@ -29,12 +29,13 @@ android_app {
     certificate: "platform",
     system_ext_specific: true,
     static_libs: [
+        "widget_picker_ui",
         "widget_picker_ui_components",
         "widget_picker_domain_layer",
         "widget_picker_data_repositories",
     ],
     kotlincflags: ["-Xjvm-default=all"],
-    use_resource_processor: true,
+    use_resource_processor: false,
 }
 
 android_test {
@@ -88,6 +89,11 @@ filegroup {
         "multivalentTests/src/com/android/launcher3/widgetpicker/TestUtils.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/domain/usecase/GroupWidgetAppsByProfileUseCaseTest.kt",
         "multivalentTests/src/com/android/launcher3/widgetpicker/domain/usecase/FilterWidgetsForHostUseCaseTest.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/domain/interactor/WidgetsInteractorTest.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/domain/interactor/WidgetAppIconsInteractorTest.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/repository/FakeWidgetsRepository.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/repository/FakeWidgetUsersRepository.kt",
+        "multivalentTests/src/com/android/launcher3/widgetpicker/repository/FakeWidgetAppIconsRepository.kt",
     ],
 }
 
@@ -101,6 +107,7 @@ android_test {
         "widget_picker_data_repositories",
         "collector-device-lib-platform",
         "testables",
+        "platform-test-annotations",
         "platform-test-rules",
         "platform-parametric-runner-lib",
         "junit",
@@ -124,8 +131,8 @@ android_test {
     compile_multilib: "both",
     instrumentation_for: "WidgetPickerTestApp",
     plugins: ["dagger2-compiler"],
-    test_suites: ["general-tests"],
-    test_config: "WidgetPickerTests.xml",
+    test_suites: ["device-tests"],
+    test_config: "WidgetPickerDeviceTests.xml",
 }
 
 android_robolectric_test {
@@ -138,6 +145,12 @@ android_robolectric_test {
         "widget_picker_data_repositories",
         "kotlinx_coroutines_test",
         "platform-test-rules-deviceless",
+        "testables",
+        "platform-parametric-runner-lib",
+        "junit",
+        "androidx.test.ext.junit",
+        "platform-test-annotations",
+        "androidx.test.rules",
     ],
     libs: [
         "android.test.runner.impl",
@@ -147,5 +160,6 @@ android_robolectric_test {
     ],
     plugins: ["dagger2-compiler"],
     instrumentation_for: "WidgetPickerTestApp",
-    strict_mode: false,
+    strict_mode: true,
+    test_suites: ["general-tests"],
 }

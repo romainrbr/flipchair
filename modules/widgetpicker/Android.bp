@@ -89,11 +89,16 @@ android_library {
     srcs: [
         "src/com/android/launcher3/widgetpicker/domain/usecase/GroupWidgetAppsByProfileUseCase.kt",
         "src/com/android/launcher3/widgetpicker/domain/usecase/FilterWidgetsForHostUseCase.kt",
+        "src/com/android/launcher3/widgetpicker/domain/interactor/WidgetsInteractor.kt",
+        "src/com/android/launcher3/widgetpicker/domain/interactor/WidgetAppIconsInteractor.kt",
     ],
     static_libs: [
         "widget_picker_shared_data_types",
+        "widget_picker_data_repositories",
         "widget_picker_dagger_annotations",
         "dagger2",
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
     ],
 }
 

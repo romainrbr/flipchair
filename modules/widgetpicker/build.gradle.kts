@@ -108,10 +108,12 @@ dependencies {
     testImplementation(libs.google.truth)
     testImplementation(libs.androidx.test.runner)
     testImplementation(libs.androidx.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.google.truth)
     androidTestImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 
     // Compose UI Tests
     androidTestApi(libs.compose.ui.test.junit4)

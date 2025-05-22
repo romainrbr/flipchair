@@ -25,8 +25,19 @@ import javax.inject.Scope
 @Scope
 annotation class WidgetPickerSingleton
 
+/** Qualifier annotation for the background context used in interactors. */
+@Qualifier
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+annotation class WidgetPickerBackground
+
 /** Qualifier annotation for information about the widget host. */
 @Qualifier
 @MustBeDocumented
 @Retention(AnnotationRetention.RUNTIME)
 annotation class WidgetPickerHostInfo
+
+@Qualifier
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+annotation class WidgetPickerRepository

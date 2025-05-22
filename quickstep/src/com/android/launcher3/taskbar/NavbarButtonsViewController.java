@@ -509,6 +509,13 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             navButtonController.onButtonClick(BUTTON_RECENTS, v);
             mHitboxExtender.onRecentsButtonClicked();
         });
+        mRecentsButton.addOnLayoutChangeListener(
+                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                    int[] location = v.getLocationOnScreen();
+                    Rect bounds = new Rect(location[0], location[1], location[0] + v.getWidth(),
+                            location[1] + v.getHeight());
+                    navButtonController.onRecentsButtonLayoutChanged(bounds);
+                });
         mPropertyHolders.add(new StatePropertyHolder(mRecentsButton,
                 flags -> (flags & FLAG_KEYGUARD_VISIBLE) == 0 && (flags & FLAG_DISABLE_RECENTS) == 0
                         && !mContext.isNavBarKidsModeActive() && !mContext.isGestureNav()));

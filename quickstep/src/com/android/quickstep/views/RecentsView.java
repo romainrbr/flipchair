@@ -252,7 +252,6 @@ import com.android.wm.shell.shared.split.SplitBounds;
 
 import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
-import kotlin.jvm.functions.Function0;
 
 import kotlinx.coroutines.CoroutineScope;
 
@@ -268,6 +267,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
 /**
  * A list of recent tasks.
  *
@@ -7024,10 +7024,10 @@ public abstract class RecentsView<
     public RecentsDismissUtils.SpringSet runTaskDismissSettlingSpringAnimation(
             TaskView draggedTaskView, float velocity, boolean isDismissing, int dismissLength,
             int dismissThreshold, float finalPosition, boolean shouldRemoveTaskView,
-            boolean isSplitSelection, @NonNull Function0<Unit> onEndRunnable) {
+            boolean isSplitSelection) {
         return mDismissUtils.createTaskDismissSpringAnimation(draggedTaskView, velocity,
                 isDismissing, dismissLength, dismissThreshold, finalPosition, shouldRemoveTaskView,
-                isSplitSelection, onEndRunnable);
+                isSplitSelection);
     }
 
     /**
@@ -7048,5 +7048,9 @@ public abstract class RecentsView<
      */
     public void setDrawAboveRecents(RemoteTargetHandle[] remoteTargetHandles) {
         mBlurUtils.setDrawAboveRecents(remoteTargetHandles);
+    }
+
+    public Map<TaskView, Integer> getTaskViewsDismissPrimaryTranslations() {
+        return mTaskViewsDismissPrimaryTranslations;
     }
 }

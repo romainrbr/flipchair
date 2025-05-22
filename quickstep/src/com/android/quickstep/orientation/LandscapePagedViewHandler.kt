@@ -338,6 +338,22 @@ open class LandscapePagedViewHandler : RecentsPagedOrientationHandler {
     override fun getTaskLaunchLength(secondaryDimension: Int, taskThumbnailBounds: Rect): Int =
         taskThumbnailBounds.left
 
+    override fun extendRectForPrimaryTranslation(rect: Rect, translation: Int) {
+        if (translation < 0) {
+            rect.top += translation
+        } else {
+            rect.bottom += translation
+        }
+    }
+
+    override fun extendRectForSecondaryTranslation(rect: Rect, translation: Int) {
+        if (translation < 0) {
+            rect.left += translation
+        } else {
+            rect.right += translation
+        }
+    }
+
     /* -------------------- */
 
     override fun getChildBounds(

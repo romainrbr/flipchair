@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package com.android.launcher3.widgetpicker.data.repository
+package com.android.launcher3.widgetpicker
 
-import com.android.launcher3.widgetpicker.shared.model.WidgetId
+import javax.inject.Qualifier
+import javax.inject.Scope
 
-/** A repository of widgets that can be recommended to the users in widget picker. */
-interface WidgetRecommendationsRepository {
-    /** Returns a list of widgets that can be recommended to the users in the widget picker. */
-    suspend fun getRecommendations(): List<WidgetId>
-}
+/** Scope annotation for singleton items within the widget picker. */
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+@Scope
+annotation class WidgetPickerSingleton
+
+/** Qualifier annotation for information about the widget host. */
+@Qualifier
+@MustBeDocumented
+@Retention(AnnotationRetention.RUNTIME)
+annotation class WidgetPickerHostInfo

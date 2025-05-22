@@ -22,7 +22,7 @@ android_library {
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,
     srcs: [
-        "src/com/android/launcher3/widgetpicker/WidgetPickerSingleton.kt",
+        "src/com/android/launcher3/widgetpicker/Annotations.kt",
     ],
 
     static_libs: [
@@ -52,11 +52,13 @@ android_library {
     min_sdk_version: min_launcher3_sdk_version,
     srcs: [
         "src/com/android/launcher3/widgetpicker/shared/model/PickableWidget.kt",
+        "src/com/android/launcher3/widgetpicker/shared/model/WidgetApp.kt",
         "src/com/android/launcher3/widgetpicker/shared/model/WidgetAppIcon.kt",
         "src/com/android/launcher3/widgetpicker/shared/model/WidgetAppId.kt",
         "src/com/android/launcher3/widgetpicker/shared/model/WidgetId.kt",
         "src/com/android/launcher3/widgetpicker/shared/model/WidgetPreview.kt",
         "src/com/android/launcher3/widgetpicker/shared/model/WidgetUserProfiles.kt",
+        "src/com/android/launcher3/widgetpicker/shared/model/WidgetHostInfo.kt",
     ],
     static_libs: [
         "androidx.core_core-ktx",
@@ -70,8 +72,6 @@ android_library {
     min_sdk_version: min_launcher3_sdk_version,
     srcs: [
         "src/com/android/launcher3/widgetpicker/data/repository/WidgetAppIconsRepository.kt",
-        "src/com/android/launcher3/widgetpicker/data/repository/WidgetPreviewRepository.kt",
-        "src/com/android/launcher3/widgetpicker/data/repository/WidgetRecommendationsRepository.kt",
         "src/com/android/launcher3/widgetpicker/data/repository/WidgetsRepository.kt",
         "src/com/android/launcher3/widgetpicker/data/repository/WidgetUsersRepository.kt",
     ],

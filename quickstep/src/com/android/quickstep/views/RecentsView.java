@@ -2951,7 +2951,8 @@ public abstract class RecentsView<
     }
 
     private void animateRecentsRotationInPlace(int newRotation) {
-        if (mOrientationState.isRecentsActivityRotationAllowed()) {
+        if (mOrientationState.isRecentsActivityRotationAllowed()
+                || mOrientationState.isLauncherFixedLandscape()) {
             // Let system take care of the rotation
             return;
         }

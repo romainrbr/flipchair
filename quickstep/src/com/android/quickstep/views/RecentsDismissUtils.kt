@@ -116,7 +116,6 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
         finalPosition: Float,
         shouldRemoveTaskView: Boolean,
         isSplitSelection: Boolean,
-        onEndRunnable: () -> Unit = {},
     ): SpringSet? {
         val gridEndData = getGridEndData(dismissedTaskView)
         val dismissedTaskSecondaryDimension =
@@ -198,11 +197,9 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                     shouldRemoveTaskView,
                     isSplitSelection,
                     gridEndData,
-                    onEndRunnable,
                 )
             } else {
                 recentsView.onDismissAnimationEnds()
-                onEndRunnable()
             }
         }
         if (springSet == null) {
@@ -795,7 +792,6 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
         shouldRemoveTask: Boolean,
         dismissingForSplitSelection: Boolean,
         gridEndData: GridEndData,
-        onEndRunnable: () -> Unit,
     ) {
         with(recentsView) {
             if (pageCount == 0) {
@@ -836,9 +832,6 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
 
                 // Update the UI after removal and snap to page.
                 updateUiAfterTaskRemoval(dismissedTaskView, pageToSnapTo)
-
-                // Run the user-provided end-runnable.
-                onEndRunnable()
 
                 if (!dismissingForSplitSelection) {
                     InteractionJankMonitorWrapper.end(Cuj.CUJ_LAUNCHER_OVERVIEW_TASK_DISMISS)
@@ -1117,7 +1110,8 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
      * <p>Animations can play together, in sequence, or after a specified threshold is passed.
      */
     class SpringSet(private val driverSpring: SpringAnimation, driverSpringThreshold: Float = 0f) {
-        private val springSet = mutableSetOf<SpringAnimation>()
+        private val trackedSprings = mutableSetOf<SpringAnimation>()
+        private val trackedSpringSets = mutableSetOf<SpringSet>()
         private var runningSpringCount = 0
         private val startListenerSet = mutableSetOf<() -> Unit>()
         private val endListenerSet = mutableSetOf<() -> Unit>()
@@ -1132,7 +1126,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                 return this
             }
             hasStarted = true
-            if (springSet.isEmpty()) {
+            if (trackedSprings.isEmpty()) {
                 onEnd()
                 return this
             }
@@ -1147,20 +1141,24 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
 
         fun cancel(): SpringSet {
             driverSpring.cancel()
-            springSet.forEach { it.cancel() }
+            trackedSprings.forEach { it.cancel() }
             onEnd()
             return this
         }
 
-        fun skipToEnd(): SpringSet {
-            driverSpring.skipToEnd()
-            springSet.forEach { it.skipToEnd() }
-            onEnd()
+        /**
+         * Increase spring constants to force animations to end quickly.
+         *
+         * <p>A high stiffness applies more force to the object to bring it to its end value. A
+         * damping ratio of 1f is critically damped, and the object will return to equilibrium
+         * within the shortest amount of time.
+         */
+        fun speedUpSpringsToEnd(): SpringSet {
+            trackedSprings.forEach {
+                it.spring.setStiffness(SPEED_UP_STIFFNESS).setDampingRatio(1f)
+            }
+            trackedSpringSets.forEach { it.speedUpSpringsToEnd() }
             return this
-        }
-
-        private fun removeSpring(spring: SpringAnimation) {
-            springSet.remove(spring)
         }
 
         fun addStartListener(startListener: () -> Unit): SpringSet {
@@ -1174,10 +1172,10 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
         }
 
         fun trackSpring(spring: SpringAnimation, minimumDistance: Float = 0f): SpringSet {
-            if (springSet.contains(spring)) {
+            if (trackedSprings.contains(spring)) {
                 throw IllegalArgumentException("SpringSet already contains this spring.")
             }
-            springSet.add(spring)
+            trackedSprings.add(spring)
             runningSpringCount++
             var canSpringEnd = false
             spring.addUpdateListener { _, value, _ ->
@@ -1199,6 +1197,7 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
 
         private fun trackSpringSet(springSet: SpringSet): SpringSet {
             runningSpringCount++
+            trackedSpringSets.add(springSet)
             springSet.addEndListener {
                 if (--runningSpringCount == 0) {
                     onEnd()
@@ -1250,5 +1249,6 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
         private const val ADDITIONAL_DISMISS_DAMPING_RATIO = 0.15f
         private const val RECENTS_SCALE_SPRING_MULTIPLIER = 1000f
         private const val DEFAULT_DISMISS_THRESHOLD_FRACTION = 0.5f
+        private const val SPEED_UP_STIFFNESS = 100_000f
     }
 }

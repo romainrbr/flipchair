@@ -312,6 +312,22 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
     override fun getTaskLaunchLength(secondaryDimension: Int, taskThumbnailBounds: Rect): Int =
         secondaryDimension - taskThumbnailBounds.bottom
 
+    override fun extendRectForPrimaryTranslation(rect: Rect, translation: Int) {
+        if (translation < 0) {
+            rect.left += translation
+        } else {
+            rect.right += translation
+        }
+    }
+
+    override fun extendRectForSecondaryTranslation(rect: Rect, translation: Int) {
+        if (translation < 0) {
+            rect.top += translation
+        } else {
+            rect.bottom += translation
+        }
+    }
+
     /* -------------------- */
 
     override fun getDistanceToBottomOfRect(dp: DeviceProfile, rect: Rect): Int =

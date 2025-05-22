@@ -639,3 +639,13 @@ flag {
     description: "Enables home action corner to be reversible"
     bug: "416664984"
 }
+
+flag {
+  name: "enable_long_press_remove_shortcut"
+  namespace: "launcher"
+  description: "Enables remove app shortcut on long press menu"
+  bug: "419289205"
+  metadata {
+    purpose: PURPOSE_BUGFIX
+  }
+}

@@ -21,7 +21,7 @@
     <dimen name="task_corner_radius_override">-1dp</dimen>
 
     <!--  Task Menu View  -->
-    <dimen name="task_menu_corner_radius">22dp</dimen>
+    <dimen name="task_menu_corner_radius">26dp</dimen>
     <dimen name="task_menu_item_corner_radius">4dp</dimen>
     <dimen name="task_menu_spacing">2dp</dimen>
     <dimen name="task_menu_width_grid">216dp</dimen>
@@ -83,6 +83,7 @@
     <!--  The size of the icon menu's icon touch target  -->
     <dimen name="task_thumbnail_icon_menu_drawable_touch_size">44dp</dimen>
     <dimen name="task_thumbnail_icon_menu_elevation">4dp</dimen>
+    <dimen name="app_chip_round_corner_radius">28dp</dimen>
     <!--  The size of the text fading horizontally -->
     <dimen name="task_thumbnail_icon_menu_text_fading_size">20dp</dimen>
     <!--  The size of the task thumbnail header  -->
@@ -121,6 +122,9 @@
     <!-- Recents add desktop button -->
     <dimen name="add_desktop_button_size">56dp</dimen>
     <dimen name="add_desktop_button_outline_padding">2dp</dimen>
+
+    <!-- Recents App Chip -->
+    <dimen name="app_chip_keyboard_border_width">3dp</dimen>
 
     <!-- The speed in dp/s at which the user needs to be scrolling in recents such that we start
              loading full resolution screenshots. -->
@@ -531,6 +535,7 @@
     <!-- Keyboard Quick Switch -->
     <dimen name="keyboard_quick_switch_border_width">5dp</dimen>
     <dimen name="keyboard_quick_switch_border_stroke">3dp</dimen>
+    <dimen name="keyboard_quick_switch_border_padding">2dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_width">104dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_height">136dp</dimen>
     <dimen name="keyboard_quick_switch_taskview_icon_size">52dp</dimen>

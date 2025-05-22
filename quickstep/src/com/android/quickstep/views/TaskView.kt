@@ -321,6 +321,7 @@ constructor(
 
     var taskViewId = UNBOUND_TASK_VIEW_ID
     var isEndQuickSwitchCuj = false
+    var isBeingDraggedForDismissal = false
     var sysUiStatusNavFlags: Int = 0
         get() =
             if (enableRefactorTaskThumbnail()) field
@@ -689,6 +690,7 @@ constructor(
     }
 
     override fun onRecycle() {
+        isBeingDraggedForDismissal = false
         resetPersistentViewTransforms()
 
         groupTask = null
@@ -1937,14 +1939,18 @@ constructor(
     }
 
     fun resetViewTransforms() {
+        // Dismiss translation shouldn't reset if actively being dragged
+        if (!isBeingDraggedForDismissal) {
+            secondaryDismissTranslationProperty.setValue(this, 0f)
+        }
+        primaryDismissTranslationProperty.setValue(this, 0f)
+
         // fullscreenTranslation and accumulatedTranslation should not be reset, as
         // resetViewTransforms is called during QuickSwitch scrolling.
-        dismissTranslationX = 0f
         taskOffsetTranslationX = 0f
         taskResistanceTranslationX = 0f
         splitSelectTranslationX = 0f
         gridEndTranslationX = 0f
-        dismissTranslationY = 0f
         taskOffsetTranslationY = 0f
         taskResistanceTranslationY = 0f
         if (recentsView?.isSplitSelectionActive != true) {

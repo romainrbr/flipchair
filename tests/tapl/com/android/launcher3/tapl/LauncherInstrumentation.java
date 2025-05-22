@@ -121,6 +121,7 @@ public final class LauncherInstrumentation {
     private static final Pattern EVENT_ON_BACK_INVOKED = Pattern.compile("onBackInvoked");
 
     private final String mLauncherPackage;
+    @Nullable private String mTestLauncherPackage;
     private Boolean mIsLauncher3;
     private long mTestStartTime = -1;
 
@@ -1121,13 +1122,37 @@ public final class LauncherInstrumentation {
                 getBoolean(TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 
-    Parcelable executeAndWaitForLauncherEvent(Runnable command,
-            UiAutomation.AccessibilityEventFilter eventFilter, Supplier<String> message,
+    Parcelable executeAndWaitForLauncherEvent(
+            Runnable command,
+            UiAutomation.AccessibilityEventFilter eventFilter,
+            Supplier<String> message,
             String actionName) {
+        return executeAndWaitForLauncherEvent(command, eventFilter, message, actionName, null);
+    }
+
+    private Parcelable executeAndWaitForLauncherEvent(
+            Runnable command,
+            UiAutomation.AccessibilityEventFilter eventFilter,
+            Supplier<String> message,
+            String actionName,
+            @Nullable String launcherPackageOverride) {
+        log("executeAndWaitForLauncherEvent: launcherPackageOverride=" + launcherPackageOverride);
         return executeAndWaitForEvent(
                 command,
-                e -> mLauncherPackage.equals(e.getPackageName()) && eventFilter.accept(e),
-                message, actionName);
+                e -> {
+                    CharSequence eventPackageName = e.getPackageName();
+                    return (launcherPackageOverride != null
+                            ? launcherPackageOverride.equals(eventPackageName)
+                            : mLauncherPackage.equals(eventPackageName))
+                            && eventFilter.accept(e);
+                },
+                message,
+                actionName);
+    }
+
+    public void setTestLauncherPackage(@Nullable String testLauncherPackage) {
+        log("Setting mTestLauncherPackage=" + testLauncherPackage);
+        mTestLauncherPackage = testLauncherPackage;
     }
 
     Parcelable executeAndWaitForEvent(Runnable command,
@@ -1149,20 +1174,14 @@ public final class LauncherInstrumentation {
         }
     }
 
-    void executeAndWaitForLauncherHidden(Runnable command, String actionName) {
-        // Since LAUNCHER_ACTIVITY_STOPPED_MESSAGE is only ever sent from Launcher.onStop or
-        // RecentsActivity.onStop, we never receive this signal on 3P launchers with recents
-        // window enabled. So, instead we should wait for the recent window's state manager to
-        // report the normal state.
-        if (is3PLauncher() && isRecentsWindowEnabled()) {
-            runToState(command, NORMAL_STATE_ORDINAL, actionName);
-        } else {
-            executeAndWaitForLauncherEvent(
-                    () -> command.run(),
-                    event -> TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
-                            .equals(event.getClassName().toString()),
-                    () -> "Launcher activity didn't stop", actionName);
-        }
+    void executeAndWaitForLauncherStop(Runnable command, String actionName) {
+        executeAndWaitForLauncherEvent(
+                command,
+                event -> TestProtocol.LAUNCHER_ACTIVITY_STOPPED_MESSAGE
+                        .equals(event.getClassName().toString()),
+                () -> "Launcher activity didn't stop",
+                actionName,
+                isRecentsWindowEnabled() ? mTestLauncherPackage : null);
     }
 
     /**

@@ -512,9 +512,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             target = t;
             break;
         }
-        final int widthPx = mDeviceProfile.getDeviceProperties().getWidthPx();
-        final int heightPx = mDeviceProfile.getDeviceProperties().getHeightPx();
-        if (target == null) return new Rect(0, 0, widthPx, heightPx);
+        if (target == null) return new Rect(0, 0, mDeviceProfile.widthPx, mDeviceProfile.heightPx);
         final Rect bounds = new Rect(target.screenSpaceBounds);
         if (target.localBounds != null) {
             bounds.set(target.localBounds);
@@ -524,10 +522,10 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         if (rotationChange != 0) {
             if ((rotationChange % 2) == 1) {
                 // undoing rotation, so our "original" parent size is actually flipped
-                Utilities.rotateBounds(bounds, heightPx, widthPx,
+                Utilities.rotateBounds(bounds, mDeviceProfile.heightPx, mDeviceProfile.widthPx,
                         4 - rotationChange);
             } else {
-                Utilities.rotateBounds(bounds, widthPx, heightPx,
+                Utilities.rotateBounds(bounds, mDeviceProfile.widthPx, mDeviceProfile.heightPx,
                         4 - rotationChange);
             }
         }
@@ -566,8 +564,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
             final View appsView = mLauncher.getAppsView();
             final float startAlpha = appsView.getAlpha();
             final float startScale = SCALE_PROPERTY.get(appsView);
-            if (mDeviceProfile.getDeviceProperties().isTablet()) {
-
+            if (mDeviceProfile.isTablet) {
                 // AllApps should not fade at all in tablets.
                 alphas = new float[]{1, 1};
             }
@@ -795,7 +792,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         final float initialWindowRadius = supportsRoundedCornersOnWindows(mLauncher.getResources())
                 ? Math.max(crop.width(), crop.height()) / 2f
                 : 0f;
-        final float finalWindowRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
+        final float finalWindowRadius = mDeviceProfile.isMultiWindowMode
                 ? 0 : getWindowCornerRadius(mLauncher);
         final float finalShadowRadius = appTargetsAreTranslucent ? 0 : mMaxShadowRadius;
 
@@ -878,8 +875,8 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 final int windowCropWidth = crop.width();
                 final int windowCropHeight = crop.height();
                 if (rotationChange != 0) {
-                    Utilities.rotateBounds(crop, mDeviceProfile.getDeviceProperties().getWidthPx(),
-                            mDeviceProfile.getDeviceProperties().getHeightPx(), rotationChange);
+                    Utilities.rotateBounds(crop, mDeviceProfile.widthPx,
+                            mDeviceProfile.heightPx, rotationChange);
                 }
 
                 // Scale the size of the icon to match the size of the window crop.
@@ -926,14 +923,14 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                         matrix.setScale(scale, scale);
                         if (rotationChange == 1) {
                             matrix.postTranslate(windowTransY0,
-                                    mDeviceProfile.getDeviceProperties().getWidthPx() - (windowTransX0 + scaledCropWidth));
+                                    mDeviceProfile.widthPx - (windowTransX0 + scaledCropWidth));
                         } else if (rotationChange == 2) {
                             matrix.postTranslate(
-                                    mDeviceProfile.getDeviceProperties().getWidthPx() - (windowTransX0 + scaledCropWidth),
-                                    mDeviceProfile.getDeviceProperties().getHeightPx() - (windowTransY0 + scaledCropHeight));
+                                    mDeviceProfile.widthPx - (windowTransX0 + scaledCropWidth),
+                                    mDeviceProfile.heightPx - (windowTransY0 + scaledCropHeight));
                         } else if (rotationChange == 3) {
                             matrix.postTranslate(
-                                    mDeviceProfile.getDeviceProperties().getHeightPx() - (windowTransY0 + scaledCropHeight),
+                                    mDeviceProfile.heightPx - (windowTransY0 + scaledCropHeight),
                                     windowTransX0);
                         } else {
                             matrix.postTranslate(windowTransX0, windowTransY0);
@@ -1025,7 +1022,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                     FloatingWidgetView.getDefaultBackgroundColor(mLauncher, openingTarget);
         }
 
-        final float finalWindowRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
+        final float finalWindowRadius = mDeviceProfile.isMultiWindowMode
                 ? 0 : getWindowCornerRadius(mLauncher);
         final FloatingWidgetView floatingView = FloatingWidgetView.getFloatingWidgetView(mLauncher,
                 v, widgetBackgroundBounds,
@@ -1415,9 +1412,9 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         DeviceProfile dp = mLauncher.getDeviceProfile();
         final int halfIconSize = dp.iconSizePx / 2;
         float primaryDimension = orientationHandler
-                .getPrimaryValue(dp.getDeviceProperties().getAvailableWidthPx(), dp.getDeviceProperties().getAvailableHeightPx());
+                .getPrimaryValue(dp.availableWidthPx, dp.availableHeightPx);
         float secondaryDimension = orientationHandler
-                .getSecondaryValue(dp.getDeviceProperties().getAvailableWidthPx(), dp.getDeviceProperties().getAvailableHeightPx());
+                .getSecondaryValue(dp.availableWidthPx, dp.availableHeightPx);
         final float targetX = primaryDimension / 2f;
         final float targetY = secondaryDimension - dp.hotseatBarSizePx;
         return new RectF(targetX - halfIconSize, targetY - halfIconSize,
@@ -1447,13 +1444,13 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         // Get floating view and target rect.
         boolean isInHotseat = false;
         if (launcherView instanceof LauncherAppWidgetHostView) {
-            Size windowSize = new Size(mDeviceProfile.getDeviceProperties().getAvailableWidthPx(),
-                    mDeviceProfile.getDeviceProperties().getAvailableHeightPx());
+            Size windowSize = new Size(mDeviceProfile.availableWidthPx,
+                    mDeviceProfile.availableHeightPx);
             int fallbackBackgroundColor =
                     FloatingWidgetView.getDefaultBackgroundColor(mLauncher, runningTaskTarget);
             floatingWidget = FloatingWidgetView.getFloatingWidgetView(mLauncher,
                     (LauncherAppWidgetHostView) launcherView, targetRect, windowSize,
-                    mDeviceProfile.getDeviceProperties().isMultiWindowMode() ? 0 : getWindowCornerRadius(mLauncher),
+                    mDeviceProfile.isMultiWindowMode ? 0 : getWindowCornerRadius(mLauncher),
                     isTransluscent, fallbackBackgroundColor);
         } else if (launcherView != null && !RemoveAnimationSettingsTracker.INSTANCE.get(
                 mLauncher).isRemoveAnimationEnabled()) {
@@ -1484,7 +1481,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         Rect closingWindowStartRect = new Rect();
         closingWindowStartRectF.round(closingWindowStartRect);
         Rect closingWindowOriginalRect =
-                new Rect(0, 0, mDeviceProfile.getDeviceProperties().getWidthPx(), mDeviceProfile.getDeviceProperties().getHeightPx());
+                new Rect(0, 0, mDeviceProfile.widthPx, mDeviceProfile.heightPx);
         if (floatingIconView != null) {
             anim.addAnimatorListener(floatingIconView);
             floatingIconView.setOnTargetChangeListener(anim::onTargetPositionChanged);
@@ -1562,7 +1559,7 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
         Rect tmpRect = new Rect();
         ValueAnimator closingAnimator = ValueAnimator.ofFloat(0, 1);
         int duration = CLOSING_TRANSITION_DURATION_MS;
-        float windowCornerRadius = mDeviceProfile.getDeviceProperties().isMultiWindowMode()
+        float windowCornerRadius = mDeviceProfile.isMultiWindowMode
                 ? 0 : getWindowCornerRadius(mLauncher);
         float startShadowRadius = areAllTargetsTranslucent(appTargets) ? 0 : mMaxShadowRadius;
         closingAnimator.setDuration(duration);
@@ -2252,20 +2249,17 @@ public class QuickstepTransitionManager implements OnDeviceProfileChangeListener
                 boolean toLauncher, RectF resultRect) {
             final int taskRotation = target.windowConfiguration.getRotation();
             final DeviceProfile profile = mLauncher.getDeviceProfile();
-            final int rotation = profile.getDeviceProperties().getRotationHint();
-            final int widthPx = profile.getDeviceProperties().getWidthPx();
-            final int heightPx = profile.getDeviceProperties().getWidthPx();
 
             final int rotationDelta = toLauncher
-                    ? android.util.RotationUtils.deltaRotation(taskRotation, rotation)
-                    : android.util.RotationUtils.deltaRotation(rotation, taskRotation);
+                    ? android.util.RotationUtils.deltaRotation(taskRotation, profile.rotationHint)
+                    : android.util.RotationUtils.deltaRotation(profile.rotationHint, taskRotation);
             if (rotationDelta != ROTATION_0) {
                 // Get original display size when task is on top but with different rotation
-                if (rotationDelta % 2 != 0 && toLauncher && (rotation == ROTATION_0
-                        || rotation == ROTATION_180)) {
-                    mDisplayRect.set(0, 0, heightPx, widthPx);
+                if (rotationDelta % 2 != 0 && toLauncher && (profile.rotationHint == ROTATION_0
+                        || profile.rotationHint == ROTATION_180)) {
+                    mDisplayRect.set(0, 0, profile.heightPx, profile.widthPx);
                 } else {
-                    mDisplayRect.set(0, 0, widthPx, heightPx);
+                    mDisplayRect.set(0, 0, profile.widthPx, profile.heightPx);
                 }
                 currentRect.round(mTmpResult);
                 android.util.RotationUtils.rotateBounds(mTmpResult, mDisplayRect, rotationDelta);

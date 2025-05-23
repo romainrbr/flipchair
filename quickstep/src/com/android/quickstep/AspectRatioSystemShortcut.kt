@@ -58,7 +58,8 @@ class AspectRatioSystemShortcut(
         }
 
         mTarget.startActivitySafely(view, intent, mItemInfo)
-        mTarget.statsLogManager
+        mTarget
+            .statsLogManager
             .logger()
             .withItemInfo(mItemInfo)
             .log(LauncherEvent.LAUNCHER_ASPECT_RATIO_SETTINGS_SYSTEM_SHORTCUT_TAP)
@@ -80,7 +81,7 @@ class AspectRatioSystemShortcut(
                         !universalResizableByDefault() -> null
 
                         // The option is only shown on sw600dp+ screens (checked by isTablet)
-                        !viewContainer.deviceProfile.deviceProperties.isTablet -> null
+                        !viewContainer.deviceProfile.isTablet -> null
 
                         else -> {
                             listOf(

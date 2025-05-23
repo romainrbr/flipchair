@@ -1024,7 +1024,7 @@ public abstract class AbsSwipeUpHandler<
             }
             dp.updateInsets(targets.homeContentInsets);
             initTransitionEndpoints(dp);
-            orientationState.setMultiWindowMode(dp.getDeviceProperties().isMultiWindowMode());
+            orientationState.setMultiWindowMode(dp.isMultiWindowMode);
         }
 
         // Notify when the animation starts
@@ -1539,7 +1539,7 @@ public abstract class AbsSwipeUpHandler<
     }
 
     private void doLogGesture(GestureEndTarget endTarget, @Nullable TaskView targetTaskView) {
-        if (mDp == null || !mDp.getDeviceProperties().isGestureMode()) {
+        if (mDp == null || !mDp.isGestureMode) {
             // We probably never received an animation controller, skip logging.
             return;
         }
@@ -1973,26 +1973,24 @@ public abstract class AbsSwipeUpHandler<
 
     private Rect getKeepClearAreaForHotseat() {
         Rect keepClearArea;
-        final int heightPx = mDp.getDeviceProperties().getHeightPx();
-        final int widthPx = mDp.getDeviceProperties().getWidthPx();
         // the keep clear area in global screen coordinates, in pixels
-        if (mDp.getDeviceProperties().isPhone()) {
+        if (mDp.isPhone) {
             if (mDp.isSeascape()) {
                 // in seascape the Hotseat is on the left edge of the screen
-                keepClearArea = new Rect(0, 0, mDp.hotseatBarSizePx, heightPx);
-            } else if (mDp.getDeviceProperties().isLandscape()) {
+                keepClearArea = new Rect(0, 0, mDp.hotseatBarSizePx, mDp.heightPx);
+            } else if (mDp.isLandscape) {
                 // in landscape the Hotseat is on the right edge of the screen
-                keepClearArea = new Rect(widthPx - mDp.hotseatBarSizePx, 0,
-                        widthPx, heightPx);
+                keepClearArea = new Rect(mDp.widthPx - mDp.hotseatBarSizePx, 0,
+                        mDp.widthPx, mDp.heightPx);
             } else {
                 // in portrait mode the Hotseat is at the bottom of the screen
-                keepClearArea = new Rect(0, heightPx - mDp.hotseatBarSizePx,
-                        widthPx, heightPx);
+                keepClearArea = new Rect(0, mDp.heightPx - mDp.hotseatBarSizePx,
+                        mDp.widthPx, mDp.heightPx);
             }
         } else {
             // large screens have Hotseat always at the bottom of the screen
-            keepClearArea = new Rect(0, heightPx - mDp.hotseatBarSizePx,
-                    widthPx, heightPx);
+            keepClearArea = new Rect(0, mDp.heightPx - mDp.hotseatBarSizePx,
+                    mDp.widthPx, mDp.heightPx);
         }
         return keepClearArea;
     }
@@ -2756,7 +2754,7 @@ public abstract class AbsSwipeUpHandler<
 
     // Scaling of RecentsView during quick switch based on amount of recents scroll
     private float getScaleProgressDueToScroll() {
-        if (mContainer == null || !mContainer.getDeviceProfile().getDeviceProperties().isTablet() || mRecentsView == null
+        if (mContainer == null || !mContainer.getDeviceProfile().isTablet || mRecentsView == null
                 || !shouldLinkRecentsViewScroll()) {
             return 0;
         }

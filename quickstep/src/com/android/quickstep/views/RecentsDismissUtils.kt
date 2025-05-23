@@ -1076,11 +1076,7 @@ constructor(
                 dispatchScrollChanged()
                 updateActionsViewFocusedScroll()
                 if (
-                    isClearAllHidden &&
-                        !(mContainer as ActivityContext)
-                            .getDeviceProfile()
-                            .deviceProperties
-                            .isTablet
+                    isClearAllHidden && !(mContainer as ActivityContext).getDeviceProfile().isTablet
                 ) {
                     actionsView.updateDisabledFlags(OverviewActionsView.DISABLED_SCROLLING, false)
                 }

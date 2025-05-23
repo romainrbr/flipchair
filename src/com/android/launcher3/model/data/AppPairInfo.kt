@@ -70,10 +70,7 @@ class AppPairInfo() : CollectionInfo() {
     /** Checks if member apps are launchable at the current screen size. */
     fun isLaunchable(context: Context): Pair<Boolean, Boolean> {
         val isTablet =
-            (ActivityContext.lookupContext(context) as ActivityContext)
-                .getDeviceProfile()
-                .deviceProperties
-                .isTablet
+            (ActivityContext.lookupContext(context) as ActivityContext).getDeviceProfile().isTablet
         return Pair(
             isTablet || !getFirstApp().isNonResizeable,
             isTablet || !getSecondApp().isNonResizeable,

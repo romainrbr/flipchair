@@ -60,7 +60,7 @@ public class NavBarGestureHandler implements OnTouchListener,
 
     NavBarGestureHandler(Context context, DeviceProfile deviceProfile) {
         mContext = context;
-        mDisplaySize.set(deviceProfile.getDeviceProperties().getWidthPx(), deviceProfile.getDeviceProperties().getHeightPx());
+        mDisplaySize.set(deviceProfile.widthPx, deviceProfile.heightPx);
         mSwipeUpTouchTracker = new TriggerSwipeUpTouchTracker(
                 context,
                 /* disableHorizontalSwipe= */ true,

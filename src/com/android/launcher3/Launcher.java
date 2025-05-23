@@ -677,9 +677,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         // When the flag oneGridSpecs is on we want to disable ALLOW_ROTATION which is replaced
         // by FIXED_LANDSCAPE_MODE, ALLOW_ROTATION will only be used on Tablets and foldables
         // afterwards.
-        if (getDeviceProfile().getDeviceProperties().isPhone()) {
+        if (getDeviceProfile().isPhone) {
             LauncherPrefs.get(this).put(LauncherPrefs.ALLOW_ROTATION, false);
-        } else if (getDeviceProfile().getDeviceProperties().isTablet()) {
+        } else if (getDeviceProfile().isTablet) {
             // Tablet do not use fixed landscape mode, make sure it can't be activated by mistake
             LauncherPrefs.get(this).put(FIXED_LANDSCAPE_MODE, false);
         }
@@ -708,7 +708,7 @@ public class Launcher extends StatefulActivity<LauncherState>
                     this, getMultiWindowDisplaySize());
         }
 
-        if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.getDeviceProperties().isTwoPanels()) {
+        if (FOLDABLE_SINGLE_PAGE.get() && mDeviceProfile.isTwoPanels) {
             mCellPosMapper = new TwoPanelCellPosMapper(mDeviceProfile.inv.numColumns);
         } else {
             mCellPosMapper = new CellPosMapper(mDeviceProfile.isVerticalBarLayout(),
@@ -1883,15 +1883,13 @@ public class Launcher extends StatefulActivity<LauncherState>
     public void updateOpenFolderPosition(int[] inOutPosition, Rect bounds, int width, int height) {
         int left = inOutPosition[0];
         int top = inOutPosition[1];
-        DeviceProfile deviceProfile = getDeviceProfile();
+        DeviceProfile grid = getDeviceProfile();
         int distFromEdgeOfScreen = getWorkspace().getPaddingLeft();
-        final int availableWidth = deviceProfile.getDeviceProperties().getAvailableWidthPx();
-        if (deviceProfile.getDeviceProperties().isPhone()
-                && (availableWidth - width) < 4 * distFromEdgeOfScreen) {
+        if (grid.isPhone && (grid.availableWidthPx - width) < 4 * distFromEdgeOfScreen) {
             // Center the folder if it is very close to being centered anyway, by virtue of
             // filling the majority of the viewport. ie. remove it from the uncanny valley
             // of centeredness.
-            left = (availableWidth - width) / 2;
+            left = (grid.availableWidthPx - width) / 2;
         } else if (width >= bounds.width()) {
             // If the folder doesn't fit within the bounds, center it about the desired bounds
             left = bounds.left + (bounds.width() - width) / 2;
@@ -1902,7 +1900,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         } else {
             // Folder height is less than page height, so bound it to the absolute open folder
             // bounds if necessary
-            Rect folderBounds = deviceProfile.getAbsoluteOpenFolderBounds();
+            Rect folderBounds = grid.getAbsoluteOpenFolderBounds();
             left = Math.max(folderBounds.left, Math.min(left, folderBounds.right - width));
             top = Math.max(folderBounds.top, Math.min(top, folderBounds.bottom - height));
         }
@@ -2542,7 +2540,7 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (BuildCompat.isAtLeastV()
                 && Flags.enableDesktopWindowingMode()
                 && !Flags.enableDesktopWindowingWallpaperActivity()
-                && mDeviceProfile.getDeviceProperties().isTablet()) {
+                && mDeviceProfile.isTablet) {
             // TODO(b/333533253): Clean up after desktop wallpaper activity flag is rolled out
             return;
         }

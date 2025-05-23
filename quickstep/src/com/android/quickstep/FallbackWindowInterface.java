@@ -77,9 +77,9 @@ public final class FallbackWindowInterface extends BaseWindowInterface {
             RecentsPagedOrientationHandler orientationHandler) {
         calculateTaskSize(context, dp, outRect, orientationHandler);
         if (dp.isVerticalBarLayout() && DisplayController.getNavigationMode(context) != NO_BUTTON) {
-            return dp.isSeascape() ? outRect.left : (dp.getDeviceProperties().getWidthPx() - outRect.right);
+            return dp.isSeascape() ? outRect.left : (dp.widthPx - outRect.right);
         } else {
-            return dp.getDeviceProperties().getHeightPx() - outRect.bottom;
+            return dp.heightPx - outRect.bottom;
         }
     }
 

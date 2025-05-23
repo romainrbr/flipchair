@@ -113,7 +113,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
         deviceProfile: DeviceProfile,
         taskMenuX: Float,
         taskMenuY: Float,
-    ): Int = (deviceProfile.deviceProperties.availableWidthPx - taskInsetMargin - taskMenuX).toInt()
+    ): Int = (deviceProfile.availableWidthPx - taskInsetMargin - taskMenuX).toInt()
 
     override fun setSplitTaskSwipeRect(
         dp: DeviceProfile,
@@ -187,7 +187,7 @@ class SeascapePagedViewHandler : LandscapePagedViewHandler() {
     }
 
     override fun getDistanceToBottomOfRect(dp: DeviceProfile, rect: Rect): Int =
-        dp.deviceProperties.widthPx - rect.right
+        dp.widthPx - rect.right
 
     override fun getSplitPositionOptions(dp: DeviceProfile): List<SplitPositionOption> =
         // Add "right" option which is actually the top

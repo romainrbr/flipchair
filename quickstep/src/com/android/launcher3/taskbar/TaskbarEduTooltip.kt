@@ -86,7 +86,7 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
         activityContext.dragLayer.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
         if (
             measuredHeight + activityContext.deviceProfile.taskbarHeight >=
-                activityContext.deviceProfile.deviceProperties.availableHeightPx
+                activityContext.deviceProfile.availableHeightPx
         ) {
             updateLayoutParams { width = MATCH_PARENT }
         }

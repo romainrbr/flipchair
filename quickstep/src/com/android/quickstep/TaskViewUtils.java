@@ -226,7 +226,7 @@ public final class TaskViewUtils {
 
         T container = RecentsViewContainer.containerFromContext(context);
         DeviceProfile dp = container.getDeviceProfile();
-        boolean showAsGrid = dp.getDeviceProperties().isTablet();
+        boolean showAsGrid = dp.isTablet;
         boolean parallaxCenterAndAdjacentTask =
                 !showAsGrid && taskIndex != recentsView.getCurrentPage();
         int scrollOffset = recentsView.getScrollOffset(taskIndex);

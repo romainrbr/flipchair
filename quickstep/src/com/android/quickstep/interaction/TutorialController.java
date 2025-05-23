@@ -157,8 +157,8 @@ abstract class TutorialController implements BackGestureAttemptCallback,
         mAnimatedGestureDemonstration = rootView.findViewById(
                 R.id.gesture_demonstration_animations);
         mExitingAppView = rootView.findViewById(R.id.exiting_app_back);
-        mScreenWidth = mTutorialFragment.getDeviceProfile().getDeviceProperties().getWidthPx();
-        mScreenHeight = mTutorialFragment.getDeviceProfile().getDeviceProperties().getHeightPx();
+        mScreenWidth = mTutorialFragment.getDeviceProfile().widthPx;
+        mScreenHeight = mTutorialFragment.getDeviceProfile().heightPx;
         mExitingAppMargin = mContext.getResources().getDimensionPixelSize(
                 R.dimen.gesture_tutorial_back_gesture_exiting_app_margin);
         mExitingAppStartingCornerRadius = QuickStepContract.getWindowCornerRadius(mContext);
@@ -655,7 +655,7 @@ abstract class TutorialController implements BackGestureAttemptCallback,
         if (!mTutorialFragment.isLargeScreen()) {
             DeviceProfile dp = mTutorialFragment.getDeviceProfile();
 
-            hotseatLayoutParams.addRule(dp.getDeviceProperties().isLandscape()
+            hotseatLayoutParams.addRule(dp.isLandscape
                     ? (dp.isSeascape()
                             ? RelativeLayout.ALIGN_PARENT_START
                             : RelativeLayout.ALIGN_PARENT_END)

@@ -698,6 +698,8 @@ public class DeviceProfile {
         mBubbleBarSpaceThresholdPx =
                 res.getDimensionPixelSize(R.dimen.bubblebar_hotseat_adjustment_threshold);
 
+        int allAppsTopPadding = mInsets.top;
+
         // Needs to be calculated after hotseatBarSizePx is correct,
         // for the available height to be correct
         if (mIsResponsiveGrid) {
@@ -723,9 +725,15 @@ public class DeviceProfile {
             mResponsiveAllAppsWidthSpec = allAppsSpecs.getCalculatedSpec(responsiveAspectRatio,
                     DimensionType.WIDTH, numShownAllAppsColumns, availableWidthPx,
                     mResponsiveWorkspaceWidthSpec);
+            if (inv.appListAlignedWithWorkspaceRow >= 0) {
+                allAppsTopPadding += mResponsiveWorkspaceHeightSpec.getStartPaddingPx()
+                       + inv.appListAlignedWithWorkspaceRow
+                               * (mResponsiveWorkspaceHeightSpec.getCellSizePx()
+                                       + mResponsiveWorkspaceHeightSpec.getGutterPx());
+            }
             mResponsiveAllAppsHeightSpec = allAppsSpecs.getCalculatedSpec(responsiveAspectRatio,
                     DimensionType.HEIGHT, inv.numAllAppsRowsForCellHeightCalculation,
-                    heightPx - mInsets.top, mResponsiveWorkspaceHeightSpec);
+                    heightPx - allAppsTopPadding, mResponsiveWorkspaceHeightSpec);
 
             ResponsiveSpecsProvider folderSpecs = ResponsiveSpecsProvider.create(
                     new ResourceHelper(context, displayOptionSpec.folderSpecsId),
@@ -809,9 +817,10 @@ public class DeviceProfile {
             hotseatBorderSpace = cellLayoutBorderSpacePx.y;
         }
 
+
         if (shouldShowAllAppsOnSheet()) {
-            allAppsPadding.top = mInsets.top;
-            allAppsShiftRange = heightPx;
+            allAppsPadding.top = allAppsTopPadding;
+            allAppsShiftRange = heightPx - allAppsTopPadding + mInsets.top;
         } else {
             allAppsPadding.top = 0;
             allAppsShiftRange =

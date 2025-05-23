@@ -1211,7 +1211,7 @@ public class ActivityAllAppsContainerView<T extends Context & ActivityContext>
 
         MarginLayoutParams mlp = (MarginLayoutParams) getLayoutParams();
         // Ignore left/right insets on tablet because we are already centered in-screen.
-        if (grid.isTablet) {
+        if (grid.getDeviceProperties().isTablet()) {
             mlp.leftMargin = mlp.rightMargin = 0;
         } else {
             mlp.leftMargin = insets.left;

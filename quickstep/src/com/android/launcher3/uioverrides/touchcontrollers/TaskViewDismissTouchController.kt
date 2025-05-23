@@ -417,7 +417,7 @@ CONTAINER : StatefulContainer<T> {
         breakpoints.add(minLimit)
         mappings.add(Mapping.Identity)
         breakpoints.add(Breakpoint(detachKey, detachThreshold, spring, Guarantee.None))
-        mappings.add(Mapping.Linear(0.3f))
+        mappings.add(Mapping.Linear(MAGNETIC_DETACH_INTERPOLATION_FRACTION))
         breakpoints.add(maxLimit)
 
         return MotionSpec(DirectionalMotionSpec(breakpoints, mappings))
@@ -435,5 +435,7 @@ CONTAINER : StatefulContainer<T> {
         private const val RECENTS_SCALE_FIRST_THRESHOLD_FRACTION = 0.2f
         private const val RECENTS_SCALE_DISMISS_THRESHOLD_FRACTION = 0.5f
         private const val RECENTS_SCALE_SECOND_THRESHOLD_FRACTION = 0.575f
+
+        private const val MAGNETIC_DETACH_INTERPOLATION_FRACTION = 0.35f
     }
 }

@@ -376,11 +376,14 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
 
         mTaskbarBackgroundAlphaForStash.setValue(shouldHideTaskbarBackground ? 0 : 1);
 
-        // if taskbar should auto stash attempt to start timeout.
-        if (shouldAllowTaskbarToAutoStash()) {
-            tryStartTaskbarTimeout();
-        }
         notifyStashChange(/* visible */ false, /* stashed */ isStashedInApp());
+
+        mControllers.runAfterInit(() -> {
+            // if taskbar should auto stash attempt to start timeout.
+            if (shouldAllowTaskbarToAutoStash()) {
+                tryStartTaskbarTimeout();
+            }
+        });
     }
 
     /**

@@ -35,7 +35,6 @@ import com.android.launcher3.allapps.AllAppsStore.DEFER_UPDATES_TEST
 import com.android.launcher3.integration.util.LauncherActivityScenarioRule
 import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.Wait.atMost
-import java.util.function.Function
 import java.util.function.Predicate
 import java.util.function.Supplier
 import org.junit.Rule
@@ -71,19 +70,6 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
         condition: (LAUNCHER_TYPE) -> Boolean,
         timeout: Long,
     ) = atMost(message, { launcherActivity.getFromLauncher(condition)!! }, null, timeout)
-
-    protected fun <T> getOnceNotNull(message: String, f: Function<LAUNCHER_TYPE, T?>): T? {
-        var output: T? = null
-        atMost(
-            message,
-            {
-                val fromLauncher = launcherActivity.getFromLauncher<T> { f.apply(it) }
-                output = fromLauncher
-                fromLauncher != null
-            },
-        )
-        return output
-    }
 
     @JvmOverloads
     protected fun injectKeyEvent(keyCode: Int, actionDown: Boolean, metaState: Int = 0) {

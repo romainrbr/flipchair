@@ -32,6 +32,7 @@ import com.android.launcher3.integration.util.events.ActivityTestEvents.createSt
 import com.android.launcher3.tapl.TestHelpers
 import com.android.launcher3.util.Executors
 import com.android.launcher3.util.TestUtil
+import com.android.launcher3.util.Wait.atMost
 import java.util.ArrayDeque
 import java.util.Queue
 import java.util.concurrent.atomic.AtomicReference
@@ -96,6 +97,19 @@ open class LauncherActivityScenarioRule<LAUNCHER_TYPE : Launcher>(
         val stateWaiter = createStateWaiter(state)
         executeOnLauncher { it.stateManager.goToState(state, 0) }
         stateWaiter.waitForSignal()
+    }
+
+    fun <T> getOnceNotNull(message: String, f: Function<LAUNCHER_TYPE, T?>): T? {
+        var output: T? = null
+        atMost(
+            message,
+            {
+                val fromLauncher = getFromLauncher<T> { f.apply(it) }
+                output = fromLauncher
+                fromLauncher != null
+            },
+        )
+        return output
     }
 
     /**

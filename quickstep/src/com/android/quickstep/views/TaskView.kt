@@ -952,7 +952,9 @@ constructor(
             // onAttach or another moment in the lifecycle.
             val coroutineJobsToCancel = coroutineJobs.toList()
             coroutineJobs.clear()
-            if (enableCoroutineThreadingImprovements() && coroutineJobsToCancel.isNotEmpty()) {
+            if (coroutineJobsToCancel.isEmpty()) return
+
+            if (enableCoroutineThreadingImprovements()) {
                 // TODO(b/391842220): This should ideally be handled in the completion block of the
                 //  jobs above to be cancelled.
                 taskContainers.forEach {

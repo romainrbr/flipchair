@@ -84,6 +84,8 @@
         <item name="dropTargetHoverTextColor">@color/drop_target_hover_text_color_light</item>
         <item name="dropTargetHoverButtonColor">@color/drop_target_hover_button_color_light</item>
         <item name="overviewScrimColorFallback">@color/overview_scrim</item>
+        <item name="overviewScrimForegroundPrimaryBlur">@color/overview_scrim_foreground_primary</item>
+        <item name="overviewScrimForegroundSecondaryBlur">@color/overview_scrim_foreground_secondary</item>
         <item name="overviewScrimColorBlur">#80FFFFFF</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_light</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_light</item>
@@ -149,6 +151,8 @@
         <item name="iconOnlyShortcutColor">#B3FFFFFF</item>
         <item name="eduHalfSheetBGColor">#DD000000</item>
         <item name="overviewScrimColorFallback">@color/overview_scrim_dark</item>
+        <item name="overviewScrimForegroundPrimaryBlur">@color/overview_scrim_foreground_primary_dark</item>
+        <item name="overviewScrimForegroundSecondaryBlur">@color/overview_scrim_foreground_secondary_dark</item>
         <item name="overviewScrimColorBlur">#80000000</item>
         <item name="preloadIconAccentColor">@color/preload_icon_accent_color_dark</item>
         <item name="preloadIconBackgroundColor">@color/preload_icon_background_color_dark</item>

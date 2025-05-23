@@ -17,7 +17,7 @@ package com.android.quickstep;
 
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.LauncherAnimUtils.VIEW_BACKGROUND_COLOR;
+import static com.android.launcher3.LauncherAnimUtils.SCRIM_COLORS;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
@@ -47,7 +47,9 @@ import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.WindowBounds;
+import com.android.launcher3.views.ScrimColors;
 import com.android.launcher3.views.ScrimView;
+import com.android.launcher3.views.ScrimColorsEvaluator;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.ContextInitListener;
@@ -108,7 +110,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      * Returns the color of the scrim behind overview when at rest in this state.
      * Return {@link Color#TRANSPARENT} for no scrim.
      */
-    protected abstract int getOverviewScrimColorForState(CONTAINER_TYPE container,
+    protected abstract ScrimColors getOverviewScrimColorForState(CONTAINER_TYPE container,
             STATE_TYPE state);
 
     public abstract int getSwipeUpDestinationAndLength(
@@ -214,12 +216,14 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
             RecentsView recentsView = container.getOverviewPanel();
             STATE_TYPE state = stateFromGestureEndTarget(endTarget);
             ScrimView scrimView = container.getScrimView();
-            ObjectAnimator anim = ObjectAnimator.ofArgb(scrimView, VIEW_BACKGROUND_COLOR,
-                    getOverviewScrimColorForState(container, state));
-            anim.setDuration(duration);
-            anim.setInterpolator(recentsView == null || !recentsView.isKeyboardTaskFocusPending()
-                    ? LINEAR : INSTANT);
-            return anim;
+            ObjectAnimator animScrim = ObjectAnimator.ofObject(scrimView, SCRIM_COLORS,
+                    ScrimColorsEvaluator.INSTANCE, getOverviewScrimColorForState(container, state));
+            animScrim.setDuration(duration);
+            animScrim.setInterpolator(
+                    recentsView == null || !recentsView.isKeyboardTaskFocusPending()
+                            ? LINEAR : INSTANT);
+
+            return animScrim;
         }
         return null;
     }

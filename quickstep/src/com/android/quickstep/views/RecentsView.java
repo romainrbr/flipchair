@@ -217,6 +217,7 @@ import com.android.quickstep.recents.viewmodel.RecentsViewModel;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
 import com.android.quickstep.util.AnimUtils;
 import com.android.quickstep.util.DesktopTask;
+import com.android.quickstep.util.FontUtils;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.util.RecentsAtomicAnimationFactory;
@@ -983,12 +984,7 @@ public abstract class RecentsView<
 
         mEmptyMessagePaint.setTextSize(getResources()
                 .getDimension(R.dimen.recents_empty_message_text_size));
-        Typeface typeface = Typeface.create(
-                Typeface.create(TypefaceUtils.FontFamily.GSF_LABEL_LARGE.getValue(),
-                        Typeface.NORMAL),
-                getFontWeight(),
-                false);
-        mEmptyMessagePaint.setTypeface(typeface);
+        mEmptyMessagePaint.setTypeface(FontUtils.getTypeFace(getResources()));
         mEmptyMessagePaint.setAntiAlias(true);
         mEmptyMessagePadding = getResources()
                 .getDimensionPixelSize(R.dimen.recents_empty_message_text_padding);
@@ -7000,14 +6996,6 @@ public abstract class RecentsView<
                                     .build())
                     .log(LAUNCHER_OVERVIEW_ORIENTATION_CHANGED);
         }
-    }
-
-    private int getFontWeight() {
-        int fontWeightAdjustment = getResources().getConfiguration().fontWeightAdjustment;
-        if (fontWeightAdjustment != Configuration.FONT_WEIGHT_ADJUSTMENT_UNDEFINED) {
-            return Typeface.Builder.NORMAL_WEIGHT + fontWeightAdjustment;
-        }
-        return Typeface.Builder.NORMAL_WEIGHT;
     }
 
     /**

@@ -185,7 +185,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         contentView =
             findViewById<DesktopTaskContentView>(R.id.desktop_content).apply {
                 updateLayoutParams<LayoutParams> {
-                    topMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
+                    topMargin = container.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
                 }
                 cornerRadius = contentViewFullscreenParams.currentCornerRadius
                 backgroundView = findViewById(R.id.background)
@@ -688,7 +688,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
      *   height.
      */
     private fun getScreenScaleFactors(): Pair<Float, Float> {
-        val thumbnailTopMarginPx = container.deviceProfile.overviewTaskThumbnailTopMarginPx
+        val thumbnailTopMarginPx = container.deviceProfile.overviewProfile.taskThumbnailTopMarginPx
         val taskViewWidth = layoutParams.width
         val taskViewHeight = layoutParams.height - thumbnailTopMarginPx
 

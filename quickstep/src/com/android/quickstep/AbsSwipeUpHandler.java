@@ -2705,7 +2705,8 @@ public abstract class AbsSwipeUpHandler<
             transaction.setAlpha(app.leash, 1f - fadeProgress);
             transaction.setPosition(app.leash,
                     /* x= */ app.startBounds.left
-                            + (mContainer.getDeviceProfile().overviewPageSpacing
+                            + (
+                            mContainer.getDeviceProfile().getOverviewProfile().getPageSpacing()
                             * (mRecentsView.isRtl() ? fadeProgress : -fadeProgress)),
                     /* y= */ 0f);
             transaction.setScale(app.leash, 1f, 1f);

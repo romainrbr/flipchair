@@ -31,7 +31,6 @@ import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURC
 import static com.android.launcher3.testing.shared.ResourceUtils.pxFromDp;
 import static com.android.launcher3.testing.shared.ResourceUtils.roundPxValueFromFloat;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
-import static com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu;
 import static com.android.wm.shell.Flags.enableBubbleBar;
 import static com.android.wm.shell.Flags.enableBubbleBarOnPhones;
 import static com.android.wm.shell.Flags.enableTinyTaskbar;
@@ -57,6 +56,7 @@ import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.InvariantDeviceProfile.DisplayOptionSpec;
 import com.android.launcher3.deviceprofile.DeviceProperties;
+import com.android.launcher3.deviceprofile.OverviewProfile;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.model.data.ItemInfo;
@@ -254,17 +254,7 @@ public class DeviceProfile {
     public float allAppsIconTextSizePx;
     public int maxAllAppsTextLineCount;
 
-    // Overview
-    public int overviewTaskMarginPx;
-    public int overviewTaskIconSizePx;
-    public int overviewTaskIconDrawableSizePx;
-    public int overviewTaskIconDrawableSizeGridPx;
-    public int overviewTaskThumbnailTopMarginPx;
-    public final int overviewActionsHeight;
-    public final int overviewActionsTopMarginPx;
-    public int overviewPageSpacing;
-    public int overviewRowSpacing;
-    public int overviewGridSideMargin;
+    private final OverviewProfile overviewProfile;
 
     // Split staging
     public int splitPlaceholderInset;
@@ -327,6 +317,18 @@ public class DeviceProfile {
                 false,
                 false
         );
+        overviewProfile = new OverviewProfile(
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+        );
         inv = null;
         mDisplayOptionSpec = null;
         mInfo = null;
@@ -362,8 +364,6 @@ public class DeviceProfile {
         inlineNavButtonsEndSpacingPx = 0;
         mBubbleBarSpaceThresholdPx = 0;
         numShownAllAppsColumns = 0;
-        overviewActionsHeight = 0;
-        overviewActionsTopMarginPx = 0;
         mViewScaleProvider = null;
         mDotRendererWorkSpace = null;
         mDotRendererAllApps = null;
@@ -386,6 +386,7 @@ public class DeviceProfile {
             boolean isTransientTaskbar, DisplayOptionSpec displayOptionSpec) {
 
         this.inv = inv;
+
         mDeviceProperties = DeviceProperties.Factory.createDeviceProperties(
                 info,
                 windowBounds,
@@ -422,6 +423,9 @@ public class DeviceProfile {
                         : Configuration.ORIENTATION_PORTRAIT,
                 windowBounds);
         final Resources res = context.getResources();
+
+        overviewProfile = OverviewProfile.Factory.createOverviewProfile(res);
+
         mMetrics = res.getDisplayMetrics();
 
         mIconSizeSteps = new IconSizeSteps(res);
@@ -733,24 +737,6 @@ public class DeviceProfile {
         desiredWorkspaceHorizontalMarginPx = getHorizontalMarginPx(inv, res);
         desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginPx;
 
-        overviewTaskMarginPx = res.getDimensionPixelSize(R.dimen.overview_task_margin);
-        overviewTaskIconSizePx = enableOverviewIconMenu() ? res.getDimensionPixelSize(
-                R.dimen.task_thumbnail_icon_menu_drawable_touch_size) : res.getDimensionPixelSize(
-                R.dimen.task_thumbnail_icon_size);
-        overviewTaskIconDrawableSizePx =
-                res.getDimensionPixelSize(R.dimen.task_thumbnail_icon_drawable_size);
-        overviewTaskIconDrawableSizeGridPx =
-                res.getDimensionPixelSize(R.dimen.task_thumbnail_icon_drawable_size_grid);
-        overviewTaskThumbnailTopMarginPx =
-                enableOverviewIconMenu() ? 0 : overviewTaskIconSizePx + overviewTaskMarginPx;
-        // Don't add margin with floating search bar to minimize risk of overlapping.
-        overviewActionsTopMarginPx = Flags.floatingSearchBar() ? 0
-                : res.getDimensionPixelSize(R.dimen.overview_actions_top_margin);
-        overviewPageSpacing = res.getDimensionPixelSize(R.dimen.overview_page_spacing);
-        overviewActionsHeight = res.getDimensionPixelSize(R.dimen.overview_actions_height);
-        overviewRowSpacing = res.getDimensionPixelSize(R.dimen.overview_grid_row_spacing);
-        overviewGridSideMargin = res.getDimensionPixelSize(R.dimen.overview_grid_side_margin);
-
         splitPlaceholderInset = res.getDimensionPixelSize(R.dimen.split_placeholder_inset);
         // We need to use the full window bounds for split determination because on near-square
         // devices, the available bounds (bounds minus insets) may actually be in landscape while
@@ -818,6 +804,10 @@ public class DeviceProfile {
 
     public DeviceProperties getDeviceProperties() {
         return mDeviceProperties;
+    }
+
+    public OverviewProfile getOverviewProfile() {
+        return overviewProfile;
     }
 
     /**
@@ -2128,7 +2118,7 @@ public class DeviceProfile {
     public int getOverviewActionsClaimedSpace() {
         int overviewActionsSpace = mDeviceProperties.isTablet() && enableGridOnlyOverview()
                 ? 0
-                : (overviewActionsTopMarginPx + overviewActionsHeight);
+                : (overviewProfile.getActionsTopMarginPx() + overviewProfile.getActionsHeight());
         return overviewActionsSpace + getOverviewActionsClaimedSpaceBelow();
     }
 
@@ -2373,23 +2363,28 @@ public class DeviceProfile {
         writer.println(prefix + pxToDpStr("workspaceTopPadding", workspaceTopPadding));
         writer.println(prefix + pxToDpStr("workspaceBottomPadding", workspaceBottomPadding));
 
-        writer.println(prefix + pxToDpStr("overviewTaskMarginPx", overviewTaskMarginPx));
-        writer.println(prefix + pxToDpStr("overviewTaskIconSizePx", overviewTaskIconSizePx));
+        writer.println(prefix + pxToDpStr("overviewTaskMarginPx",
+                getOverviewProfile().getTaskMarginPx()));
+        writer.println(prefix + pxToDpStr("overviewTaskIconSizePx",
+                getOverviewProfile().getTaskIconSizePx()));
         writer.println(prefix + pxToDpStr("overviewTaskIconDrawableSizePx",
-                overviewTaskIconDrawableSizePx));
+                getOverviewProfile().getTaskIconDrawableSizePx()));
         writer.println(prefix + pxToDpStr("overviewTaskIconDrawableSizeGridPx",
-                overviewTaskIconDrawableSizeGridPx));
+                getOverviewProfile().getTaskIconDrawableSizeGridPx()));
         writer.println(prefix + pxToDpStr("overviewTaskThumbnailTopMarginPx",
-                overviewTaskThumbnailTopMarginPx));
+                getOverviewProfile().getTaskThumbnailTopMarginPx()));
         writer.println(prefix + pxToDpStr("overviewActionsTopMarginPx",
-                overviewActionsTopMarginPx));
+                getOverviewProfile().getActionsTopMarginPx()));
         writer.println(prefix + pxToDpStr("overviewActionsHeight",
-                overviewActionsHeight));
+                getOverviewProfile().getActionsHeight()));
         writer.println(prefix + pxToDpStr("overviewActionsClaimedSpaceBelow",
                 getOverviewActionsClaimedSpaceBelow()));
-        writer.println(prefix + pxToDpStr("overviewPageSpacing", overviewPageSpacing));
-        writer.println(prefix + pxToDpStr("overviewRowSpacing", overviewRowSpacing));
-        writer.println(prefix + pxToDpStr("overviewGridSideMargin", overviewGridSideMargin));
+        writer.println(prefix + pxToDpStr("overviewPageSpacing",
+                getOverviewProfile().getPageSpacing()));
+        writer.println(prefix + pxToDpStr("overviewRowSpacing",
+                getOverviewProfile().getRowSpacing()));
+        writer.println(prefix + pxToDpStr("overviewGridSideMargin",
+                getOverviewProfile().getGridSideMargin()));
 
         writer.println(prefix + pxToDpStr("dropTargetBarTopMarginPx", dropTargetBarTopMarginPx));
         writer.println(prefix + pxToDpStr("dropTargetBarSizePx", dropTargetBarSizePx));

@@ -123,7 +123,7 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
                 pinnedTaskbarWithAutoStashing ? 0 : TaskbarThresholdUtils.getFromNavThreshold(res,
                         taskbarActivityContext.getDeviceProfile());
 
-        mTaskbarNavThresholdY = taskbarActivityContext.getDeviceProfile().heightPx
+        mTaskbarNavThresholdY = taskbarActivityContext.getDeviceProfile().getDeviceProperties().getHeightPx()
                 - mTaskbarNavThreshold;
         mIsTaskbarAllAppsOpen = mTaskbarActivityContext.isTaskbarAllAppsOpen();
 
@@ -302,10 +302,10 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
     private void updateHoveredTaskbarState(int x, int y) {
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
         mBottomEdgeBounds.set(
-                (dp.widthPx - (int) mUnstashArea) / 2,
-                dp.heightPx - mStashedTaskbarBottomEdge,
-                (int) (((dp.widthPx - mUnstashArea) / 2) + mUnstashArea),
-                dp.heightPx);
+                (dp.getDeviceProperties().getWidthPx() - (int) mUnstashArea) / 2,
+                dp.getDeviceProperties().getHeightPx() - mStashedTaskbarBottomEdge,
+                (int) (((dp.getDeviceProperties().getWidthPx() - mUnstashArea) / 2) + mUnstashArea),
+                dp.getDeviceProperties().getHeightPx());
 
         if (mBottomEdgeBounds.contains(x, y)) {
             // start a single unstash timeout if hovering bottom edge under the hinted taskbar.
@@ -330,9 +330,9 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
         mBottomEdgeBounds.set(
                 0,
-                dp.heightPx - mBottomScreenEdge,
-                dp.widthPx,
-                dp.heightPx);
+                dp.getDeviceProperties().getHeightPx() - mBottomScreenEdge,
+                dp.getDeviceProperties().getWidthPx(),
+                dp.getDeviceProperties().getHeightPx());
 
         if (cursorHotCorner() && mDisplayManager != null) {
             Display display = mDisplayManager.getDisplay(displayId);
@@ -371,10 +371,10 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
         }
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
         mStashedTaskbarHandleBounds.set(
-                (dp.widthPx - (int) mUnstashArea) / 2,
-                dp.heightPx - dp.stashedTaskbarHeight,
-                (int) (((dp.widthPx - mUnstashArea) / 2) + mUnstashArea),
-                dp.heightPx);
+                (dp.getDeviceProperties().getWidthPx() - (int) mUnstashArea) / 2,
+                dp.getDeviceProperties().getHeightPx() - dp.stashedTaskbarHeight,
+                (int) (((dp.getDeviceProperties().getWidthPx() - mUnstashArea) / 2) + mUnstashArea),
+                dp.getDeviceProperties().getHeightPx());
         return mStashedTaskbarHandleBounds.contains(x, y);
     }
 

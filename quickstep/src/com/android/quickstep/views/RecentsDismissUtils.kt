@@ -1004,7 +1004,11 @@ class RecentsDismissUtils(private val recentsView: RecentsView<*, *>) {
                 dispatchScrollChanged()
                 updateActionsViewFocusedScroll()
                 if (
-                    isClearAllHidden && !(mContainer as ActivityContext).getDeviceProfile().isTablet
+                    isClearAllHidden &&
+                        !(mContainer as ActivityContext)
+                            .getDeviceProfile()
+                            .deviceProperties
+                            .isTablet
                 ) {
                     actionsView.updateDisabledFlags(OverviewActionsView.DISABLED_SCROLLING, false)
                 }

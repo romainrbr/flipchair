@@ -158,6 +158,38 @@ android_library {
 }
 
 android_library {
+    name: "widget_picker_ui",
+    sdk_version: "current",
+    min_sdk_version: min_launcher3_sdk_version,
+    srcs: [
+        "src/com/android/launcher3/widgetpicker/ui/ViewModel.kt",
+        "src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreen.kt",
+        "src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenSinglePane.kt",
+        "src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenTwoPane.kt",
+        "src/com/android/launcher3/widgetpicker/ui/fullcatalog/screens/landing/LandingScreenViewModel.kt",
+    ],
+    static_libs: [
+        "widget_picker_ui_components",
+        "widget_picker_ui_data_types",
+        "widget_picker_domain_layer",
+        "dagger2",
+        "widget_picker_dagger_annotations",
+        "androidx.compose.foundation_foundation",
+        "androidx.compose.foundation_foundation-layout",
+        "androidx.compose.runtime_runtime",
+        "androidx.compose.ui_ui",
+        "androidx.compose.ui_ui-tooling",
+        "androidx.compose.material3_material3",
+        "androidx.compose.material3_material3-window-size-class",
+        "androidx.compose.material_material-icons-extended",
+        "androidx.activity_activity-compose",
+        "widget_picker_window_size_class",
+        "kotlinx-coroutines-android",
+        "kotlinx-coroutines-core",
+    ],
+}
+
+android_library {
     name: "widget_picker_window_size_class",
     sdk_version: "current",
     min_sdk_version: min_launcher3_sdk_version,

@@ -33,9 +33,13 @@ object TestUtils {
     val personalUser: UserHandle = UserHandle.of(1)
     val workUser: UserHandle = UserHandle.of(10)
 
+    val PERSONAL_LABEL = "personal"
+    val WORK_LABEL = "work"
+
     val widgetUserProfilePersonal =
-        WidgetUserProfile(type = WidgetUserProfileType.PERSONAL, label = "personal")
-    val widgetUserProfileWork = WidgetUserProfile(type = WidgetUserProfileType.WORK, label = "work")
+        WidgetUserProfile(type = WidgetUserProfileType.PERSONAL, label = PERSONAL_LABEL)
+    val widgetUserProfileWork =
+        WidgetUserProfile(type = WidgetUserProfileType.WORK, label = WORK_LABEL)
 
     private const val PACKAGE_NAME = "com.example.test"
     private val PERSONAL_WIDGET_APP_1 = buildWidgetAppId("AppOne", personalUser)

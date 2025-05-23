@@ -116,6 +116,7 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
 
     // Compose UI Tests
+    testApi(libs.compose.ui.test.junit4)
     androidTestApi(libs.compose.ui.test.junit4)
     debugApi(libs.compose.ui.test.manifest)
 

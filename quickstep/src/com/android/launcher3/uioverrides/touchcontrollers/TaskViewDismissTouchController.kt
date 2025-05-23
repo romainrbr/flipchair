@@ -323,11 +323,13 @@ CONTAINER : StatefulContainer<T> {
         springAnimation =
             recentsView.runTaskDismissSettlingSpringAnimation(
                 taskBeingDragged,
-                velocity,
                 isDismissing,
-                dismissLength,
-                dismissThreshold,
-                finalPosition,
+                RecentsDismissUtils.DismissedTaskData(
+                    startVelocity = velocity,
+                    dismissLength = dismissLength,
+                    finalPosition = finalPosition,
+                    dismissThreshold = dismissThreshold,
+                ),
                 /* shouldRemoveTaskView= */ isDismissing,
                 /* isSplitSelection= */ false,
             )

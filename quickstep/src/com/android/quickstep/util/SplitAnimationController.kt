@@ -328,16 +328,14 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         // Make the scrim fullscreen
         val lp = scrim.layoutParams as InsettableFrameLayout.LayoutParams
         lp.topMargin = 0
-        lp.height = dp.deviceProperties.heightPx
-        lp.width = dp.deviceProperties.widthPx
+        lp.height = dp.heightPx
+        lp.width = dp.widthPx
 
         scrim.alpha = 0f
         scrim.setBackgroundColor(
             container.asContext().resources.getColor(R.color.taskbar_background_dark)
         )
-        val timings =
-            AnimUtils.getDeviceSplitToConfirmTimings(dp.deviceProperties.isTablet)
-                as SplitToConfirmTimings
+        val timings = AnimUtils.getDeviceSplitToConfirmTimings(dp.isTablet) as SplitToConfirmTimings
         pendingAnimation.setViewAlpha(
             scrim,
             1f,
@@ -430,10 +428,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         safeRemoveViewFromDragLayer(container, splitSelectStateController.splitInstructionsView)
         val splitInstructionsView = SplitInstructionsView.getSplitInstructionsView(container)
         splitSelectStateController.splitInstructionsView = splitInstructionsView
-        val timings =
-            AnimUtils.getDeviceOverviewToSplitTimings(
-                container.deviceProfile.deviceProperties.isTablet
-            )
+        val timings = AnimUtils.getDeviceOverviewToSplitTimings(container.deviceProfile.isTablet)
         val anim = PendingAnimation(100 /*duration */)
         splitInstructionsView.alpha = 0f
         anim.setViewAlpha(
@@ -476,7 +471,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
     ) {
         val stagedTaskView = view as FloatingTaskView
 
-        val isTablet: Boolean = container.deviceProfile.deviceProperties.isTablet
+        val isTablet: Boolean = container.deviceProfile.isTablet
         val duration =
             if (isTablet) SplitAnimationTimings.TABLET_CONFIRM_DURATION
             else SplitAnimationTimings.PHONE_CONFIRM_DURATION
@@ -896,7 +891,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
         rootCandidate: Change,
     ): ValueAnimator {
         val progressUpdater = ValueAnimator.ofFloat(0f, 1f)
-        val timings = AnimUtils.getDeviceAppPairLaunchTimings(dp.deviceProperties.isTablet)
+        val timings = AnimUtils.getDeviceAppPairLaunchTimings(dp.isTablet)
         progressUpdater.setDuration(timings.getDuration().toLong())
         progressUpdater.interpolator = Interpolators.LINEAR
 
@@ -920,8 +915,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
                 var mDx =
                     FloatProp(
                         floatingView.startingPosition.left,
-                        dp.deviceProperties.widthPx / 2f -
-                            floatingView.startingPosition.width() / 2f,
+                        dp.widthPx / 2f - floatingView.startingPosition.width() / 2f,
                         Interpolators.clampToProgress(
                             timings.getStagedRectXInterpolator(),
                             timings.stagedRectSlideStartOffset,
@@ -931,8 +925,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
                 var mDy =
                     FloatProp(
                         floatingView.startingPosition.top,
-                        dp.deviceProperties.heightPx / 2f -
-                            floatingView.startingPosition.height() / 2f,
+                        dp.heightPx / 2f - floatingView.startingPosition.height() / 2f,
                         Interpolators.clampToProgress(
                             Interpolators.EMPHASIZED,
                             timings.stagedRectSlideStartOffset,
@@ -942,7 +935,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
                 var mScaleX =
                     FloatProp(
                         1f /* start */,
-                        dp.deviceProperties.widthPx / floatingView.startingPosition.width(),
+                        dp.widthPx / floatingView.startingPosition.width(),
                         Interpolators.clampToProgress(
                             Interpolators.EMPHASIZED,
                             timings.stagedRectSlideStartOffset,
@@ -952,7 +945,7 @@ class SplitAnimationController(val splitSelectStateController: SplitSelectStateC
                 var mScaleY =
                     FloatProp(
                         1f /* start */,
-                        dp.deviceProperties.heightPx / floatingView.startingPosition.height(),
+                        dp.heightPx / floatingView.startingPosition.height(),
                         Interpolators.clampToProgress(
                             Interpolators.EMPHASIZED,
                             timings.stagedRectSlideStartOffset,

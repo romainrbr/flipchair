@@ -421,7 +421,7 @@ public class PreviewSurfaceRenderer {
             DeviceProfile deviceProfile = idp.getDeviceProfile(previewContext);
 
             int closestEvenPageId = mWorkspacePageId - (mWorkspacePageId % 2);
-            String query = deviceProfile.getDeviceProperties().isTwoPanels()
+            String query = deviceProfile.isTwoPanels
                     ? selectionForWorkspaceScreen(closestEvenPageId, closestEvenPageId + 1)
                     : selectionForWorkspaceScreen(mWorkspacePageId);
             task.loadWorkspaceForPreview(query);

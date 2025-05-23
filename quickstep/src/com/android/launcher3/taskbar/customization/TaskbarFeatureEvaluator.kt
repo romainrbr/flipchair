@@ -38,7 +38,7 @@ private constructor(private val taskbarActivityContext: TaskbarActivityContext) 
         get() = taskbarActivityContext.isTransientTaskbar
 
     val isLandscape: Boolean
-        get() = taskbarActivityContext.deviceProfile.deviceProperties.isLandscape
+        get() = taskbarActivityContext.deviceProfile.isLandscape
 
     val isTnMinimalState: Boolean
         get() = taskbarActivityContext.isTaskbarInMinimalState

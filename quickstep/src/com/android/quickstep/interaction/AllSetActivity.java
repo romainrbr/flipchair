@@ -215,7 +215,7 @@ public class AllSetActivity extends Activity {
             maybeResumeOrPauseBackgroundAnimation();
         });
 
-        setUpBackgroundAnimation(getDP().getDeviceProperties().isTablet());
+        setUpBackgroundAnimation(getDP().isTablet);
         getIDP().addOnChangeListener(mOnIDPChangeListener);
 
         OverviewComponentObserver.INSTANCE.get(this)
@@ -239,7 +239,7 @@ public class AllSetActivity extends Activity {
 
     private void updateHint() {
         mHintView.setText(
-                getDP().getDeviceProperties().isGestureMode() ? R.string.allset_hint : R.string.allset_button_hint);
+                getDP().isGestureMode ? R.string.allset_hint : R.string.allset_button_hint);
     }
 
     private void runOnUiHelperThread(Runnable runnable) {

@@ -1475,9 +1475,9 @@ public abstract class RecentsView<
                 for (int i = apps.length - 1; i >= 0; --i) {
                     RemoteAnimationTarget app = apps[i];
 
-                    float dx = mContainer.getDeviceProfile().getDeviceProperties().getWidthPx() * (1 - percent) / 2
+                    float dx = mContainer.getDeviceProfile().widthPx * (1 - percent) / 2
                             + app.screenSpaceBounds.left * percent;
-                    float dy = mContainer.getDeviceProfile().getDeviceProperties().getHeightPx() * (1 - percent) / 2
+                    float dy = mContainer.getDeviceProfile().heightPx * (1 - percent) / 2
                             + app.screenSpaceBounds.top * percent;
                     matrix.setScale(percent, percent);
                     matrix.postTranslate(dx, dy);
@@ -1714,7 +1714,7 @@ public abstract class RecentsView<
     @Override
     protected void onPageBeginTransition() {
         super.onPageBeginTransition();
-        if (!mContainer.getDeviceProfile().getDeviceProperties().isTablet()) {
+        if (!mContainer.getDeviceProfile().isTablet) {
             mActionsView.updateDisabledFlags(OverviewActionsView.DISABLED_SCROLLING, true);
         }
         if (mOverviewStateEnabled) { // only when in overview
@@ -1726,7 +1726,7 @@ public abstract class RecentsView<
     protected void onPageEndTransition() {
         super.onPageEndTransition();
         ActiveGestureProtoLogProxy.logOnPageEndTransition(getNextPage());
-        if (!mContainer.getDeviceProfile().getDeviceProperties().isTablet()) {
+        if (!mContainer.getDeviceProfile().isTablet) {
             mActionsView.updateDisabledFlags(OverviewActionsView.DISABLED_SCROLLING, false);
         }
         if (getNextPage() > 0) {
@@ -1738,12 +1738,12 @@ public abstract class RecentsView<
     @Override
     protected boolean isSignificantMove(float absoluteDelta, int pageOrientedSize) {
         DeviceProfile deviceProfile = mContainer.getDeviceProfile();
-        if (!deviceProfile.getDeviceProperties().isTablet()) {
+        if (!deviceProfile.isTablet) {
             return super.isSignificantMove(absoluteDelta, pageOrientedSize);
         }
 
         return absoluteDelta
-                > deviceProfile.getDeviceProperties().getAvailableWidthPx() * SIGNIFICANT_MOVE_SCREEN_WIDTH_PERCENTAGE;
+                > deviceProfile.availableWidthPx * SIGNIFICANT_MOVE_SCREEN_WIDTH_PERCENTAGE;
     }
 
     @Override
@@ -2300,7 +2300,7 @@ public abstract class RecentsView<
         setOverviewGridEnabled(
                 getStateManager().getState().displayOverviewTasksAsGrid(dp));
         if (enableGridOnlyOverview()) {
-            mActionsView.updateHiddenFlags(HIDDEN_ACTIONS_IN_MENU, dp.getDeviceProperties().isTablet());
+            mActionsView.updateHiddenFlags(HIDDEN_ACTIONS_IN_MENU, dp.isTablet);
         }
         setPageSpacing(dp.overviewPageSpacing);
 
@@ -2378,8 +2378,8 @@ public abstract class RecentsView<
         mTaskHeight = mLastComputedTaskSize.height();
         setPadding(mLastComputedTaskSize.left - mInsets.left,
                 mLastComputedTaskSize.top - dp.overviewTaskThumbnailTopMarginPx - mInsets.top,
-                dp.getDeviceProperties().getWidthPx() - mInsets.right - mLastComputedTaskSize.right,
-                dp.getDeviceProperties().getHeightPx() - mInsets.bottom - mLastComputedTaskSize.bottom);
+                dp.widthPx - mInsets.right - mLastComputedTaskSize.right,
+                dp.heightPx - mInsets.bottom - mLastComputedTaskSize.bottom);
 
         mContainerInterface.calculateGridSize(dp, mContainer, mLastComputedGridSize);
         mContainerInterface.calculateGridTaskSize(mContainer, dp, mLastComputedGridTaskSize,
@@ -2461,7 +2461,7 @@ public abstract class RecentsView<
      */
     private float getTaskAlignmentTranslationY() {
         DeviceProfile deviceProfile = mContainer.getDeviceProfile();
-        if (deviceProfile.getDeviceProperties().isTablet()) {
+        if (deviceProfile.isTablet) {
             return deviceProfile.overviewRowSpacing;
         }
         return deviceProfile.overviewTaskThumbnailTopMarginPx / 2.0f;
@@ -2562,7 +2562,7 @@ public abstract class RecentsView<
 
     @Override
     protected int getDestinationPage(int scaledScroll) {
-        if (!mContainer.getDeviceProfile().getDeviceProperties().isTablet()) {
+        if (!mContainer.getDeviceProfile().isTablet) {
             return super.getDestinationPage(scaledScroll);
         }
         if (!isPageScrollsInitialized()) {
@@ -3491,7 +3491,7 @@ public abstract class RecentsView<
             int minimumDistance =
                     (mIsRtl
                             ? mLastComputedTaskSize.left
-                            : deviceProfile.getDeviceProperties().getWidthPx() - mLastComputedTaskSize.right)
+                            : deviceProfile.widthPx - mLastComputedTaskSize.right)
                             - deviceProfile.overviewGridSideMargin - mPageSpacing
                             + (mTaskWidth - snappedTaskView.getLayoutParams().width)
                             - mClearAllShortTotalWidthTranslation;
@@ -3648,7 +3648,7 @@ public abstract class RecentsView<
                 mSplitPlaceholderInset, mContainer.getDeviceProfile(),
                 mSplitSelectStateController.getActiveSplitStagePosition(), mTempRect);
         SplitAnimationTimings timings =
-                AnimUtils.getDeviceOverviewToSplitTimings(mContainer.getDeviceProfile().getDeviceProperties().isTablet());
+                AnimUtils.getDeviceOverviewToSplitTimings(mContainer.getDeviceProfile().isTablet);
 
         RectF startingTaskRect = new RectF();
         safeRemoveDragLayerView(mSplitSelectStateController.getFirstFloatingTaskView());
@@ -3880,7 +3880,7 @@ public abstract class RecentsView<
         }
 
         SplitAnimationTimings splitTimings =
-                AnimUtils.getDeviceOverviewToSplitTimings(mContainer.getDeviceProfile().getDeviceProperties().isTablet());
+                AnimUtils.getDeviceOverviewToSplitTimings(mContainer.getDeviceProfile().isTablet);
 
         int distanceFromDismissedTask = 1;
         int slidingTranslation = 0;
@@ -4245,7 +4245,7 @@ public abstract class RecentsView<
                         // Update various scroll-dependent UI.
                         dispatchScrollChanged();
                         updateActionsViewFocusedScroll();
-                        if (!mContainer.getDeviceProfile().getDeviceProperties().isTablet()) {
+                        if (!mContainer.getDeviceProfile().isTablet) {
                             mActionsView.updateDisabledFlags(OverviewActionsView.DISABLED_SCROLLING,
                                     false);
                         }
@@ -5131,7 +5131,7 @@ public abstract class RecentsView<
         if (isTopShift) {
             distanceToOffscreen = -taskPosition.bottom;
         } else if (isBottomShift) {
-            distanceToOffscreen = mContainer.getDeviceProfile().getDeviceProperties().getHeightPx() - taskPosition.top;
+            distanceToOffscreen = mContainer.getDeviceProfile().heightPx - taskPosition.top;
         }
         return distanceToOffscreen * offsetProgress;
     }
@@ -5232,7 +5232,7 @@ public abstract class RecentsView<
     public void handleDesktopTaskInSplitSelectState(PendingAnimation builder,
             Interpolator deskTopFadeInterPolator) {
         SplitAnimationTimings timings = AnimUtils.getDeviceOverviewToSplitTimings(
-                mContainer.getDeviceProfile().getDeviceProperties().isTablet());
+                mContainer.getDeviceProfile().isTablet);
         if (enableLargeDesktopWindowingTile()) {
             getTaskViews().forEachWithIndexInParent((index, taskView) -> {
                 if (taskView instanceof DesktopTaskView) {
@@ -5344,7 +5344,7 @@ public abstract class RecentsView<
         builder.addOnFrameListener((animator) -> {
             SplitAnimationTimings splitTimings =
                     AnimUtils.getDeviceOverviewToSplitTimings(
-                            mContainer.getDeviceProfile().getDeviceProperties().isTablet());
+                            mContainer.getDeviceProfile().isTablet);
             if (animator.getAnimatedFraction() > splitTimings.getGridSlideStartOffset()
                     && !hasRunDismiss.get()) {
                 mDismissUtils.createTaskDismissSpringAnimation(
@@ -5410,7 +5410,7 @@ public abstract class RecentsView<
         Rect firstTaskStartingBounds = new Rect();
         Rect firstTaskEndingBounds = mTempRect;
 
-        boolean isTablet = mContainer.getDeviceProfile().getDeviceProperties().isTablet();
+        boolean isTablet = mContainer.getDeviceProfile().isTablet;
         SplitAnimationTimings timings = AnimUtils.getDeviceSplitToConfirmTimings(isTablet);
         PendingAnimation pendingAnimation = new PendingAnimation(timings.getDuration());
 
@@ -5490,7 +5490,7 @@ public abstract class RecentsView<
         if (mSplitHiddenTaskViewIndex == -1) {
             return;
         }
-        if (!mContainer.getDeviceProfile().getDeviceProperties().isTablet()) {
+        if (!mContainer.getDeviceProfile().isTablet) {
             int pageToSnapTo = mCurrentPage;
             if (mSplitHiddenTaskViewIndex <= pageToSnapTo) {
                 pageToSnapTo += 1;
@@ -5540,11 +5540,11 @@ public abstract class RecentsView<
         int direction = orientationHandler.getSplitTranslationDirectionFactor(
                 splitPosition, deviceProfile);
 
-        if (deviceProfile.getDeviceProperties().isTablet() && deviceProfile.isLeftRightSplit) {
+        if (deviceProfile.isTablet && deviceProfile.isLeftRightSplit) {
             // Only shift TaskViews if there is not enough space on the side of
             // mLastComputedTaskSize to minimize motion.
             int sideSpace = mIsRtl
-                    ? deviceProfile.getDeviceProperties().getWidthPx() - mLastComputedTaskSize.right
+                    ? deviceProfile.widthPx - mLastComputedTaskSize.right
                     : mLastComputedTaskSize.left;
             int extraSpace = splitPlaceholderSize + mPageSpacing - sideSpace;
             if (extraSpace <= 0f) {

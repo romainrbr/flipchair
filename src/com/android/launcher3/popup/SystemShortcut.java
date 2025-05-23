@@ -432,8 +432,7 @@ public abstract class SystemShortcut<T extends ActivityContext> extends ItemInfo
                     // basically is a check for small screens including Foldables when folded.
                     // However, the name is a bit misleading, so considering renaming.
                     WorkspaceItemInfo wsItemInfo = (WorkspaceItemInfo) itemInfo;
-                    if (wsItemInfo.isNonResizeable()
-                            && activity.getDeviceProfile().getDeviceProperties().isPhone()) {
+                    if (wsItemInfo.isNonResizeable() && activity.getDeviceProfile().isPhone) {
                         return null;
                     }
                 }

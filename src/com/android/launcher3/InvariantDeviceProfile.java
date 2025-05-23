@@ -207,7 +207,7 @@ public class InvariantDeviceProfile {
     public @StyleRes int allAppsStyle;
 
     /**
-     * Do not query directly. see {@link deviceprofile#isScalableGrid}.
+     * Do not query directly. see {@link DeviceProfile#isScalableGrid}.
      */
     protected boolean isScalable;
     @XmlRes
@@ -488,14 +488,14 @@ public class InvariantDeviceProfile {
 
         int numMinShownHotseatIconsForTablet = supportedProfiles
                 .stream()
-                .filter(deviceProfile -> deviceProfile.getDeviceProperties().isTablet())
+                .filter(deviceProfile -> deviceProfile.isTablet)
                 .mapToInt(deviceProfile -> deviceProfile.numShownHotseatIcons)
                 .min()
                 .orElse(0);
 
         supportedProfiles
                 .stream()
-                .filter(deviceProfile -> deviceProfile.getDeviceProperties().isTablet())
+                .filter(deviceProfile -> deviceProfile.isTablet)
                 .forEach(deviceProfile -> {
                     deviceProfile.numShownHotseatIcons = numMinShownHotseatIconsForTablet;
                     deviceProfile.recalculateHotseatWidthAndBorderSpace();
@@ -924,12 +924,12 @@ public class InvariantDeviceProfile {
         float minDiff = Float.MAX_VALUE;
 
         for (DeviceProfile profile : supportedProfiles) {
-            float diff = Math.abs(profile.getDeviceProperties().getWidthPx() - screenWidth)
-                    + Math.abs(profile.getDeviceProperties().getHeightPx() - screenHeight);
+            float diff = Math.abs(profile.widthPx - screenWidth)
+                    + Math.abs(profile.heightPx - screenHeight);
             if (diff < minDiff) {
                 minDiff = diff;
                 bestMatch = profile;
-            } else if (diff == minDiff && profile.getDeviceProperties().getRotationHint() == rotation) {
+            } else if (diff == minDiff && profile.rotationHint == rotation) {
                 bestMatch = profile;
             }
         }
@@ -995,7 +995,7 @@ public class InvariantDeviceProfile {
                         displayInfo.getDeviceType()), isLandscape);
     }
 
-    /** Class to expose properties required for external displays to {@link deviceprofile} */
+    /** Class to expose properties required for external displays to {@link DeviceProfile} */
     public static final class DisplayOptionSpec {
         public final int typeIndex;
         public final int numShownHotseatIcons;

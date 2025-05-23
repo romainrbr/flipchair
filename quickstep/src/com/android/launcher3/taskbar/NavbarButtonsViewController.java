@@ -1048,9 +1048,9 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
 
         // If SUW is on a large screen device that is landscape (or has a square aspect
         // ratio) the back button has to be placed accordingly
-        if ((deviceProfile.getDeviceProperties().isTablet() && deviceProfile.getDeviceProperties().isLandscape())
-                || (deviceProfile.getDeviceProperties().getAspectRatio() > SQUARE_ASPECT_RATIO_BOTTOM_BOUND
-                && deviceProfile.getDeviceProperties().getAspectRatio() < SQUARE_ASPECT_RATIO_UPPER_BOUND)) {
+        if ((deviceProfile.isTablet && deviceProfile.isLandscape)
+                || (deviceProfile.aspectRatio > SQUARE_ASPECT_RATIO_BOTTOM_BOUND
+                && deviceProfile.aspectRatio < SQUARE_ASPECT_RATIO_UPPER_BOUND)) {
             navButtonsLayoutParams.setMarginStart(
                     resources.getDimensionPixelSize(R.dimen.taskbar_back_button_suw_start_margin));
             navButtonsViewLayoutParams.bottomMargin = resources.getDimensionPixelSize(
@@ -1061,7 +1061,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             int phoneOrPortraitSetupMargin = resources.getDimensionPixelSize(
                     R.dimen.taskbar_contextual_button_suw_margin);
             navButtonsLayoutParams.setMarginStart(phoneOrPortraitSetupMargin);
-            navButtonsLayoutParams.bottomMargin = !deviceProfile.getDeviceProperties().isLandscape()
+            navButtonsLayoutParams.bottomMargin = !deviceProfile.isLandscape
                     ? 0
                     : phoneOrPortraitSetupMargin - (resources.getDimensionPixelSize(
                             R.dimen.taskbar_nav_buttons_size) / 2);
@@ -1427,7 +1427,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             // If the taskbar is start aligned the navigation bar is aligned to the start or end of
             // the container, depending on the bubble bar location
             if (isNavbarOnRight) {
-                navBarTargetStartX = dp.getDeviceProperties().getWidthPx() - navBarSpacing - mNavButtonContainer.getWidth();
+                navBarTargetStartX = dp.widthPx - navBarSpacing - mNavButtonContainer.getWidth();
             } else {
                 navBarTargetStartX = navBarSpacing;
             }
@@ -1440,7 +1440,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             if (isNavbarOnRight) {
                 if (mNavButtonsView.isLayoutRtl()) {
                     float taskBarEnd = taskbarBounds.right;
-                    navBarTargetStartX = (dp.getDeviceProperties().getWidthPx() + taskBarEnd - navbarWidth) / 2;
+                    navBarTargetStartX = (dp.widthPx + taskBarEnd - navbarWidth) / 2;
                 } else {
                     navBarTargetStartX = mNavButtonContainer.getLeft();
                 }
@@ -1458,7 +1458,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
         // screen.
         Rect transientTaskbarIconLayoutBoundsInParent = mControllers.taskbarViewController
                 .getTransientTaskbarIconLayoutBoundsInParent();
-        if (mContext.getDeviceProfile().getDeviceProperties().isPhone()
+        if (mContext.getDeviceProfile().isPhone
                 || transientTaskbarIconLayoutBoundsInParent.isEmpty()
                 || mNavButtonsView.getWidth() == 0) {
             return;

@@ -240,7 +240,7 @@ public interface ActivityContext extends SavedStateRegistryOwner {
     /** Registered {@link OnDeviceProfileChangeListener} instances. */
     List<OnDeviceProfileChangeListener> getOnDeviceProfileChangeListeners();
 
-    /** Notifies listeners of a {@link deviceprofile} change. */
+    /** Notifies listeners of a {@link DeviceProfile} change. */
     default void dispatchDeviceProfileChanged() {
         DeviceProfile deviceProfile = getDeviceProfile();
         List<OnDeviceProfileChangeListener> listeners = getOnDeviceProfileChangeListeners();
@@ -249,12 +249,12 @@ public interface ActivityContext extends SavedStateRegistryOwner {
         }
     }
 
-    /** Register listener for {@link deviceprofile} changes. */
+    /** Register listener for {@link DeviceProfile} changes. */
     default void addOnDeviceProfileChangeListener(OnDeviceProfileChangeListener listener) {
         getOnDeviceProfileChangeListeners().add(listener);
     }
 
-    /** Unregister listener for {@link deviceprofile} changes. */
+    /** Unregister listener for {@link DeviceProfile} changes. */
     default void removeOnDeviceProfileChangeListener(OnDeviceProfileChangeListener listener) {
         getOnDeviceProfileChangeListeners().remove(listener);
     }

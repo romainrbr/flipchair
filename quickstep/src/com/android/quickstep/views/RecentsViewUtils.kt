@@ -213,7 +213,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
             if (desktopTaskView != null) return recentsView.indexOfChild(desktopTaskView)
         }
         val firstTaskViewIndex = recentsView.indexOfChild(getFirstTaskView())
-        return if (getDeviceProfile().deviceProperties.isTablet) {
+        return if (getDeviceProfile().isTablet) {
             var index = firstTaskViewIndex
             if (enableLargeDesktopWindowingTile() && runningTaskView !is DesktopTaskView) {
                 // For fullsreen tasks, skip over Desktop tasks in its section
@@ -402,7 +402,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
         outTopRowRect: Rect,
         outBottomRowRect: Rect,
     ) {
-        if (!getDeviceProfile().deviceProperties.isTablet) {
+        if (!getDeviceProfile().isTablet) {
             getRowRect(getFirstTaskView(), getLastTaskView(), outTaskViewRowRect)
             return
         }
@@ -468,7 +468,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     }
 
     fun updateCentralTask() {
-        val isTablet: Boolean = getDeviceProfile().deviceProperties.isTablet
+        val isTablet: Boolean = getDeviceProfile().isTablet
         val actionsViewCanRelateToTaskView = !(isTablet && enableGridOnlyOverview())
         val focusedTaskView = recentsView.focusedTaskView
         val currentPageTaskView = recentsView.currentPageTaskView

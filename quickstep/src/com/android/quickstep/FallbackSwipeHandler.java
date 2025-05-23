@@ -233,7 +233,7 @@ public class FallbackSwipeHandler extends
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
             // copied from {@link LauncherSwipeHandlerV2.LauncherHomeAnimationFactory}
-            long accuracy = 2 * Math.max(mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
+            long accuracy = 2 * Math.max(mDp.widthPx, mDp.heightPx);
             return mContainer.getStateManager().createAnimationToNewWorkspace(
                     RecentsState.HOME, accuracy, StateAnimationConfig.SKIP_ALL_ANIMATIONS);
         }
@@ -342,7 +342,7 @@ public class FallbackSwipeHandler extends
                         .setStartValue(mVerticalShiftForScale.value)
                         .setEndValue(0)
                         .setStartVelocity(-velocity / mTransitionDragLength)
-                        .setMinimumVisibleChange(1f / mDp.getDeviceProperties().getHeightPx())
+                        .setMinimumVisibleChange(1f / mDp.heightPx)
                         .setDampingRatio(0.6f)
                         .setStiffness(800)
                         .build(mVerticalShiftForScale, AnimatedFloat.VALUE)

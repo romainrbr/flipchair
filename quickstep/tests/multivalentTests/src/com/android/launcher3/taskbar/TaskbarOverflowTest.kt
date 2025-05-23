@@ -625,8 +625,7 @@ class TaskbarOverflowTest {
             return getOnUiThread {
                 val iconLayoutBounds =
                     taskbarViewController.transientTaskbarIconLayoutBoundsInParent
-                val availableWidth =
-                    taskbarUnitTestRule.activityContext.deviceProfile.deviceProperties.widthPx
+                val availableWidth = taskbarUnitTestRule.activityContext.deviceProfile.widthPx
                 iconLayoutBounds.left - (availableWidth - iconLayoutBounds.right) < 2
             }
         }
@@ -634,7 +633,7 @@ class TaskbarOverflowTest {
     private val taskbarEndMargin: Int
         get() {
             return getOnUiThread {
-                taskbarUnitTestRule.activityContext.deviceProfile.deviceProperties.widthPx -
+                taskbarUnitTestRule.activityContext.deviceProfile.widthPx -
                     taskbarViewController.transientTaskbarIconLayoutBoundsInParent.right
             }
         }

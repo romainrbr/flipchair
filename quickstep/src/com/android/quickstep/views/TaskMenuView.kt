@@ -75,7 +75,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
 
     // Spaced claimed below Overview (taskbar and insets)
     private val taskbarTop by lazy {
-        recentsViewContainer.deviceProfile.deviceProperties.heightPx -
+        recentsViewContainer.deviceProfile.heightPx -
             recentsViewContainer.deviceProfile.overviewActionsClaimedSpaceBelow
     }
     private val minMenuTop by lazy { taskContainer.iconView.asView().height.toFloat() }
@@ -478,7 +478,7 @@ constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int = 0) :
             additionalTranslationX =
                 max(
                         (translationX + width -
-                                (recentsViewContainer.deviceProfile.deviceProperties.widthPx -
+                                (recentsViewContainer.deviceProfile.widthPx -
                                     resources.getDimensionPixelSize(
                                         R.dimen.task_menu_edge_padding
                                     ) * 2))

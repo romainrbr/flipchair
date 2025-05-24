@@ -1242,7 +1242,7 @@ public class TaskbarStashController implements TaskbarControllers.LoggableTaskba
         }
         // Do not stash if in small screen, with 3 button nav, and in landscape.
         if (mActivity.isPhoneMode() && mActivity.isThreeButtonNav()
-                && mActivity.getDeviceProfile().isLandscape) {
+                && mActivity.getDeviceProfile().getDeviceProperties().isLandscape()) {
             return false;
         }
 

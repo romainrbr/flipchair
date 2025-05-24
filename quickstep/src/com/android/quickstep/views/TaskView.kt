@@ -155,7 +155,7 @@ constructor(
 
     val isGridTask: Boolean
         /** Returns whether the task is part of overview grid and not being focused. */
-        get() = container.deviceProfile.isTablet && !isLargeTile
+        get() = container.deviceProfile.getDeviceProperties().isTablet && !isLargeTile
 
     val isRunningTask: Boolean
         get() = this === recentsView?.runningTaskView
@@ -678,7 +678,7 @@ constructor(
             pivotY = modalPivot.y
         } else {
             val thumbnailTopMargin = container.deviceProfile.overviewTaskThumbnailTopMarginPx
-            if (container.deviceProfile.isTablet) {
+            if (container.deviceProfile.getDeviceProperties().isTablet) {
                 pivotX =
                     (if (layoutDirection == LAYOUT_DIRECTION_RTL) 0 else right - left).toFloat()
                 pivotY = thumbnailTopMargin.toFloat()
@@ -1128,7 +1128,7 @@ constructor(
         val boxTranslationY: Float
         val expectedWidth: Int
         val expectedHeight: Int
-        if (container.deviceProfile.isTablet) {
+        if (container.deviceProfile.getDeviceProperties().isTablet) {
             val boxWidth: Int
             val boxHeight: Int
 
@@ -1622,7 +1622,9 @@ constructor(
             // Don't show menu when selecting second split screen app
             return true
         }
-        if (!container.deviceProfile.isTablet && !recentsView.isClearAllHidden) {
+        if (
+            !container.deviceProfile.getDeviceProperties().isTablet && !recentsView.isClearAllHidden
+        ) {
             recentsView.snapToPage(recentsView.indexOfChild(this))
             return false
         }
@@ -1658,11 +1660,11 @@ constructor(
             } else {
                 TaskMenuView.showForTask(menuContainer) { recentsView.setTaskBorderEnabled(true) }
             }
-        } else if (container.deviceProfile.isTablet) {
+        } else if (container.deviceProfile.getDeviceProperties().isTablet) {
             val alignedOptionIndex =
                 if (
                     recentsView.isOnGridBottomRow(menuContainer.taskView) &&
-                        container.deviceProfile.isLandscape
+                        container.deviceProfile.deviceProperties.isLandscape
                 ) {
                     if (enableGridOnlyOverview()) {
                         // With no focused task, there is less available space below the tasks, so

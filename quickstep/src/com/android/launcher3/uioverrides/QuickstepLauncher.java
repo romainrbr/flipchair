@@ -515,7 +515,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     }
 
     private List<SystemShortcut.Factory<QuickstepLauncher>> getSplitShortcuts() {
-        if (!mDeviceProfile.isTablet || mSplitSelectStateController.isSplitSelectActive()) {
+        if (!mDeviceProfile.getDeviceProperties().isTablet() || mSplitSelectStateController.isSplitSelectActive()) {
             return Collections.emptyList();
         }
         RecentsView recentsView = getOverviewPanel();
@@ -704,7 +704,7 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
                 break;
         }
 
-        if (!getDeviceProfile().isMultiWindowMode) {
+        if (!getDeviceProfile().getDeviceProperties().isMultiWindowMode()) {
             list.add(new StatusBarTouchController(
                     this, () -> this.isInState(LauncherState.NORMAL)));
         }

@@ -1518,6 +1518,9 @@ public class Launcher extends StatefulActivity<LauncherState>
         boolean isActionMain = Intent.ACTION_MAIN.equals(intent.getAction());
         boolean internalStateHandled = ACTIVITY_TRACKER.handleNewIntent(this);
 
+        logOnNewIntent(alreadyOnHome, shouldMoveToDefaultScreen, intent.getAction(),
+                internalStateHandled);
+
         if (isActionMain) {
             if (!internalStateHandled) {
                 // In all these cases, only animate if we're already on home
@@ -1554,6 +1557,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         TraceHelper.INSTANCE.endSection();
     }
+
+    protected void logOnNewIntent(boolean alreadyOnHome, boolean shouldMoveToDefaultScreen,
+            String action, boolean internalStateHandled) { }
 
     /** Handle animating away split placeholder view when user taps on home button */
     protected void handleSplitAnimationGoingToHome(EventEnum splitDismissReason) {

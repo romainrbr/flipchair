@@ -164,6 +164,7 @@ import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.NavigationMode;
 import com.android.launcher3.util.ObjectWrapper;
+import com.android.launcher3.util.OverviewCommandHelperProtoLogProxy;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.PendingSplitSelectInfo;
 import com.android.launcher3.util.RunnableList;
@@ -892,6 +893,13 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             recentsWindowManagerRepository.forEach(
                     /* createIfAbsent= */ true, RecentsWindowManager::cleanupRecentsWindow);
         }
+    }
+
+    @Override
+    protected void logOnNewIntent(boolean alreadyOnHome, boolean shouldMoveToDefaultScreen,
+            String action, boolean internalStateHandled) {
+        OverviewCommandHelperProtoLogProxy.logOnNewIntent(alreadyOnHome, shouldMoveToDefaultScreen,
+                action, internalStateHandled);
     }
 
     public QuickstepTransitionManager getAppTransitionManager() {

@@ -204,12 +204,6 @@ public class ActiveGestureProtoLogProxy {
         ProtoLog.d(ACTIVE_GESTURE_LOG, "Null mRecentTasks");
     }
 
-    public static void logExecuteHomeCommand() {
-        ActiveGestureLog.INSTANCE.addLog("OverviewCommandHelper.executeCommand(HOME)");
-        if (!isProtoLogInitialized()) return;
-        ProtoLog.d(ACTIVE_GESTURE_LOG, "OverviewCommandHelper.executeCommand(HOME)");
-    }
-
     public static void logFinishRecentsAnimationCallback() {
         ActiveGestureLog.INSTANCE.addLog("finishRecentsAnimation-callback");
         if (!isProtoLogInitialized()) return;

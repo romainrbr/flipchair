@@ -41,6 +41,7 @@ import android.window.TransitionInfo;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.app.displaylib.PerDisplayRepository;
 import com.android.internal.util.ArrayUtils;
@@ -69,6 +70,11 @@ import java.util.HashMap;
 import java.util.Locale;
 
 public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAnimationListener {
+
+    private static final String TAG = "TaskAnimationManager";
+
+    @VisibleForTesting
+    public static final long RECENTS_ANIMATION_START_TIMEOUT_MS = 5000L;
     public static final boolean SHELL_TRANSITIONS_ROTATION =
             SystemProperties.getBoolean("persist.wm.debug.shell_transit_rotate", false);
     private final Context mCtx;
@@ -154,7 +160,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             if (FeatureFlags.IS_STUDIO_BUILD) {
                 throw new IllegalArgumentException(msg);
             } else {
-                Log.e("TaskAnimationManager", msg, new Exception());
+                Log.e(TAG, msg, new Exception());
             }
         }
         // Notify if recents animation is still running
@@ -163,7 +169,7 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             if (FeatureFlags.IS_STUDIO_BUILD) {
                 throw new IllegalArgumentException(msg);
             } else {
-                Log.e("TaskAnimationManager", msg, new Exception());
+                Log.e(TAG, msg, new Exception());
             }
         }
         // But force-finish it anyways
@@ -183,6 +189,14 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                 containerInterface.getCreatedContainer());
         mCallbacks = newCallbacks;
         mLauncherDestroyCallbackSet = false;
+        final Runnable recentsAnimationStartTimeoutCallback = () -> {
+            if (!mRecentsAnimationStartPending) return;
+            mRecentsAnimationStartPending = false;
+            Log.wtf(TAG, "Recents animation start has been pending for over "
+                    + RECENTS_ANIMATION_START_TIMEOUT_MS + "ms");
+            ActiveGestureProtoLogProxy.logRecentsAnimationStartTimedOut();
+            cleanUpRecentsAnimation(newCallbacks);
+        };
         mCallbacks.addListener(new RecentsAnimationCallbacks.RecentsAnimationListener() {
             @Override
             public void onRecentsAnimationStart(RecentsAnimationController controller,
@@ -191,6 +205,8 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                     ActiveGestureProtoLogProxy.logStartRecentsAnimationCallback(
                             "onRecentsAnimationStart");
                     mRecentsAnimationStartPending = false;
+                    MAIN_EXECUTOR.getHandler().removeCallbacks(
+                            recentsAnimationStartTimeoutCallback);
                 }
                 if (mCallbacks == null) {
                     // It's possible for the recents animation to have finished and be cleaned up
@@ -236,6 +252,8 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                     ActiveGestureProtoLogProxy.logStartRecentsAnimationCallback(
                             "onRecentsAnimationCanceled");
                     mRecentsAnimationStartPending = false;
+                    MAIN_EXECUTOR.getHandler().removeCallbacks(
+                            recentsAnimationStartTimeoutCallback);
                 }
                 cleanUpRecentsAnimation(newCallbacks);
             }
@@ -246,6 +264,8 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
                     ActiveGestureProtoLogProxy.logStartRecentsAnimationCallback(
                             "onRecentsAnimationFinished");
                     mRecentsAnimationStartPending = false;
+                    MAIN_EXECUTOR.getHandler().removeCallbacks(
+                            recentsAnimationStartTimeoutCallback);
                 }
                 cleanUpRecentsAnimation(newCallbacks);
             }
@@ -352,6 +372,10 @@ public class TaskAnimationManager implements RecentsAnimationCallbacks.RecentsAn
             mRecentsAnimationStartPending = getSystemUiProxy().startRecentsActivity(intent,
                     options, mCallbacks, false /* useSyntheticRecentsTransition */, null,
                     mDisplayId);
+        }
+        if (mRecentsAnimationStartPending) {
+            MAIN_EXECUTOR.getHandler().postDelayed(
+                    recentsAnimationStartTimeoutCallback, RECENTS_ANIMATION_START_TIMEOUT_MS);
         }
         ActiveGestureProtoLogProxy.logSettingRecentsAnimationStartPending(
                 mRecentsAnimationStartPending);

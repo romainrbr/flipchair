@@ -22,10 +22,12 @@ import static android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED;
 import static android.content.pm.PackageManager.DONT_KILL_APP;
 import static android.content.pm.PackageManager.MATCH_ALL;
 import static android.content.pm.PackageManager.MATCH_DISABLED_COMPONENTS;
+import static android.view.Display.DEFAULT_DISPLAY;
 import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.MotionEvent.ACTION_SCROLL;
 import static android.view.MotionEvent.ACTION_UP;
 import static android.view.MotionEvent.AXIS_GESTURE_SWIPE_FINGER_COUNT;
+import static android.view.RoundedCorner.POSITION_BOTTOM_LEFT;
 import static android.view.Surface.ROTATION_90;
 
 import static com.android.launcher3.tapl.Folder.FOLDER_CONTENT_RES_ID;
@@ -51,6 +53,7 @@ import android.content.res.Resources;
 import android.graphics.Insets;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.DeadObjectException;
@@ -60,6 +63,7 @@ import android.os.SystemClock;
 import android.os.Trace;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.InputDevice;
 import android.view.InputEvent;
 import android.view.KeyCharacterMap;
@@ -95,6 +99,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
@@ -2479,6 +2484,17 @@ public final class LauncherInstrumentation {
         return new Point(displayBounds.width(), displayBounds.height());
     }
 
+    int getActionCornerPadding() {
+        return getDisplayBottomCornerRadius() + getTaskbarActionCornerPadding();
+    }
+
+    int getDisplayBottomCornerRadius() {
+        final Display display = Objects.requireNonNull(
+                        getContext().getSystemService(DisplayManager.class))
+                .getDisplay(DEFAULT_DISPLAY);
+        return display.getRoundedCorner(POSITION_BOTTOM_LEFT).getRadius();
+    }
+
     public void enableDebugTracing() {
         getTestInfo(TestProtocol.REQUEST_ENABLE_DEBUG_TRACING);
     }
@@ -2809,6 +2825,18 @@ public final class LauncherInstrumentation {
     /** Returns the magnetic detach threshold when dismissing a task view. */
     public int getMagneticDetachThreshold() {
         return getTestInfo(TestProtocol.REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD).getInt(
+                TestProtocol.TEST_INFO_RESPONSE_FIELD);
+    }
+
+    /** Returns the taskbar action corner padding. */
+    public int getTaskbarActionCornerPadding() {
+        return getTestInfo(TestProtocol.REQUEST_TASKBAR_ACTION_CORNER_PADDING).getInt(
+                TestProtocol.TEST_INFO_RESPONSE_FIELD);
+    }
+
+    /** Returns the taskbar unstash input area. */
+    public int getTaskbarUnstashInputArea() {
+        return getTestInfo(TestProtocol.REQUEST_TASKBAR_UNSTASHED_INPUT_AREA).getInt(
                 TestProtocol.TEST_INFO_RESPONSE_FIELD);
     }
 }

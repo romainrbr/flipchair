@@ -19,6 +19,7 @@ package com.android.launcher3.taskbar
 import android.content.Context
 import android.util.SparseArray
 import android.view.View
+import android.window.DesktopExperienceFlags
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
@@ -28,7 +29,6 @@ import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.views.ActivityContext
-import com.android.window.flags.Flags.enablePinningAppWithContextMenu
 
 /**
  * A single menu item shortcut to allow users to pin an item to the taskbar and unpin an item from
@@ -91,8 +91,8 @@ class PinToTaskbarShortcut<T>(
     }
 
     companion object {
-        fun isPinningAppWithContextMenuEnabled(context: TaskbarActivityContext): Boolean {
-            return enablePinningAppWithContextMenu() && context.isTaskbarShowingDesktopTasks
-        }
+        fun isPinningAppWithContextMenuEnabled(context: TaskbarActivityContext): Boolean =
+            DesktopExperienceFlags.ENABLE_PINNING_APP_WITH_CONTEXT_MENU.isTrue &&
+                context.isTaskbarShowingDesktopTasks
     }
 }

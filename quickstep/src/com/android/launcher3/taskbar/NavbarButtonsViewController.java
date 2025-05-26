@@ -391,13 +391,6 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
                         mControllers.taskbarDragLayerController.getNavbarBackgroundAlpha(),
                         flags -> (flags & FLAG_ONLY_BACK_FOR_BOUNCER_VISIBLE) != 0));
             }
-        } else if (!mIsImeRenderingNavButtons) {
-            View imeDownButton = addButton(R.drawable.ic_sysbar_back, BUTTON_BACK,
-                    mStartContextualContainer, mControllers.navButtonController, R.id.back);
-            imeDownButton.setRotation(Utilities.isRtl(resources) ? 90 : -90);
-            // Only show when IME is visible.
-            mPropertyHolders.add(new StatePropertyHolder(imeDownButton,
-                    flags -> (flags & FLAG_IME_VISIBLE) != 0));
         }
         mFloatingRotationButton = new FloatingRotationButton(
                 ENABLE_TASKBAR_NAVBAR_UNIFICATION ? mNavigationBarPanelContext : mContext,

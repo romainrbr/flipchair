@@ -355,7 +355,7 @@ public class QuickstepWidgetPickerActivity extends
         // Bind recommendations once picker has finished open animation.
         MAIN_EXECUTOR.getHandler().postDelayed(
                 () -> mWidgetPickerDataProvider.setWidgetRecommendations(recommendedWidgets),
-                mDeviceProfile.bottomSheetOpenDuration);
+                mDeviceProfile.getBottomSheetProfile().getBottomSheetOpenDuration());
     }
 
     @Override

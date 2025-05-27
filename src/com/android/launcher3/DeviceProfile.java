@@ -16,8 +16,6 @@
 
 package com.android.launcher3;
 
-import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_LANDSCAPE;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_LANDSCAPE;
@@ -55,6 +53,7 @@ import androidx.core.content.res.ResourcesCompat;
 import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.InvariantDeviceProfile.DisplayOptionSpec;
+import com.android.launcher3.deviceprofile.BottomSheetProfile;
 import com.android.launcher3.deviceprofile.DeviceProperties;
 import com.android.launcher3.deviceprofile.DropTargetProfile;
 import com.android.launcher3.deviceprofile.OverviewProfile;
@@ -88,8 +87,6 @@ public class DeviceProfile {
     private static final float MIN_FOLDER_TEXT_SIZE_SP = 16f;
     private static final float MIN_WIDGET_PADDING_DP = 6f;
 
-    // Minimum aspect ratio beyond which an extra top padding may be applied to a bottom sheet.
-    private static final float MIN_ASPECT_RATIO_FOR_EXTRA_TOP_PADDING = 1.5f;
     private static final float MAX_ASPECT_RATIO_FOR_ALTERNATE_EDIT_STATE = 1.5f;
 
     public static final PointF DEFAULT_SCALE = new PointF(1.0f, 1.0f);
@@ -98,6 +95,7 @@ public class DeviceProfile {
     };
 
     public final InvariantDeviceProfile inv;
+    private final BottomSheetProfile mBottomSheetProfile;
     private final DisplayOptionSpec mDisplayOptionSpec;
     private final Info mInfo;
     private final DisplayMetrics mMetrics;
@@ -233,13 +231,6 @@ public class DeviceProfile {
     // not enough space, the hotseat will adjust itself for the bubble bar.
     private final int mBubbleBarSpaceThresholdPx;
 
-    // Bottom sheets
-    public int bottomSheetTopPadding;
-    public int bottomSheetOpenDuration;
-    public int bottomSheetCloseDuration;
-    public float bottomSheetWorkspaceScale;
-    public float bottomSheetDepth;
-
     // All apps
     public Point allAppsBorderSpacePx;
     public int allAppsShiftRange;
@@ -309,6 +300,7 @@ public class DeviceProfile {
                 false,
                 false
         );
+        mBottomSheetProfile = new BottomSheetProfile(0, 0, 0, 0f, 0f);
         overviewProfile = new OverviewProfile(
                 0,
                 0,
@@ -461,43 +453,14 @@ public class DeviceProfile {
         gridVisualizationPaddingY = res.getDimensionPixelSize(
                 R.dimen.grid_visualization_vertical_cell_spacing);
 
-        {
-            // In large screens, in portrait mode, a bottom sheet can appear too elongated, so, we
-            // apply additional padding.
-            final boolean applyExtraTopPadding = mDeviceProperties.isTablet()
-                    && !mDeviceProperties.isLandscape()
-                    && (mDeviceProperties.getAspectRatio() > MIN_ASPECT_RATIO_FOR_EXTRA_TOP_PADDING);
-            final int derivedTopPadding = mDeviceProperties.getHeightPx() / 6;
-            bottomSheetTopPadding = mInsets.top // statusbar height
-                    + (applyExtraTopPadding ? derivedTopPadding : 0)
-                    + (mDeviceProperties.isTablet() ? 0 : edgeMarginPx); // phones need edgeMarginPx additional padding
-        }
-
-        bottomSheetOpenDuration = res.getInteger(R.integer.config_bottomSheetOpenDuration);
-        bottomSheetCloseDuration = res.getInteger(R.integer.config_bottomSheetCloseDuration);
-        if (shouldShowAllAppsOnSheet()) {
-            bottomSheetWorkspaceScale = workspaceContentScale;
-            if (isMultiDisplay) {
-                // TODO(b/259893832): Revert to use maxWallpaperScale to calculate bottomSheetDepth
-                // when screen recorder bug is fixed.
-                if (enableScalingRevealHomeAnimation()) {
-                    bottomSheetDepth = 0.3f;
-                } else {
-                    bottomSheetDepth = 1f;
-                }
-            } else {
-                // The goal is to set wallpaper to zoom at workspaceContentScale when in AllApps.
-                // When depth is 0, wallpaper zoom is set to maxWallpaperScale.
-                // When depth is 1, wallpaper zoom is set to 1.
-                // For depth to achieve zoom set to maxWallpaperScale * workspaceContentScale:
-                float maxWallpaperScale = res.getFloat(R.dimen.config_wallpaperMaxScale);
-                bottomSheetDepth = Utilities.mapToRange(maxWallpaperScale * workspaceContentScale,
-                        maxWallpaperScale, 1f, 0f, 1f, LINEAR);
-            }
-        } else {
-            bottomSheetWorkspaceScale = 1f;
-            bottomSheetDepth = 0f;
-        }
+        mBottomSheetProfile = BottomSheetProfile.Factory.createBottomSheetProfile(
+                getDeviceProperties(),
+                mInsets,
+                res,
+                edgeMarginPx,
+                shouldShowAllAppsOnSheet(),
+                workspaceContentScale
+        );
 
         folderLabelTextScale = res.getFloat(R.dimen.folder_label_text_scale);
         numFolderRows = inv.numFolderRows[mTypeIndex];
@@ -2267,11 +2230,16 @@ public class DeviceProfile {
         writer.println(prefix + pxToDpStr("folderTopPadding", folderContentPaddingTop));
         writer.println(prefix + pxToDpStr("folderFooterHeight", folderFooterHeightPx));
 
-        writer.println(prefix + pxToDpStr("bottomSheetTopPadding", bottomSheetTopPadding));
-        writer.println(prefix + "\tbottomSheetOpenDuration: " + bottomSheetOpenDuration);
-        writer.println(prefix + "\tbottomSheetCloseDuration: " + bottomSheetCloseDuration);
-        writer.println(prefix + "\tbottomSheetWorkspaceScale: " + bottomSheetWorkspaceScale);
-        writer.println(prefix + "\tbottomSheetDepth: " + bottomSheetDepth);
+        writer.println(prefix + pxToDpStr("bottomSheetTopPadding",
+                getBottomSheetProfile().getBottomSheetTopPadding()));
+        writer.println(prefix + "\tbottomSheetOpenDuration: "
+                + getBottomSheetProfile().getBottomSheetOpenDuration());
+        writer.println(prefix + "\tbottomSheetCloseDuration: "
+                + getBottomSheetProfile().getBottomSheetCloseDuration());
+        writer.println(prefix + "\tbottomSheetWorkspaceScale: "
+                + getBottomSheetProfile().getBottomSheetWorkspaceScale());
+        writer.println(prefix + "\tbottomSheetDepth: "
+                + getBottomSheetProfile().getBottomSheetDepth());
 
         writer.println(prefix + pxToDpStr("allAppsShiftRange", allAppsShiftRange));
         writer.println(prefix + "\tallAppsOpenDuration: " + allAppsOpenDuration);
@@ -2446,6 +2414,10 @@ public class DeviceProfile {
 
     public DropTargetProfile getDropTargetProfile() {
         return mDropTargetProfile;
+    }
+
+    public BottomSheetProfile getBottomSheetProfile() {
+        return mBottomSheetProfile;
     }
 
     /**

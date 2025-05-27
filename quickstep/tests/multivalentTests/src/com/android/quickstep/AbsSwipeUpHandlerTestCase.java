@@ -18,13 +18,16 @@ package com.android.quickstep;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
+import static com.android.launcher3.BaseActivity.EVENT_DESTROYED;
 import static com.android.launcher3.statehandlers.DesktopVisibilityController.INACTIVE_DESK_ID;
 import static com.android.quickstep.AbsSwipeUpHandler.STATE_HANDLER_INVALIDATED;
 import static com.android.wm.shell.shared.ShellSharedConstants.KEY_EXTRA_SHELL_CAN_HAND_OFF_ANIMATION;
 import static com.android.wm.shell.shared.split.SplitBounds.KEY_EXTRA_SPLIT_BOUNDS;
 import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50;
 
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -199,7 +202,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     @Before
     public void setUpRecentsContainer() {
-        mTaskAnimationManager = new TaskAnimationManager(mContext, DEFAULT_DISPLAY);
+        mTaskAnimationManager = spy(new TaskAnimationManager(mContext, DEFAULT_DISPLAY));
         RECENTS_CONTAINER recentsContainer = getRecentsContainer();
         RECENTS_VIEW recentsView = getRecentsView();
 
@@ -338,6 +341,31 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
         verify(mMSDLPlayerWrapper, times(1)).playToken(eq(MSDLToken.SWIPE_THRESHOLD_INDICATOR));
         verifyNoMoreInteractions(mMSDLPlayerWrapper);
+    }
+
+    @Test
+    public void testOnContainerDestroy_cleansUpSwipeHandler() {
+        SWIPE_HANDLER swipeHandler = createSwipeHandler();
+
+        swipeHandler.onActivityInit(true);
+
+        RECENTS_CONTAINER container = getRecentsContainer();
+        ArgumentCaptor<Runnable> onContainerDestroyCallbackCaptor =
+                ArgumentCaptor.forClass(Runnable.class);
+
+        verify(container)
+                .addEventCallback(eq(EVENT_DESTROYED), onContainerDestroyCallbackCaptor.capture());
+
+        assertNotNull(swipeHandler.mRecentsView);
+        assertNotNull(swipeHandler.mContainer);
+
+        onContainerDestroyCallbackCaptor.getValue().run();
+
+        assertNull(swipeHandler.mRecentsView);
+        assertNull(swipeHandler.mContainer);
+        verify(mTaskAnimationManager).onLauncherDestroyed();
+        runOnMainSync(() -> verify(mContextInitListener)
+                .unregister(eq("AbsSwipeUpHandler.mLauncherOnDestroyCallback")));
     }
 
     /**

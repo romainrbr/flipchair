@@ -100,7 +100,6 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -246,7 +245,6 @@ import com.android.systemui.shared.system.TaskStackChangeListener;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
 import com.android.wm.shell.common.pip.IPipAnimationListener;
 import com.android.wm.shell.shared.GroupedTaskInfo;
-import com.android.wm.shell.shared.TypefaceUtils;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
 import com.android.wm.shell.shared.pip.PipFlags;
@@ -5837,7 +5835,8 @@ public abstract class RecentsView<
                     finishRecentsAnimation(false /* toRecents */, null);
                     onTaskLaunchAnimationEnd(true /* success */);
                 } else {
-                    taskView.launchWithoutAnimation(this::onTaskLaunchAnimationEnd);
+                    finishRecentsAnimation(true /* toRecents */,
+                            () -> taskView.launchWithoutAnimation(this::onTaskLaunchAnimationEnd));
                 }
                 mContainer.getStatsLogManager().logger().withItemInfo(taskView.getItemInfo())
                         .log(LAUNCHER_TASK_LAUNCH_SWIPE_DOWN);

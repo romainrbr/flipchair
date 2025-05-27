@@ -56,6 +56,7 @@ import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.InvariantDeviceProfile.DisplayOptionSpec;
 import com.android.launcher3.deviceprofile.DeviceProperties;
+import com.android.launcher3.deviceprofile.DropTargetProfile;
 import com.android.launcher3.deviceprofile.OverviewProfile;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
@@ -262,16 +263,7 @@ public class DeviceProfile {
     // Widgets
     private final ViewScaleProvider mViewScaleProvider;
 
-    // Drop Target
-    public int dropTargetBarSizePx;
-    public int dropTargetBarTopMarginPx;
-    public int dropTargetBarBottomMarginPx;
-    public int dropTargetDragPaddingPx;
-    public int dropTargetTextSizePx;
-    public int dropTargetHorizontalPaddingPx;
-    public int dropTargetVerticalPaddingPx;
-    public int dropTargetGapPx;
-    public int dropTargetButtonWorkspaceEdgeGapPx;
+    private final DropTargetProfile mDropTargetProfile;
 
     // Insets
     private final Rect mInsets = new Rect();
@@ -349,6 +341,7 @@ public class DeviceProfile {
         mWorkspacePageIndicatorOverlapWorkspace = 0;
         numFolderRows = 0;
         numFolderColumns = 0;
+        mDropTargetProfile = new DropTargetProfile(0, 0, 0, 0, 0, 0, 0, 0, 0);
         folderLabelTextScale = 0;
         areNavButtonsInline = false;
         mHotseatBarEdgePaddingPx = 0;
@@ -558,27 +551,14 @@ public class DeviceProfile {
             cellStyle.recycle();
         }
 
-        dropTargetBarSizePx = res.getDimensionPixelSize(R.dimen.dynamic_grid_drop_target_size);
         // Some foldable portrait modes are too wide in terms of aspect ratio so we need to tweak
         // the dimensions for edit state.
         final boolean shouldApplyWidePortraitDimens = mDeviceProperties.isTablet()
                 && !mDeviceProperties.isLandscape()
                 && mDeviceProperties.getAspectRatio() < MAX_ASPECT_RATIO_FOR_ALTERNATE_EDIT_STATE;
-        dropTargetBarTopMarginPx = shouldApplyWidePortraitDimens
-                ? 0
-                : res.getDimensionPixelSize(R.dimen.drop_target_top_margin);
-        dropTargetBarBottomMarginPx = shouldApplyWidePortraitDimens
-                ? res.getDimensionPixelSize(R.dimen.drop_target_bottom_margin_wide_portrait)
-                : res.getDimensionPixelSize(R.dimen.drop_target_bottom_margin);
-        dropTargetDragPaddingPx = res.getDimensionPixelSize(R.dimen.drop_target_drag_padding);
-        dropTargetTextSizePx = res.getDimensionPixelSize(R.dimen.drop_target_text_size);
-        dropTargetHorizontalPaddingPx = res.getDimensionPixelSize(
-                R.dimen.drop_target_button_drawable_horizontal_padding);
-        dropTargetVerticalPaddingPx = res.getDimensionPixelSize(
-                R.dimen.drop_target_button_drawable_vertical_padding);
-        dropTargetGapPx = res.getDimensionPixelSize(R.dimen.drop_target_button_gap);
-        dropTargetButtonWorkspaceEdgeGapPx = res.getDimensionPixelSize(
-                R.dimen.drop_target_button_workspace_edge_gap);
+        mDropTargetProfile = DropTargetProfile
+                .Factory
+                .createDropTargetProfile(res, shouldApplyWidePortraitDimens);
 
         workspaceSpringLoadedMinNextPageVisiblePx = res.getDimensionPixelSize(
                 R.dimen.dynamic_grid_spring_loaded_min_next_space_visible);
@@ -1716,8 +1696,9 @@ public class DeviceProfile {
      * Gets the scaled top of the workspace in px for the spring-loaded edit state.
      */
     public float getCellLayoutSpringLoadShrunkTop() {
-        return mInsets.top + dropTargetBarTopMarginPx + dropTargetBarSizePx
-                + dropTargetBarBottomMarginPx;
+        return mInsets.top + getDropTargetProfile().getBarTopMarginPx()
+                + getDropTargetProfile().getBarSizePx()
+                + getDropTargetProfile().getBarBottomMarginPx();
     }
 
     /**
@@ -2141,7 +2122,8 @@ public class DeviceProfile {
     public Rect getAbsoluteOpenFolderBounds() {
         if (isVerticalBarLayout()) {
             // Folders should only appear right of the drop target bar and left of the hotseat
-            return new Rect(mInsets.left + dropTargetBarSizePx + edgeMarginPx,
+            return new Rect(
+                    mInsets.left + getDropTargetProfile().getBarSizePx() + edgeMarginPx,
                     mInsets.top,
                     mInsets.left + mDeviceProperties.getAvailableWidthPx() - hotseatBarSizePx - edgeMarginPx,
                     mInsets.top + mDeviceProperties.getAvailableHeightPx());
@@ -2149,7 +2131,7 @@ public class DeviceProfile {
             // Folders should only appear below the drop target bar and above the hotseat
             int hotseatTop = isTaskbarPresent ? taskbarHeight : hotseatBarSizePx;
             return new Rect(mInsets.left + edgeMarginPx,
-                    mInsets.top + dropTargetBarSizePx + edgeMarginPx,
+                    mInsets.top + getDropTargetProfile().getBarSizePx() + edgeMarginPx,
                     mInsets.left + mDeviceProperties.getAvailableWidthPx() - edgeMarginPx,
                     mInsets.top + mDeviceProperties.getAvailableHeightPx() - hotseatTop
                             - workspacePageIndicatorHeight - edgeMarginPx);
@@ -2386,10 +2368,13 @@ public class DeviceProfile {
         writer.println(prefix + pxToDpStr("overviewGridSideMargin",
                 getOverviewProfile().getGridSideMargin()));
 
-        writer.println(prefix + pxToDpStr("dropTargetBarTopMarginPx", dropTargetBarTopMarginPx));
-        writer.println(prefix + pxToDpStr("dropTargetBarSizePx", dropTargetBarSizePx));
+        writer.println(prefix + pxToDpStr("dropTargetBarTopMarginPx",
+                getDropTargetProfile().getBarTopMarginPx()));
+        writer.println(prefix + pxToDpStr("dropTargetBarSizePx",
+                getDropTargetProfile().getBarSizePx()));
         writer.println(
-                prefix + pxToDpStr("dropTargetBarBottomMarginPx", dropTargetBarBottomMarginPx));
+                prefix + pxToDpStr("dropTargetBarBottomMarginPx",
+                        getDropTargetProfile().getBarBottomMarginPx()));
 
         writer.println(prefix + pxToDpStr("getCellLayoutSpringLoadShrunkTop()",
                 getCellLayoutSpringLoadShrunkTop()));
@@ -2457,6 +2442,10 @@ public class DeviceProfile {
         } else {
             return 0;
         }
+    }
+
+    public DropTargetProfile getDropTargetProfile() {
+        return mDropTargetProfile;
     }
 
     /**

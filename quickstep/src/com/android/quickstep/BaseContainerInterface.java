@@ -367,7 +367,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         out.x = dp.getDeviceProperties().getWidthPx();
         out.y = dp.getDeviceProperties().getHeightPx();
         if (dp.getDeviceProperties().isTablet() && !DisplayController.isTransientTaskbar(context)) {
-            out.y -= dp.taskbarHeight;
+            out.y -= dp.getTaskbarProfile().getHeight();
         }
     }
 
@@ -418,7 +418,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         boolean isGridOnlyOverview = dp.getDeviceProperties().isTablet() && enableGridOnlyOverview();
         int claimedSpaceBelow = isGridOnlyOverview
                 ? dp.getOverviewProfile().getActionsTopMarginPx()
-                + dp.getOverviewProfile().getActionsHeight() + dp.stashedTaskbarHeight
+                + dp.getOverviewProfile().getActionsHeight()
+                    + dp.getTaskbarProfile().getStashedTaskbarHeight()
                 : (dp.getDeviceProperties().getHeightPx() - outRect.bottom - dp.getInsets().bottom);
         int minimumHorizontalPadding = 0;
         if (!isGridOnlyOverview) {

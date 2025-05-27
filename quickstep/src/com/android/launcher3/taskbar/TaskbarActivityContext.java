@@ -472,7 +472,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             deviceProfile.hotseatQsbWidth = originDeviceProfile.hotseatQsbWidth;
 
             // Update icon size
-            deviceProfile.iconSizePx = deviceProfile.taskbarIconSize;
+            deviceProfile.iconSizePx = deviceProfile.getTaskbarProfile().getIconSize();
             deviceProfile.updateIconSize(1f, this);
         };
         mDeviceProfile = originDeviceProfile.toBuilder(this)
@@ -816,7 +816,7 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
 
     /** Returns whether taskbar should start align. */
     public boolean shouldStartAlignTaskbar() {
-        return isThreeButtonNav() && mDeviceProfile.startAlignTaskbar;
+        return isThreeButtonNav() && mDeviceProfile.getTaskbarProfile().isStartAlignTaskbar();
     }
 
     public boolean isGestureNav() {
@@ -1382,15 +1382,15 @@ public class TaskbarActivityContext extends BaseTaskbarContext {
             DeviceProfile transientTaskbarDp = mDeviceProfile.toBuilder(this)
                     .setIsTransientTaskbar(true).build();
 
-            taskbarWindowSize = transientTaskbarDp.taskbarHeight
-                    + (2 * transientTaskbarDp.taskbarBottomMargin)
+            taskbarWindowSize = transientTaskbarDp.getTaskbarProfile().getHeight()
+                    + (2 * transientTaskbarDp.getTaskbarProfile().getBottomMargin())
                     + Math.max(extraHeightForTaskbarTooltips, resources.getDimensionPixelSize(
                     R.dimen.transient_taskbar_shadow_blur));
             return Math.max(taskbarWindowSize, bubbleBarTop);
         }
 
 
-        taskbarWindowSize =  mDeviceProfile.taskbarHeight
+        taskbarWindowSize = mDeviceProfile.getTaskbarProfile().getHeight()
                 + getCornerRadius()
                 + extraHeightForTaskbarTooltips;
         return Math.max(taskbarWindowSize, bubbleBarTop);

@@ -20,7 +20,6 @@ import static android.view.View.MeasureSpec.EXACTLY;
 import static android.view.View.MeasureSpec.makeMeasureSpec;
 import static android.view.View.VISIBLE;
 
-import static com.android.launcher3.Flags.extendibleThemeManager;
 import static com.android.launcher3.Hotseat.ALPHA_CHANNEL_PREVIEW_RENDERER;
 import static com.android.launcher3.LauncherPrefs.FIXED_LANDSCAPE_MODE;
 import static com.android.launcher3.LauncherPrefs.GRID_NAME;
@@ -29,6 +28,7 @@ import static com.android.launcher3.graphics.ThemeManager.PREF_ICON_SHAPE;
 import static com.android.launcher3.graphics.ThemeManager.THEMED_ICONS;
 import static com.android.launcher3.model.ModelUtils.currentScreenContentFilter;
 import static com.android.launcher3.widget.LauncherWidgetHolder.APPWIDGET_HOST_ID;
+import static com.android.systemui.shared.Flags.extendibleThemeManager;
 
 import static java.util.Comparator.comparingDouble;
 

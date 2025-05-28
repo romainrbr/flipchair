@@ -20,7 +20,6 @@ import static android.content.res.Configuration.UI_MODE_NIGHT_NO;
 import static android.content.res.Configuration.UI_MODE_NIGHT_YES;
 import static android.view.Display.DEFAULT_DISPLAY;
 
-import static com.android.launcher3.Flags.extendibleThemeManager;
 import static com.android.launcher3.LauncherPrefs.GRID_NAME;
 import static com.android.launcher3.LauncherPrefs.NON_FIXED_LANDSCAPE_GRID_NAME;
 import static com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID;
@@ -30,6 +29,7 @@ import static com.android.launcher3.provider.LauncherDbUtils.selectionForWorkspa
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
 import static com.android.launcher3.widget.LauncherWidgetHolder.APPWIDGET_HOST_ID;
+import static com.android.systemui.shared.Flags.extendibleThemeManager;
 
 import android.app.WallpaperColors;
 import android.appwidget.AppWidgetHost;

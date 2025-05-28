@@ -225,6 +225,7 @@ launcher_compose_java_defaults {
 
             // Compose dependencies
             static_libs: [
+                "widget_picker_component",
                 "androidx.compose.runtime_runtime",
                 "androidx.compose.material3_material3",
                 "androidx.compose.ui_ui-tooling-preview",

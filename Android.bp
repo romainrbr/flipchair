@@ -223,9 +223,9 @@ launcher_compose_java_defaults {
                 ":launcher-compose-enabled-src",
             ],
 
-            // Compose dependencies
             static_libs: [
                 "widget_picker_component",
+                // Compose dependencies
                 "androidx.compose.runtime_runtime",
                 "androidx.compose.material3_material3",
                 "androidx.compose.ui_ui-tooling-preview",
@@ -393,9 +393,6 @@ java_library {
 // Library with all the dependencies for building Launcher3
 android_library {
     name: "Launcher3ResLib",
-    defaults: [
-        "launcher_compose_defaults",
-    ],
     srcs: [],
     resource_dirs: ["res"],
     static_libs: [
@@ -449,7 +446,10 @@ android_library {
 //
 android_app {
     name: "Launcher3",
-    defaults: ["launcher-non-platform-apis-defaults"],
+    defaults: [
+        "launcher-non-platform-apis-defaults",
+        "launcher_compose_defaults",
+    ],
 
     static_libs: [
         "Launcher3ResLib",

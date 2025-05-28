@@ -156,7 +156,7 @@ class TaskbarUnitTestRule(
                     base.evaluate()
                 } finally {
                     instrumentation.runOnMainSync { taskbarManager.destroy() }
-                    context.displayControllerSpy?.removeTaskbarPinningPrefListener()
+                    context.displayControllerSpy?.cleanup()
                 }
             }
         }

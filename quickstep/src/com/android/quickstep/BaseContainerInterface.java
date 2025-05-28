@@ -18,6 +18,7 @@ package com.android.quickstep;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_BACKGROUND_COLOR;
+import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
@@ -34,6 +35,7 @@ import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
@@ -88,8 +90,19 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     public abstract boolean isResumed();
 
     public abstract boolean isStarted();
-    public abstract boolean deferStartingActivity(RecentsAnimationDeviceState deviceState,
-            MotionEvent ev);
+    public boolean deferStartingActivity(
+            @NonNull RecentsAnimationDeviceState deviceState, MotionEvent ev) {
+        TaskbarUIController controller = getTaskbarController();
+        boolean isEventOverBubbleBarStashHandle =
+                controller != null && controller.isEventOverBubbleBarViews(ev);
+        boolean isEventOverAnyTaskbarItem =
+                controller != null && controller.isEventOverAnyTaskbarItem(ev);
+        return deviceState.isInDeferredGestureRegion(ev)
+                || deviceState.isImeRenderingNavButtons()
+                || isTrackpadMultiFingerSwipe(ev)
+                || isEventOverBubbleBarStashHandle
+                || isEventOverAnyTaskbarItem;
+    }
 
     /**
      * Returns the color of the scrim behind overview when at rest in this state.
@@ -171,7 +184,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      * @return Whether the gesture in progress should be cancelled.
      */
     public boolean shouldCancelCurrentGesture() {
-        return false;
+        TaskbarUIController uiController = getTaskbarController();
+        return uiController != null && uiController.isDraggingItem();
     }
 
     public void runOnInitBackgroundStateUI(Runnable callback) {

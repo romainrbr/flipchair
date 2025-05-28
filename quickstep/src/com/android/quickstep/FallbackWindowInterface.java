@@ -24,7 +24,6 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.graphics.Rect;
-import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 
 import androidx.annotation.Nullable;
@@ -147,16 +146,6 @@ public final class FallbackWindowInterface extends BaseWindowInterface {
     protected int getOverviewScrimColorForState(RecentsWindowManager container,
             RecentsState state) {
         return state.getScrimColor(container.asContext());
-    }
-
-    @Override
-    public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
-        // In non-gesture mode, user might be clicking on the home button which would directly
-        // start the home activity instead of going through recents. In that case, defer starting
-        // recents until we are sure it is a gesture.
-        return false;
-//        return !deviceState.isFullyGesturalNavMode();
-//                || super.deferStartingActivity(deviceState, ev);
     }
 
     @Override

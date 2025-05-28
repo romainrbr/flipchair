@@ -135,6 +135,42 @@ public abstract class AbsSwipeUpHandlerTestCase<
             /* taskInfo= */ mRunningTaskInfo,
             /* allowEnterPip= */ false);
 
+    protected final RemoteAnimationTarget mRemoteAnimationLeftTop = new RemoteAnimationTarget(
+            /* taskId= */ 1,
+            /* mode= */ RemoteAnimationTarget.MODE_CLOSING,
+            /* leash= */ new SurfaceControl(),
+            /* isTranslucent= */ false,
+            /* clipRect= */ null,
+            /* contentInsets= */ null,
+            /* prefixOrderIndex= */ 0,
+            /* position= */ null,
+            /* localBounds= */ null,
+            /* screenSpaceBounds= */ null,
+            new Configuration().windowConfiguration,
+            /* isNotInRecents= */ false,
+            /* startLeash= */ null,
+            /* startBounds= */ null,
+            /* taskInfo= */ mRunningTaskInfo,
+            /* allowEnterPip= */ false);
+
+    protected final RemoteAnimationTarget mRemoteAnimationRightBottom = new RemoteAnimationTarget(
+            /* taskId= */ 2,
+            /* mode= */ RemoteAnimationTarget.MODE_CLOSING,
+            /* leash= */ new SurfaceControl(),
+            /* isTranslucent= */ false,
+            /* clipRect= */ null,
+            /* contentInsets= */ null,
+            /* prefixOrderIndex= */ 0,
+            /* position= */ null,
+            /* localBounds= */ null,
+            /* screenSpaceBounds= */ null,
+            new Configuration().windowConfiguration,
+            /* isNotInRecents= */ false,
+            /* startLeash= */ null,
+            /* startBounds= */ null,
+            /* taskInfo= */ mRunningTaskInfo,
+            /* allowEnterPip= */ false);
+
     protected RecentsAnimationTargets mRecentsAnimationTargets;
     protected TaskAnimationManager mTaskAnimationManager;
     protected StateManager<STATE_TYPE, RECENTS_CONTAINER> mStateManager;
@@ -160,12 +196,12 @@ public abstract class AbsSwipeUpHandlerTestCase<
         extras.putParcelable(KEY_EXTRA_SPLIT_BOUNDS, new SplitBounds(
                 /* leftTopBounds = */ new Rect(),
                 /* rightBottomBounds = */ new Rect(),
-                /* leftTopTaskId = */ -1,
-                /* rightBottomTaskId = */ -1,
+                /* leftTopTaskId = */ mRemoteAnimationLeftTop.taskId,
+                /* rightBottomTaskId = */ mRemoteAnimationRightBottom.taskId,
                 /* snapPosition = */ SNAP_TO_2_50_50));
         mRecentsAnimationTargets = new RecentsAnimationTargets(
-                new RemoteAnimationTarget[] {mRemoteAnimationTarget},
-                new RemoteAnimationTarget[] {mRemoteAnimationTarget},
+                new RemoteAnimationTarget[] {mRemoteAnimationLeftTop},
+                new RemoteAnimationTarget[] {mRemoteAnimationRightBottom},
                 new RemoteAnimationTarget[] {mRemoteAnimationTarget},
                 /* homeContentInsets= */ new Rect(),
                 /* minimizedHomeBounds= */ null,

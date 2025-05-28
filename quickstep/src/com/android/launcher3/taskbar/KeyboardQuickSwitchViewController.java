@@ -260,7 +260,7 @@ public class KeyboardQuickSwitchViewController {
         TaskbarActivityContext context = mControllers.taskbarActivityContext;
         final RemoteTransition slideInTransition = new RemoteTransition(new SlideInRemoteTransition(
                 Utilities.isRtl(mControllers.taskbarActivityContext.getResources()),
-                context.getDeviceProfile().overviewPageSpacing,
+                context.getDeviceProfile().getOverviewProfile().getPageSpacing(),
                 QuickStepContract.getWindowCornerRadius(context),
                 AnimationUtils.loadInterpolator(
                         context, android.R.interpolator.fast_out_extra_slow_in)),

@@ -16,23 +16,17 @@
 
 package com.android.launcher3.dagger;
 
-import com.android.launcher3.concurrent.ExecutorsModule;
-import com.android.launcher3.util.dagger.LauncherExecutorsModule;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-import dagger.Module;
+import javax.inject.Scope;
 
-@Module(
-        includes = {
-            WindowManagerProxyModule.class,
-            ApiWrapperModule.class,
-            PluginManagerWrapperModule.class,
-            StaticObjectModule.class,
-            WidgetModule.class,
-            AppModule.class,
-            PerDisplayModule.class,
-            LauncherConcurrencyModule.class,
-            ExecutorsModule.class,
-            LauncherExecutorsModule.class,
-        },
-        subcomponents = ActivityContextComponent.class)
-public class LauncherAppModule { }
+/**
+ * Scope annotation for singletons associated with Launcher activity context.
+ */
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Scope
+public @interface ActivityContextSingleton {
+}

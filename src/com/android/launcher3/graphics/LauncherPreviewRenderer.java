@@ -97,7 +97,6 @@ import com.android.launcher3.util.SandboxContext;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.util.dagger.LauncherExecutorsModule;
 import com.android.launcher3.util.window.WindowManagerProxy;
-import com.android.launcher3.views.ActivityContext;
 import com.android.launcher3.views.BaseDragLayer;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 import com.android.launcher3.widget.LauncherWidgetHolder.WidgetHolderFactory;
@@ -123,7 +122,7 @@ import java.util.UUID;
  *   4) Measure and draw the view on a canvas
  */
 public class LauncherPreviewRenderer extends BaseContext
-        implements ActivityContext, WorkspaceLayoutManager, LayoutInflater.Factory2 {
+        implements WorkspaceLayoutManager, LayoutInflater.Factory2 {
 
     /**
      * Context used just for preview. It also provides a few objects (e.g. UserCache) just for

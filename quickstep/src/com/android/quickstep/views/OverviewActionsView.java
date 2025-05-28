@@ -375,7 +375,7 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
 
         LayoutParams actionParams = (LayoutParams) actionBar.getLayoutParams();
         actionParams.setMargins(
-                actionParams.leftMargin, mDp.overviewActionsTopMarginPx,
+                actionParams.leftMargin, mDp.getOverviewProfile().getActionsTopMarginPx(),
                 actionParams.rightMargin, getBottomMargin());
     }
 
@@ -389,8 +389,10 @@ public class OverviewActionsView<T extends OverlayUICallbacks> extends FrameLayo
         }
 
         // Align to bottom of task Rect.
-        return mDp.getDeviceProperties().getHeightPx() - mTaskSize.bottom - mDp.overviewActionsTopMarginPx
-                - mDp.overviewActionsHeight;
+        return mDp.getDeviceProperties().getHeightPx()
+                - mTaskSize.bottom
+                - mDp.getOverviewProfile().getActionsTopMarginPx()
+                - mDp.getOverviewProfile().getActionsHeight();
     }
 
     /**

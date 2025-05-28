@@ -342,18 +342,6 @@
         <item name="android:lineHeight">20sp</item>
     </style>
 
-    <style name="WidgetPickerActivityTheme" parent="@android:style/Theme.DeviceDefault.DayNight">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:colorBackgroundCacheHint">@null</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowAnimationStyle">@android:style/Animation</item>
-
-        <item name="widgetsTheme">@style/WidgetContainerTheme</item>
-        <item name="pageIndicatorDotColor">@color/page_indicator_dot_color_light</item>
-    </style>
-
     <style name="TextAppearance.Nudge.Title" parent="@android:style/TextAppearance.DeviceDefault.DialogWindowTitle">
         <item name="android:gravity">center_horizontal</item>
         <item name="android:fontFamily">google-sans</item>

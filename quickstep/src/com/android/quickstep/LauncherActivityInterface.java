@@ -27,7 +27,6 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.graphics.Rect;
-import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 
 import androidx.annotation.Nullable;
@@ -329,25 +328,6 @@ public final class LauncherActivityInterface extends
     @Override
     protected int getOverviewScrimColorForState(QuickstepLauncher activity, LauncherState state) {
         return state.getWorkspaceScrimColor(activity);
-    }
-
-    @Override
-    public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
-        LauncherTaskbarUIController uiController = getTaskbarController();
-        if (uiController == null) {
-            return super.deferStartingActivity(deviceState, ev);
-        }
-        return uiController.isEventOverAnyTaskbarItem(ev)
-                || super.deferStartingActivity(deviceState, ev);
-    }
-
-    @Override
-    public boolean shouldCancelCurrentGesture() {
-        LauncherTaskbarUIController uiController = getTaskbarController();
-        if (uiController == null) {
-            return super.shouldCancelCurrentGesture();
-        }
-        return uiController.isDraggingItem();
     }
 
     @Override

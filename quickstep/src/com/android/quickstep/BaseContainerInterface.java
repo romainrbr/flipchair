@@ -18,6 +18,7 @@ package com.android.quickstep;
 import static com.android.app.animation.Interpolators.INSTANT;
 import static com.android.app.animation.Interpolators.LINEAR;
 import static com.android.launcher3.LauncherAnimUtils.VIEW_BACKGROUND_COLOR;
+import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
 import static com.android.quickstep.GestureState.GestureEndTarget.LAST_TASK;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
@@ -34,6 +35,7 @@ import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 
@@ -88,8 +90,19 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
     public abstract boolean isResumed();
 
     public abstract boolean isStarted();
-    public abstract boolean deferStartingActivity(RecentsAnimationDeviceState deviceState,
-            MotionEvent ev);
+    public boolean deferStartingActivity(
+            @NonNull RecentsAnimationDeviceState deviceState, MotionEvent ev) {
+        TaskbarUIController controller = getTaskbarController();
+        boolean isEventOverBubbleBarStashHandle =
+                controller != null && controller.isEventOverBubbleBarViews(ev);
+        boolean isEventOverAnyTaskbarItem =
+                controller != null && controller.isEventOverAnyTaskbarItem(ev);
+        return deviceState.isInDeferredGestureRegion(ev)
+                || deviceState.isImeRenderingNavButtons()
+                || isTrackpadMultiFingerSwipe(ev)
+                || isEventOverBubbleBarStashHandle
+                || isEventOverAnyTaskbarItem;
+    }
 
     /**
      * Returns the color of the scrim behind overview when at rest in this state.
@@ -171,7 +184,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      * @return Whether the gesture in progress should be cancelled.
      */
     public boolean shouldCancelCurrentGesture() {
-        return false;
+        TaskbarUIController uiController = getTaskbarController();
+        return uiController != null && uiController.isDraggingItem();
     }
 
     public void runOnInitBackgroundStateUI(Runnable callback) {
@@ -258,14 +272,15 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         } else {
             Resources res = context.getResources();
             float maxScale = res.getFloat(R.dimen.overview_max_scale);
-            int taskMargin = dp.overviewTaskMarginPx;
+            int taskMargin = dp.getOverviewProfile().getTaskMarginPx();
             // In fake orientation, OverviewActions is hidden and we only leave a margin there.
             int overviewActionsClaimedSpace = orientationHandler.isLayoutNaturalToLauncher()
-                    ? dp.getOverviewActionsClaimedSpace() : dp.overviewActionsTopMarginPx;
+                    ? dp.getOverviewActionsClaimedSpace()
+                    : dp.getOverviewProfile().getActionsTopMarginPx();
             calculateTaskSizeInternal(
                     context,
                     dp,
-                    dp.overviewTaskThumbnailTopMarginPx,
+                    dp.getOverviewProfile().getTaskThumbnailTopMarginPx(),
                     overviewActionsClaimedSpace,
                     res.getDimensionPixelSize(R.dimen.overview_minimum_next_prev_size) + taskMargin,
                     maxScale,
@@ -361,9 +376,9 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
      */
     public final void calculateGridSize(DeviceProfile dp, Context context, Rect outRect) {
         Rect insets = dp.getInsets();
-        int topMargin = dp.overviewTaskThumbnailTopMarginPx;
+        int topMargin = dp.getOverviewProfile().getTaskThumbnailTopMarginPx();
         int bottomMargin = dp.getOverviewActionsClaimedSpace();
-        int sideMargin = dp.overviewGridSideMargin;
+        int sideMargin = dp.getOverviewProfile().getGridSideMargin();
 
         outRect.set(0, 0, dp.getDeviceProperties().getWidthPx(), dp.getDeviceProperties().getHeightPx());
         outRect.inset(Math.max(insets.left, sideMargin), insets.top + topMargin,
@@ -379,11 +394,13 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         Rect potentialTaskRect = new Rect();
         calculateLargeTileSize(context, dp, potentialTaskRect);
 
-        float rowHeight = (potentialTaskRect.height() + dp.overviewTaskThumbnailTopMarginPx
-                - dp.overviewRowSpacing) / 2f;
+        float rowHeight = (potentialTaskRect.height()
+                + dp.getOverviewProfile().getTaskThumbnailTopMarginPx()
+                - dp.getOverviewProfile().getRowSpacing()) / 2f;
 
         PointF taskDimension = getTaskDimension(context, dp);
-        float scale = (rowHeight - dp.overviewTaskThumbnailTopMarginPx) / taskDimension.y;
+        float scale = (rowHeight - dp.getOverviewProfile().getTaskThumbnailTopMarginPx())
+                / taskDimension.y;
         int outWidth = Math.round(scale * taskDimension.x);
         int outHeight = Math.round(scale * taskDimension.y);
 
@@ -400,7 +417,8 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         calculateTaskSize(context, dp, outRect, orientationHandler);
         boolean isGridOnlyOverview = dp.getDeviceProperties().isTablet() && enableGridOnlyOverview();
         int claimedSpaceBelow = isGridOnlyOverview
-                ? dp.overviewActionsTopMarginPx + dp.overviewActionsHeight + dp.stashedTaskbarHeight
+                ? dp.getOverviewProfile().getActionsTopMarginPx()
+                + dp.getOverviewProfile().getActionsHeight() + dp.stashedTaskbarHeight
                 : (dp.getDeviceProperties().getHeightPx() - outRect.bottom - dp.getInsets().bottom);
         int minimumHorizontalPadding = 0;
         if (!isGridOnlyOverview) {
@@ -411,7 +429,7 @@ public abstract class BaseContainerInterface<STATE_TYPE extends BaseState<STATE_
         calculateTaskSizeInternal(
                 context,
                 dp,
-                dp.overviewTaskMarginPx,
+                dp.getOverviewProfile().getTaskMarginPx(),
                 claimedSpaceBelow,
                 minimumHorizontalPadding,
                 1f /*maxScale*/,

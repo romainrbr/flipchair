@@ -16,8 +16,6 @@
 
 package com.android.launcher3;
 
-import static com.android.app.animation.Interpolators.LINEAR;
-import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_LANDSCAPE;
 import static com.android.launcher3.InvariantDeviceProfile.INDEX_TWO_PANEL_LANDSCAPE;
@@ -31,7 +29,6 @@ import static com.android.launcher3.testing.shared.ResourceUtils.INVALID_RESOURC
 import static com.android.launcher3.testing.shared.ResourceUtils.pxFromDp;
 import static com.android.launcher3.testing.shared.ResourceUtils.roundPxValueFromFloat;
 import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
-import static com.android.launcher3.util.OverviewReleaseFlags.enableOverviewIconMenu;
 import static com.android.wm.shell.Flags.enableBubbleBar;
 import static com.android.wm.shell.Flags.enableBubbleBarOnPhones;
 import static com.android.wm.shell.Flags.enableTinyTaskbar;
@@ -56,7 +53,10 @@ import androidx.core.content.res.ResourcesCompat;
 import com.android.launcher3.CellLayout.ContainerType;
 import com.android.launcher3.DevicePaddings.DevicePadding;
 import com.android.launcher3.InvariantDeviceProfile.DisplayOptionSpec;
+import com.android.launcher3.deviceprofile.BottomSheetProfile;
 import com.android.launcher3.deviceprofile.DeviceProperties;
+import com.android.launcher3.deviceprofile.DropTargetProfile;
+import com.android.launcher3.deviceprofile.OverviewProfile;
 import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.DotRenderer;
 import com.android.launcher3.model.data.ItemInfo;
@@ -87,8 +87,6 @@ public class DeviceProfile {
     private static final float MIN_FOLDER_TEXT_SIZE_SP = 16f;
     private static final float MIN_WIDGET_PADDING_DP = 6f;
 
-    // Minimum aspect ratio beyond which an extra top padding may be applied to a bottom sheet.
-    private static final float MIN_ASPECT_RATIO_FOR_EXTRA_TOP_PADDING = 1.5f;
     private static final float MAX_ASPECT_RATIO_FOR_ALTERNATE_EDIT_STATE = 1.5f;
 
     public static final PointF DEFAULT_SCALE = new PointF(1.0f, 1.0f);
@@ -97,6 +95,7 @@ public class DeviceProfile {
     };
 
     public final InvariantDeviceProfile inv;
+    private final BottomSheetProfile mBottomSheetProfile;
     private final DisplayOptionSpec mDisplayOptionSpec;
     private final Info mInfo;
     private final DisplayMetrics mMetrics;
@@ -232,13 +231,6 @@ public class DeviceProfile {
     // not enough space, the hotseat will adjust itself for the bubble bar.
     private final int mBubbleBarSpaceThresholdPx;
 
-    // Bottom sheets
-    public int bottomSheetTopPadding;
-    public int bottomSheetOpenDuration;
-    public int bottomSheetCloseDuration;
-    public float bottomSheetWorkspaceScale;
-    public float bottomSheetDepth;
-
     // All apps
     public Point allAppsBorderSpacePx;
     public int allAppsShiftRange;
@@ -254,17 +246,7 @@ public class DeviceProfile {
     public float allAppsIconTextSizePx;
     public int maxAllAppsTextLineCount;
 
-    // Overview
-    public int overviewTaskMarginPx;
-    public int overviewTaskIconSizePx;
-    public int overviewTaskIconDrawableSizePx;
-    public int overviewTaskIconDrawableSizeGridPx;
-    public int overviewTaskThumbnailTopMarginPx;
-    public final int overviewActionsHeight;
-    public final int overviewActionsTopMarginPx;
-    public int overviewPageSpacing;
-    public int overviewRowSpacing;
-    public int overviewGridSideMargin;
+    private final OverviewProfile overviewProfile;
 
     // Split staging
     public int splitPlaceholderInset;
@@ -272,16 +254,7 @@ public class DeviceProfile {
     // Widgets
     private final ViewScaleProvider mViewScaleProvider;
 
-    // Drop Target
-    public int dropTargetBarSizePx;
-    public int dropTargetBarTopMarginPx;
-    public int dropTargetBarBottomMarginPx;
-    public int dropTargetDragPaddingPx;
-    public int dropTargetTextSizePx;
-    public int dropTargetHorizontalPaddingPx;
-    public int dropTargetVerticalPaddingPx;
-    public int dropTargetGapPx;
-    public int dropTargetButtonWorkspaceEdgeGapPx;
+    private final DropTargetProfile mDropTargetProfile;
 
     // Insets
     private final Rect mInsets = new Rect();
@@ -327,6 +300,19 @@ public class DeviceProfile {
                 false,
                 false
         );
+        mBottomSheetProfile = new BottomSheetProfile(0, 0, 0, 0f, 0f);
+        overviewProfile = new OverviewProfile(
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+        );
         inv = null;
         mDisplayOptionSpec = null;
         mInfo = null;
@@ -347,6 +333,7 @@ public class DeviceProfile {
         mWorkspacePageIndicatorOverlapWorkspace = 0;
         numFolderRows = 0;
         numFolderColumns = 0;
+        mDropTargetProfile = new DropTargetProfile(0, 0, 0, 0, 0, 0, 0, 0, 0);
         folderLabelTextScale = 0;
         areNavButtonsInline = false;
         mHotseatBarEdgePaddingPx = 0;
@@ -362,8 +349,6 @@ public class DeviceProfile {
         inlineNavButtonsEndSpacingPx = 0;
         mBubbleBarSpaceThresholdPx = 0;
         numShownAllAppsColumns = 0;
-        overviewActionsHeight = 0;
-        overviewActionsTopMarginPx = 0;
         mViewScaleProvider = null;
         mDotRendererWorkSpace = null;
         mDotRendererAllApps = null;
@@ -386,6 +371,7 @@ public class DeviceProfile {
             boolean isTransientTaskbar, DisplayOptionSpec displayOptionSpec) {
 
         this.inv = inv;
+
         mDeviceProperties = DeviceProperties.Factory.createDeviceProperties(
                 info,
                 windowBounds,
@@ -422,6 +408,9 @@ public class DeviceProfile {
                         : Configuration.ORIENTATION_PORTRAIT,
                 windowBounds);
         final Resources res = context.getResources();
+
+        overviewProfile = OverviewProfile.Factory.createOverviewProfile(res);
+
         mMetrics = res.getDisplayMetrics();
 
         mIconSizeSteps = new IconSizeSteps(res);
@@ -464,43 +453,14 @@ public class DeviceProfile {
         gridVisualizationPaddingY = res.getDimensionPixelSize(
                 R.dimen.grid_visualization_vertical_cell_spacing);
 
-        {
-            // In large screens, in portrait mode, a bottom sheet can appear too elongated, so, we
-            // apply additional padding.
-            final boolean applyExtraTopPadding = mDeviceProperties.isTablet()
-                    && !mDeviceProperties.isLandscape()
-                    && (mDeviceProperties.getAspectRatio() > MIN_ASPECT_RATIO_FOR_EXTRA_TOP_PADDING);
-            final int derivedTopPadding = mDeviceProperties.getHeightPx() / 6;
-            bottomSheetTopPadding = mInsets.top // statusbar height
-                    + (applyExtraTopPadding ? derivedTopPadding : 0)
-                    + (mDeviceProperties.isTablet() ? 0 : edgeMarginPx); // phones need edgeMarginPx additional padding
-        }
-
-        bottomSheetOpenDuration = res.getInteger(R.integer.config_bottomSheetOpenDuration);
-        bottomSheetCloseDuration = res.getInteger(R.integer.config_bottomSheetCloseDuration);
-        if (shouldShowAllAppsOnSheet()) {
-            bottomSheetWorkspaceScale = workspaceContentScale;
-            if (isMultiDisplay) {
-                // TODO(b/259893832): Revert to use maxWallpaperScale to calculate bottomSheetDepth
-                // when screen recorder bug is fixed.
-                if (enableScalingRevealHomeAnimation()) {
-                    bottomSheetDepth = 0.3f;
-                } else {
-                    bottomSheetDepth = 1f;
-                }
-            } else {
-                // The goal is to set wallpaper to zoom at workspaceContentScale when in AllApps.
-                // When depth is 0, wallpaper zoom is set to maxWallpaperScale.
-                // When depth is 1, wallpaper zoom is set to 1.
-                // For depth to achieve zoom set to maxWallpaperScale * workspaceContentScale:
-                float maxWallpaperScale = res.getFloat(R.dimen.config_wallpaperMaxScale);
-                bottomSheetDepth = Utilities.mapToRange(maxWallpaperScale * workspaceContentScale,
-                        maxWallpaperScale, 1f, 0f, 1f, LINEAR);
-            }
-        } else {
-            bottomSheetWorkspaceScale = 1f;
-            bottomSheetDepth = 0f;
-        }
+        mBottomSheetProfile = BottomSheetProfile.Factory.createBottomSheetProfile(
+                getDeviceProperties(),
+                mInsets,
+                res,
+                edgeMarginPx,
+                shouldShowAllAppsOnSheet(),
+                workspaceContentScale
+        );
 
         folderLabelTextScale = res.getFloat(R.dimen.folder_label_text_scale);
         numFolderRows = inv.numFolderRows[mTypeIndex];
@@ -554,27 +514,14 @@ public class DeviceProfile {
             cellStyle.recycle();
         }
 
-        dropTargetBarSizePx = res.getDimensionPixelSize(R.dimen.dynamic_grid_drop_target_size);
         // Some foldable portrait modes are too wide in terms of aspect ratio so we need to tweak
         // the dimensions for edit state.
         final boolean shouldApplyWidePortraitDimens = mDeviceProperties.isTablet()
                 && !mDeviceProperties.isLandscape()
                 && mDeviceProperties.getAspectRatio() < MAX_ASPECT_RATIO_FOR_ALTERNATE_EDIT_STATE;
-        dropTargetBarTopMarginPx = shouldApplyWidePortraitDimens
-                ? 0
-                : res.getDimensionPixelSize(R.dimen.drop_target_top_margin);
-        dropTargetBarBottomMarginPx = shouldApplyWidePortraitDimens
-                ? res.getDimensionPixelSize(R.dimen.drop_target_bottom_margin_wide_portrait)
-                : res.getDimensionPixelSize(R.dimen.drop_target_bottom_margin);
-        dropTargetDragPaddingPx = res.getDimensionPixelSize(R.dimen.drop_target_drag_padding);
-        dropTargetTextSizePx = res.getDimensionPixelSize(R.dimen.drop_target_text_size);
-        dropTargetHorizontalPaddingPx = res.getDimensionPixelSize(
-                R.dimen.drop_target_button_drawable_horizontal_padding);
-        dropTargetVerticalPaddingPx = res.getDimensionPixelSize(
-                R.dimen.drop_target_button_drawable_vertical_padding);
-        dropTargetGapPx = res.getDimensionPixelSize(R.dimen.drop_target_button_gap);
-        dropTargetButtonWorkspaceEdgeGapPx = res.getDimensionPixelSize(
-                R.dimen.drop_target_button_workspace_edge_gap);
+        mDropTargetProfile = DropTargetProfile
+                .Factory
+                .createDropTargetProfile(res, shouldApplyWidePortraitDimens);
 
         workspaceSpringLoadedMinNextPageVisiblePx = res.getDimensionPixelSize(
                 R.dimen.dynamic_grid_spring_loaded_min_next_space_visible);
@@ -733,24 +680,6 @@ public class DeviceProfile {
         desiredWorkspaceHorizontalMarginPx = getHorizontalMarginPx(inv, res);
         desiredWorkspaceHorizontalMarginOriginalPx = desiredWorkspaceHorizontalMarginPx;
 
-        overviewTaskMarginPx = res.getDimensionPixelSize(R.dimen.overview_task_margin);
-        overviewTaskIconSizePx = enableOverviewIconMenu() ? res.getDimensionPixelSize(
-                R.dimen.task_thumbnail_icon_menu_drawable_touch_size) : res.getDimensionPixelSize(
-                R.dimen.task_thumbnail_icon_size);
-        overviewTaskIconDrawableSizePx =
-                res.getDimensionPixelSize(R.dimen.task_thumbnail_icon_drawable_size);
-        overviewTaskIconDrawableSizeGridPx =
-                res.getDimensionPixelSize(R.dimen.task_thumbnail_icon_drawable_size_grid);
-        overviewTaskThumbnailTopMarginPx =
-                enableOverviewIconMenu() ? 0 : overviewTaskIconSizePx + overviewTaskMarginPx;
-        // Don't add margin with floating search bar to minimize risk of overlapping.
-        overviewActionsTopMarginPx = Flags.floatingSearchBar() ? 0
-                : res.getDimensionPixelSize(R.dimen.overview_actions_top_margin);
-        overviewPageSpacing = res.getDimensionPixelSize(R.dimen.overview_page_spacing);
-        overviewActionsHeight = res.getDimensionPixelSize(R.dimen.overview_actions_height);
-        overviewRowSpacing = res.getDimensionPixelSize(R.dimen.overview_grid_row_spacing);
-        overviewGridSideMargin = res.getDimensionPixelSize(R.dimen.overview_grid_side_margin);
-
         splitPlaceholderInset = res.getDimensionPixelSize(R.dimen.split_placeholder_inset);
         // We need to use the full window bounds for split determination because on near-square
         // devices, the available bounds (bounds minus insets) may actually be in landscape while
@@ -818,6 +747,10 @@ public class DeviceProfile {
 
     public DeviceProperties getDeviceProperties() {
         return mDeviceProperties;
+    }
+
+    public OverviewProfile getOverviewProfile() {
+        return overviewProfile;
     }
 
     /**
@@ -1726,8 +1659,9 @@ public class DeviceProfile {
      * Gets the scaled top of the workspace in px for the spring-loaded edit state.
      */
     public float getCellLayoutSpringLoadShrunkTop() {
-        return mInsets.top + dropTargetBarTopMarginPx + dropTargetBarSizePx
-                + dropTargetBarBottomMarginPx;
+        return mInsets.top + getDropTargetProfile().getBarTopMarginPx()
+                + getDropTargetProfile().getBarSizePx()
+                + getDropTargetProfile().getBarBottomMarginPx();
     }
 
     /**
@@ -2128,7 +2062,7 @@ public class DeviceProfile {
     public int getOverviewActionsClaimedSpace() {
         int overviewActionsSpace = mDeviceProperties.isTablet() && enableGridOnlyOverview()
                 ? 0
-                : (overviewActionsTopMarginPx + overviewActionsHeight);
+                : (overviewProfile.getActionsTopMarginPx() + overviewProfile.getActionsHeight());
         return overviewActionsSpace + getOverviewActionsClaimedSpaceBelow();
     }
 
@@ -2151,7 +2085,8 @@ public class DeviceProfile {
     public Rect getAbsoluteOpenFolderBounds() {
         if (isVerticalBarLayout()) {
             // Folders should only appear right of the drop target bar and left of the hotseat
-            return new Rect(mInsets.left + dropTargetBarSizePx + edgeMarginPx,
+            return new Rect(
+                    mInsets.left + getDropTargetProfile().getBarSizePx() + edgeMarginPx,
                     mInsets.top,
                     mInsets.left + mDeviceProperties.getAvailableWidthPx() - hotseatBarSizePx - edgeMarginPx,
                     mInsets.top + mDeviceProperties.getAvailableHeightPx());
@@ -2159,7 +2094,7 @@ public class DeviceProfile {
             // Folders should only appear below the drop target bar and above the hotseat
             int hotseatTop = isTaskbarPresent ? taskbarHeight : hotseatBarSizePx;
             return new Rect(mInsets.left + edgeMarginPx,
-                    mInsets.top + dropTargetBarSizePx + edgeMarginPx,
+                    mInsets.top + getDropTargetProfile().getBarSizePx() + edgeMarginPx,
                     mInsets.left + mDeviceProperties.getAvailableWidthPx() - edgeMarginPx,
                     mInsets.top + mDeviceProperties.getAvailableHeightPx() - hotseatTop
                             - workspacePageIndicatorHeight - edgeMarginPx);
@@ -2295,11 +2230,16 @@ public class DeviceProfile {
         writer.println(prefix + pxToDpStr("folderTopPadding", folderContentPaddingTop));
         writer.println(prefix + pxToDpStr("folderFooterHeight", folderFooterHeightPx));
 
-        writer.println(prefix + pxToDpStr("bottomSheetTopPadding", bottomSheetTopPadding));
-        writer.println(prefix + "\tbottomSheetOpenDuration: " + bottomSheetOpenDuration);
-        writer.println(prefix + "\tbottomSheetCloseDuration: " + bottomSheetCloseDuration);
-        writer.println(prefix + "\tbottomSheetWorkspaceScale: " + bottomSheetWorkspaceScale);
-        writer.println(prefix + "\tbottomSheetDepth: " + bottomSheetDepth);
+        writer.println(prefix + pxToDpStr("bottomSheetTopPadding",
+                getBottomSheetProfile().getBottomSheetTopPadding()));
+        writer.println(prefix + "\tbottomSheetOpenDuration: "
+                + getBottomSheetProfile().getBottomSheetOpenDuration());
+        writer.println(prefix + "\tbottomSheetCloseDuration: "
+                + getBottomSheetProfile().getBottomSheetCloseDuration());
+        writer.println(prefix + "\tbottomSheetWorkspaceScale: "
+                + getBottomSheetProfile().getBottomSheetWorkspaceScale());
+        writer.println(prefix + "\tbottomSheetDepth: "
+                + getBottomSheetProfile().getBottomSheetDepth());
 
         writer.println(prefix + pxToDpStr("allAppsShiftRange", allAppsShiftRange));
         writer.println(prefix + "\tallAppsOpenDuration: " + allAppsOpenDuration);
@@ -2373,28 +2313,36 @@ public class DeviceProfile {
         writer.println(prefix + pxToDpStr("workspaceTopPadding", workspaceTopPadding));
         writer.println(prefix + pxToDpStr("workspaceBottomPadding", workspaceBottomPadding));
 
-        writer.println(prefix + pxToDpStr("overviewTaskMarginPx", overviewTaskMarginPx));
-        writer.println(prefix + pxToDpStr("overviewTaskIconSizePx", overviewTaskIconSizePx));
+        writer.println(prefix + pxToDpStr("overviewTaskMarginPx",
+                getOverviewProfile().getTaskMarginPx()));
+        writer.println(prefix + pxToDpStr("overviewTaskIconSizePx",
+                getOverviewProfile().getTaskIconSizePx()));
         writer.println(prefix + pxToDpStr("overviewTaskIconDrawableSizePx",
-                overviewTaskIconDrawableSizePx));
+                getOverviewProfile().getTaskIconDrawableSizePx()));
         writer.println(prefix + pxToDpStr("overviewTaskIconDrawableSizeGridPx",
-                overviewTaskIconDrawableSizeGridPx));
+                getOverviewProfile().getTaskIconDrawableSizeGridPx()));
         writer.println(prefix + pxToDpStr("overviewTaskThumbnailTopMarginPx",
-                overviewTaskThumbnailTopMarginPx));
+                getOverviewProfile().getTaskThumbnailTopMarginPx()));
         writer.println(prefix + pxToDpStr("overviewActionsTopMarginPx",
-                overviewActionsTopMarginPx));
+                getOverviewProfile().getActionsTopMarginPx()));
         writer.println(prefix + pxToDpStr("overviewActionsHeight",
-                overviewActionsHeight));
+                getOverviewProfile().getActionsHeight()));
         writer.println(prefix + pxToDpStr("overviewActionsClaimedSpaceBelow",
                 getOverviewActionsClaimedSpaceBelow()));
-        writer.println(prefix + pxToDpStr("overviewPageSpacing", overviewPageSpacing));
-        writer.println(prefix + pxToDpStr("overviewRowSpacing", overviewRowSpacing));
-        writer.println(prefix + pxToDpStr("overviewGridSideMargin", overviewGridSideMargin));
+        writer.println(prefix + pxToDpStr("overviewPageSpacing",
+                getOverviewProfile().getPageSpacing()));
+        writer.println(prefix + pxToDpStr("overviewRowSpacing",
+                getOverviewProfile().getRowSpacing()));
+        writer.println(prefix + pxToDpStr("overviewGridSideMargin",
+                getOverviewProfile().getGridSideMargin()));
 
-        writer.println(prefix + pxToDpStr("dropTargetBarTopMarginPx", dropTargetBarTopMarginPx));
-        writer.println(prefix + pxToDpStr("dropTargetBarSizePx", dropTargetBarSizePx));
+        writer.println(prefix + pxToDpStr("dropTargetBarTopMarginPx",
+                getDropTargetProfile().getBarTopMarginPx()));
+        writer.println(prefix + pxToDpStr("dropTargetBarSizePx",
+                getDropTargetProfile().getBarSizePx()));
         writer.println(
-                prefix + pxToDpStr("dropTargetBarBottomMarginPx", dropTargetBarBottomMarginPx));
+                prefix + pxToDpStr("dropTargetBarBottomMarginPx",
+                        getDropTargetProfile().getBarBottomMarginPx()));
 
         writer.println(prefix + pxToDpStr("getCellLayoutSpringLoadShrunkTop()",
                 getCellLayoutSpringLoadShrunkTop()));
@@ -2462,6 +2410,14 @@ public class DeviceProfile {
         } else {
             return 0;
         }
+    }
+
+    public DropTargetProfile getDropTargetProfile() {
+        return mDropTargetProfile;
+    }
+
+    public BottomSheetProfile getBottomSheetProfile() {
+        return mBottomSheetProfile;
     }
 
     /**

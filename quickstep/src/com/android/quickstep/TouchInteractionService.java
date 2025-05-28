@@ -29,6 +29,8 @@ import static com.android.launcher3.LauncherPrefs.backedUpItem;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMultiFingerSwipe;
 import static com.android.launcher3.taskbar.TaskbarDesktopExperienceFlags.enableAltTabKqsOnConnectedDisplays;
+import static com.android.launcher3.util.DisplayController.CHANGE_NAVIGATION_MODE;
+import static com.android.launcher3.util.DisplayController.CHANGE_NIGHT_MODE;
 import static com.android.launcher3.util.Executors.MAIN_EXECUTOR;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 import static com.android.launcher3.util.OnboardingPrefs.HOME_BOUNCE_SEEN;
@@ -717,7 +719,8 @@ public class TouchInteractionService extends Service {
 
     private DesktopAppLaunchTransitionManager mDesktopAppLaunchTransitionManager;
 
-    private DisplayController.DisplayInfoChangeListener mDisplayInfoChangeListener;
+    private DisplayController.DisplayInfoChangeListener mNavigationModeChangeListener;
+    private DisplayController.DisplayInfoChangeListener mNightModeChangeListener;
 
     PerDisplayRepository<RecentsWindowManager> mRecentsWindowManagerRepository;
 
@@ -771,9 +774,13 @@ public class TouchInteractionService extends Service {
         // Call runOnUserUnlocked() before any other callbacks to ensure everything is initialized.
         LockedUserState.get(this).runOnUserUnlocked(mUserUnlockedRunnable);
         // Assume that the navigation mode changes for all displays at once.
-        mDisplayInfoChangeListener =
-                mDeviceStateRepository.get(DEFAULT_DISPLAY).addNavigationModeChangedCallback(
-                        this::onNavigationModeChanged);
+        mNavigationModeChangeListener =
+                mDeviceStateRepository.get(DEFAULT_DISPLAY).addDisplayInfoChangeCallback(
+                        CHANGE_NAVIGATION_MODE, this::onNavigationModeChanged);
+        // Assume that the night mode changes for all displays at once.
+        mNightModeChangeListener =
+                mDeviceStateRepository.get(DEFAULT_DISPLAY).addDisplayInfoChangeCallback(
+                        CHANGE_NIGHT_MODE, this::onNightModeChanged);
         ScreenOnTracker.INSTANCE.get(this).addListener(mScreenOnListener);
     }
 
@@ -841,6 +848,9 @@ public class TouchInteractionService extends Service {
     private void onNavigationModeChanged() {
         initInputMonitor("onNavigationModeChanged()");
         resetHomeBounceSeenOnQuickstepEnabledFirstTime();
+    }
+    private void onNightModeChanged() {
+        ActivityPreloadUtil.preloadOverviewForTIS(this, false /* fromInit */);
     }
 
     @UiThread
@@ -976,7 +986,9 @@ public class TouchInteractionService extends Service {
         }
         mDesktopAppLaunchTransitionManager = null;
         mDeviceStateRepository.get(DEFAULT_DISPLAY).removeDisplayInfoChangeListener(
-                mDisplayInfoChangeListener);
+                mNavigationModeChangeListener);
+        mDeviceStateRepository.get(DEFAULT_DISPLAY).removeDisplayInfoChangeListener(
+                mNightModeChangeListener);
         LockedUserState.get(this).removeOnUserUnlockedRunnable(mUserUnlockedRunnable);
         ScreenOnTracker.INSTANCE.get(this).removeListener(mScreenOnListener);
         if (RecentsWindowFlags.getEnableOverviewInWindow()) {

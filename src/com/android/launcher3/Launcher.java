@@ -2623,7 +2623,7 @@ public class Launcher extends StatefulActivity<LauncherState>
      */
     public void onWidgetsTransition(float progress) {
         float scale = Utilities.mapToRange(progress, 0f, 1f, 1f,
-                mDeviceProfile.bottomSheetWorkspaceScale, EMPHASIZED);
+                mDeviceProfile.getBottomSheetProfile().getBottomSheetWorkspaceScale(), EMPHASIZED);
         WORKSPACE_WIDGET_SCALE.set(getWorkspace(), scale);
         HOTSEAT_WIDGET_SCALE.set(getHotseat(), scale);
     }

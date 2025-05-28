@@ -164,7 +164,9 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
     var remoteTargetHandles: Array<RemoteTargetHandle>? = null
         set(value) {
             field = value
-            positionTaskWindows()
+            if (value != null) {
+                positionTaskWindows()
+            }
         }
 
     override val displayId: Int
@@ -439,6 +441,7 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
         if (enableOverviewIconMenu()) {
             (iconView as IconAppChipView).reset()
         }
+        remoteTargetHandles = null
     }
 
     override fun setOrientationState(orientationState: RecentsOrientedState) {

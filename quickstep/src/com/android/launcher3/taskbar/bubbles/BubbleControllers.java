@@ -140,6 +140,7 @@ public class BubbleControllers {
                         return -(int) bubbleStashController.getBubbleBarTranslationY();
                     }
                 },
+                bubbleBarLocationListeners,
                 SystemUiProxy.INSTANCE.get(taskbarControllers.taskbarActivityContext));
         mPostInitRunnables.executeAllAndDestroy();
     }

@@ -403,6 +403,9 @@ public class Launcher extends StatefulActivity<LauncherState>
 
     protected WallpaperThemeManager mWallpaperThemeManager;
 
+
+    private boolean mIsTopResumedActivity;
+
     public static Launcher getLauncher(Context context) {
         return fromContext(context);
     }
@@ -2665,6 +2668,13 @@ public class Launcher extends StatefulActivity<LauncherState>
         return false; // Base launcher does not track desktop tasks
     }
 
+    /**
+     * @return true when home screen should be shown behind desktop mode.
+     */
+    public boolean shouldShowHomeBehindDesktop() {
+        return false; // Base launcher does not show behind desktop mode.
+    }
+
     // Getters and Setters
 
     public boolean isWorkspaceLocked() {
@@ -2921,6 +2931,19 @@ public class Launcher extends StatefulActivity<LauncherState>
     public OnClickListener getItemOnClickListener() {
         return ItemClickHandler.INSTANCE;
     }
+
+    /**
+     * @return true if Launcher is the current top resumed activity.
+     */
+    public boolean isTopResumedActivity() {
+        return mIsTopResumedActivity;
+    }
+
+    @Override
+    public void onTopResumedActivityChanged(boolean isResumed) {
+        mIsTopResumedActivity = isResumed;
+    }
+
 
     // End of Getters and Setters
 }

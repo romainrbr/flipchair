@@ -16,6 +16,8 @@
 
 package com.android.launcher3;
 
+import static android.view.View.MeasureSpec.makeMeasureSpec;
+
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.util.MultiTranslateDelegate.INDEX_BUBBLE_ADJUSTMENT_ANIM;
 
@@ -315,8 +317,8 @@ public class Hotseat extends CellLayout implements Insettable {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         DeviceProfile dp = mActivity.getDeviceProfile();
-        mQsb.measure(MeasureSpec.makeMeasureSpec(dp.hotseatQsbWidth, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(dp.hotseatQsbHeight, MeasureSpec.EXACTLY));
+        mQsb.measure(makeMeasureSpec(dp.hotseatQsbWidth, MeasureSpec.EXACTLY),
+                makeMeasureSpec(dp.getHotseatProfile().getQsbHeight(), MeasureSpec.EXACTLY));
     }
 
     @Override
@@ -336,7 +338,7 @@ public class Hotseat extends CellLayout implements Insettable {
         int right = left + qsbMeasuredWidth;
 
         int bottom = b - t - dp.getQsbOffsetY();
-        int top = bottom - dp.hotseatQsbHeight;
+        int top = bottom - dp.getHotseatProfile().getQsbHeight();
         mQsb.layout(left, top, right, bottom);
     }
 

@@ -22,6 +22,7 @@ import com.android.launcher3.Flags
 import com.android.launcher3.LauncherPrefChangeListener
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING
+import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule
 import com.android.launcher3.concurrent.ExecutorsModule
 import com.android.launcher3.dagger.ApiWrapperModule
 import com.android.launcher3.dagger.AppModule
@@ -86,6 +87,7 @@ interface TaskbarSandboxComponent : LauncherAppComponent {
             TaskbarSandboxWmProxyModule::class,
             TaskbarPerDisplayReposModule::class,
             DesktopVisibilityControllerModule::class,
+            NoOpWidgetPickerModule::class,
         ]
 )
 interface AllTaskbarSandboxModules

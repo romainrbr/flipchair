@@ -950,7 +950,8 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
         onTaskbarInAppDisplayProgressUpdate(progress, WIDGETS_PAGE_PROGRESS_INDEX);
         if (mEnableWidgetDepth) {
             getDepthController().widgetDepth.setValue(Utilities.mapToRange(
-                    progress, 0f, 1f, 0f, getDeviceProfile().bottomSheetDepth, EMPHASIZED));
+                    progress, 0f, 1f, 0f,
+                    getDeviceProfile().getBottomSheetProfile().getBottomSheetDepth(), EMPHASIZED));
         }
     }
 

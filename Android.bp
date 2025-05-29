@@ -47,8 +47,8 @@ filegroup {
 filegroup {
     name: "launcher-compose-enabled-src",
     srcs: [
-        "compose/facade/enabled/*.kt",
-        "compose/facade/core/*.kt",
+        "compose/facade/enabled/**/*.kt",
+        "compose/facade/core/**/*.kt",
         "compose/features/**/*.kt",
     ],
 }
@@ -56,8 +56,8 @@ filegroup {
 filegroup {
     name: "launcher-compose-disabled-src",
     srcs: [
-        "compose/facade/core/*.kt",
-        "compose/facade/disabled/*.kt",
+        "compose/facade/core/**/*.kt",
+        "compose/facade/disabled/**/*.kt",
     ],
 }
 

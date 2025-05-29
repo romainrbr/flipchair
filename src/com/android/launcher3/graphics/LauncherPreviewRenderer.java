@@ -71,6 +71,7 @@ import com.android.launcher3.R;
 import com.android.launcher3.WorkspaceLayoutManager;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.celllayout.CellPosMapper;
+import com.android.launcher3.compose.core.widgetpicker.NoOpWidgetPickerModule;
 import com.android.launcher3.concurrent.ExecutorsModule;
 import com.android.launcher3.dagger.ApiWrapperModule;
 import com.android.launcher3.dagger.AppModule;
@@ -546,6 +547,7 @@ public class LauncherPreviewRenderer extends BaseContext
             LauncherConcurrencyModule.class,
             ExecutorsModule.class,
             LauncherExecutorsModule.class,
+            NoOpWidgetPickerModule.class
     })
     public interface PreviewAppComponent extends LauncherAppComponent {
 

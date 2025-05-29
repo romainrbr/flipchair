@@ -5189,6 +5189,10 @@ public abstract class RecentsView<
         }
     }
 
+    protected void resetShareUIState() {
+        mUtils.resetShareUIState();
+    }
+
     /**
      * Primarily used by overview actions to initiate split from focused task, logs the source
      * of split invocation as such.
@@ -5840,7 +5844,8 @@ public abstract class RecentsView<
                     finishRecentsAnimation(false /* toRecents */, null);
                     onTaskLaunchAnimationEnd(true /* success */);
                 } else {
-                    taskView.launchWithoutAnimation(this::onTaskLaunchAnimationEnd);
+                    finishRecentsAnimation(true /* toRecents */,
+                            () -> taskView.launchWithoutAnimation(this::onTaskLaunchAnimationEnd));
                 }
                 mContainer.getStatsLogManager().logger().withItemInfo(taskView.getItemInfo())
                         .log(LAUNCHER_TASK_LAUNCH_SWIPE_DOWN);

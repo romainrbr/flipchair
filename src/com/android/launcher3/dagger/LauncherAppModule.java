@@ -21,17 +21,18 @@ import com.android.launcher3.util.dagger.LauncherExecutorsModule;
 
 import dagger.Module;
 
-@Module(includes = {
-        WindowManagerProxyModule.class,
-        ApiWrapperModule.class,
-        PluginManagerWrapperModule.class,
-        StaticObjectModule.class,
-        WidgetModule.class,
-        AppModule.class,
-        PerDisplayModule.class,
-        LauncherConcurrencyModule.class,
-        ExecutorsModule.class,
-        LauncherExecutorsModule.class,
-})
-public class LauncherAppModule {
-}
+@Module(
+        includes = {
+            WindowManagerProxyModule.class,
+            ApiWrapperModule.class,
+            PluginManagerWrapperModule.class,
+            StaticObjectModule.class,
+            WidgetModule.class,
+            AppModule.class,
+            PerDisplayModule.class,
+            LauncherConcurrencyModule.class,
+            ExecutorsModule.class,
+            LauncherExecutorsModule.class,
+        },
+        subcomponents = ActivityContextComponent.class)
+public class LauncherAppModule { }

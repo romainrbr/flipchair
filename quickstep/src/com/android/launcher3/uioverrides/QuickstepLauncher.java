@@ -214,6 +214,7 @@ import com.android.systemui.unfold.updates.RotationChangeProvider;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
 import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import kotlin.Unit;
 
@@ -1401,6 +1402,11 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
     public boolean areDesktopTasksVisible() {
         return DesktopVisibilityController.INSTANCE.get(this)
                 .isInDesktopModeAndNotInOverview(getDisplayId());
+    }
+
+    @Override
+    public boolean shouldShowHomeBehindDesktop() {
+        return DesktopState.fromContext(this).getShouldShowHomeBehindDesktop();
     }
 
     @Override

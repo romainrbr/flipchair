@@ -100,6 +100,7 @@ public interface LauncherBaseAppComponent {
     InstantAppResolver getInstantAppResolver();
     DumpManager getDumpManager();
     StatsLogManager.StatsLogManagerFactory getStatsLogManagerFactory();
+    ActivityContextComponent.Builder getActivityContextComponentBuilder();
 
     /** Builder for LauncherBaseAppComponent. */
     interface Builder {

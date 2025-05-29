@@ -395,10 +395,11 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                         taskContentView
                     }
                 if (enableDesktopExplodedView() && !enableMultipleDesktops(context)) {
-                    // Note, currently there are some issues with launching an individual app window
-                    // with multi-desks enabled, see b/413378320. Will enable this functionality
-                    // after b/413378320 is fixed.
-                    snapshotView.setOnClickListener {
+                    // Note, currently there are some issues with launching an individual app
+                    // window with multi-desks enabled, see b/413378320. Will enable this
+                    // functionality after b/413378320 is fixed.
+                    taskContentView.isFocusable = true
+                    taskContentView.setOnClickListener {
                         launchTaskWithDesktopController(animated = true, task.key.id)
                     }
                 }

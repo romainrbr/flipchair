@@ -273,6 +273,10 @@ class DesktopTaskView @JvmOverloads constructor(context: Context, attrs: Attribu
                     remoteTargetHandle.taskViewSimulator.setTaskRectTransform(transform)
                     remoteTargetHandle.taskViewSimulator.apply(remoteTargetHandle.transformParams)
                 }
+
+                (taskContainer.taskContentView as? TaskContentView)?.setTaskHeaderAlpha(
+                    explodeProgress
+                )
             }
 
             val overviewTaskLeft = overviewTaskBounds.left * widthScale

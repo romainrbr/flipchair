@@ -1433,7 +1433,7 @@ public class NavbarButtonsViewController implements TaskbarControllers.LoggableT
             // Skip additional translations on the nav bar container while in SUW layout
             return 0;
         } else if (mContext.shouldStartAlignTaskbar()) {
-            int navBarSpacing = dp.inlineNavButtonsEndSpacingPx;
+            int navBarSpacing = dp.getHotseatProfile().getInlineNavButtonsEndSpacingPx();
             // If the taskbar is start aligned the navigation bar is aligned to the start or end of
             // the container, depending on the bubble bar location
             if (isNavbarOnRight) {

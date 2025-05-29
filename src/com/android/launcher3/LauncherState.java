@@ -219,7 +219,7 @@ public abstract class LauncherState implements BaseState<LauncherState> {
     public int getFloatingSearchBarRestingMarginBottom(Launcher launcher) {
         DeviceProfile dp = launcher.getDeviceProfile();
         return areElementsVisible(launcher, FLOATING_SEARCH_BAR) ? dp.getQsbOffsetY()
-                : -dp.hotseatQsbHeight;
+                : -dp.getHotseatProfile().getQsbHeight();
     }
 
     /**

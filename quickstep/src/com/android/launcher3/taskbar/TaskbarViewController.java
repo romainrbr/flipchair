@@ -1080,7 +1080,7 @@ public class TaskbarViewController implements TaskbarControllers.LoggableTaskbar
                 float halfQsbIconWidthDiff =
                         (launcherDp.hotseatQsbWidth - taskbarDp.taskbarIconSize) / 2f;
                 float scale = ((float) taskbarDp.taskbarIconSize)
-                        / launcherDp.hotseatQsbVisualHeight;
+                        / launcherDp.getHotseatProfile().getQsbVisualHeight();
                 setter.addFloat(child, SCALE_PROPERTY, scale, 1f, interpolator);
 
                 float fromX = isRtl ? -halfQsbIconWidthDiff : halfQsbIconWidthDiff;

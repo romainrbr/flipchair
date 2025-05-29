@@ -5189,6 +5189,10 @@ public abstract class RecentsView<
         }
     }
 
+    protected void resetShareUIState() {
+        mUtils.resetShareUIState();
+    }
+
     /**
      * Primarily used by overview actions to initiate split from focused task, logs the source
      * of split invocation as such.

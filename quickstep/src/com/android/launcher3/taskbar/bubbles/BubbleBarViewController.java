@@ -565,6 +565,7 @@ public class BubbleBarViewController {
         mBarView.showDropTarget(showingDropTarget);
     }
 
+    //TODO(b/411505605) remove unused IPC calls and code
     /**
      * Notifies the controller that a drag event is over the Bubble Bar drop zone. The controller
      * will display the appropriate drop target and enter drop target mode. The controller will also

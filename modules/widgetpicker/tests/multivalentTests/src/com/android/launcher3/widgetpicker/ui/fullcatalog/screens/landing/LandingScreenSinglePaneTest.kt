@@ -65,6 +65,7 @@ import org.junit.runner.RunWith
 class LandingScreenSinglePaneTest {
     @get:Rule
     val limitDevicesRule = LimitDevicesRule()
+
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -123,6 +124,8 @@ class LandingScreenSinglePaneTest {
         LandingScreen(
             isCompact = true,
             onEnterSearchMode = {},
+            onWidgetInteraction = {},
+            showDragShadow = true,
             viewModel = viewModel,
         )
     }

@@ -126,6 +126,8 @@ class LandingScreenTwoPaneTest {
         LandingScreen(
             isCompact = false,
             onEnterSearchMode = {},
+            onWidgetInteraction = {},
+            showDragShadow = true,
             viewModel = viewModel,
         )
     }

@@ -165,6 +165,7 @@ import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
 import com.android.launcher3.celllayout.CellPosMapper.TwoPanelCellPosMapper;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
+import com.android.launcher3.compose.ComposeFacade;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.debug.TestEventEmitter;
@@ -2878,14 +2879,19 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Overridden
     }
 
-    /**
-     * Opens the widget picker UI. Returns true if opened.
-     */
+    /** Opens the widget picker UI. Returns true if opened. */
     public boolean openWidgetPicker() {
         if (getPackageManager().isSafeMode()) {
             Toast.makeText(this, R.string.safemode_widget_error, Toast.LENGTH_SHORT).show();
             return false;
         } else {
+            if (com.android.launcher3.Flags.enableWidgetPickerRefactor() &&
+                     ComposeFacade.INSTANCE.isComposeAvailable()) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setPackage(asContext().getPackageName());
+                asContext().startActivity(intent);
+                return true;
+            }
             openWidgetsFullSheet();
             return true;
         }

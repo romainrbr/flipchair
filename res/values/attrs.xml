@@ -48,6 +48,10 @@
     <attr name="overviewScrimColor" format="color" />
     <attr name="overviewScrimColorFallback" format="color" />
     <attr name="overviewScrimColorBlur" format="color" />
+    <attr name="overviewScrimForegroundPrimaryBlur" format="color" />
+    <attr name="overviewScrimForegroundPrimary" format="color" />
+    <attr name="overviewScrimForegroundSecondaryBlur" format="color" />
+    <attr name="overviewScrimForegroundSecondary" format="color" />
     <attr name="overviewActionsContainerStyle" format="reference" />
     <attr name="overviewActionButtonStyle" format="reference" />
     <attr name="popupNotificationDotColor" format="color" />

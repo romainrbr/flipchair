@@ -34,6 +34,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.FallbackTaskbarUIController;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
@@ -227,7 +228,8 @@ public final class FallbackActivityInterface extends
     }
 
     @Override
-    protected int getOverviewScrimColorForState(RecentsActivity activity, RecentsState state) {
+    protected ScrimColors getOverviewScrimColorForState(RecentsActivity activity,
+            RecentsState state) {
         return state.getScrimColor(activity);
     }
 }

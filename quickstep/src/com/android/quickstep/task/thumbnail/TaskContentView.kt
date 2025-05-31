@@ -153,6 +153,7 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     override fun onRecycle() {
         taskHeaderView?.isInvisible = true
+        taskHeaderView?.alpha = 1.0f
         onSizeChanged = null
         outlineBounds = null
         alpha = 1.0f
@@ -274,6 +275,10 @@ class TaskContentView @JvmOverloads constructor(context: Context, attrs: Attribu
             setAppTimerToastState(taskAppTimerUiState)
             updateContentDescriptionWithTimer(taskAppTimerUiState)
         }
+    }
+
+    fun setTaskHeaderAlpha(alpha: Float) {
+        taskHeaderView?.alpha = alpha
     }
 
     private fun updateContentDescriptionWithTimer(state: TaskAppTimerUiState) {

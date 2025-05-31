@@ -34,6 +34,7 @@ import com.android.launcher3.statemanager.StateManager;
 import com.android.launcher3.taskbar.TaskbarUIController;
 import com.android.launcher3.util.DaggerSingletonObject;
 import com.android.launcher3.util.DisplayController;
+import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.dagger.QuickstepBaseAppComponent;
 import com.android.quickstep.fallback.RecentsState;
@@ -47,6 +48,7 @@ import dagger.assisted.AssistedInject;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+
 
 /**
  * {@link BaseWindowInterface} for recents when the default launcher is different than the
@@ -143,7 +145,7 @@ public final class FallbackWindowInterface extends BaseWindowInterface {
     }
 
     @Override
-    protected int getOverviewScrimColorForState(RecentsWindowManager container,
+    protected ScrimColors getOverviewScrimColorForState(RecentsWindowManager container,
             RecentsState state) {
         return state.getScrimColor(container.asContext());
     }

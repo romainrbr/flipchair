@@ -556,7 +556,8 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
         val topLeftTaskPercent = splitInfo.leftTopTaskPercent
         val dividerBarPercent = splitInfo.dividerPercent
 
-        val taskbarHeight = if (dp.isTransientTaskbar) 0 else dp.taskbarHeight
+        val taskbarHeight =
+            if (dp.taskbarProfile.isTransientTaskbar) 0 else dp.taskbarProfile.height
         val scale =
             outRect.height().toFloat() / (dp.deviceProperties.availableHeightPx - taskbarHeight)
         val topTaskHeight = dp.deviceProperties.availableHeightPx * topLeftTaskPercent
@@ -669,7 +670,8 @@ class PortraitPagedViewHandler : DefaultPagedViewHandler(), RecentsPagedOrientat
             secondTaskViewSize.x = parentWidth - firstTaskViewSize.x - scaledDividerBar
             secondTaskViewSize.y = totalThumbnailHeight
         } else {
-            val taskbarHeight = if (dp.isTransientTaskbar) 0 else dp.taskbarHeight
+            val taskbarHeight =
+                if (dp.taskbarProfile.isTransientTaskbar) 0 else dp.taskbarProfile.height
             val scale =
                 totalThumbnailHeight.toFloat() /
                     (dp.deviceProperties.availableHeightPx - taskbarHeight)

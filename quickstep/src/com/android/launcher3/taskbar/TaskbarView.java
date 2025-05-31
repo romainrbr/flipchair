@@ -162,10 +162,11 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         onDeviceProfileChanged(mActivityContext.getDeviceProfile());
 
         int actualMargin = resources.getDimensionPixelSize(R.dimen.taskbar_icon_spacing);
-        int actualIconSize = mActivityContext.getDeviceProfile().taskbarIconSize;
+        int actualIconSize =
+                mActivityContext.getDeviceProfile().getTaskbarProfile().getIconSize();
         if (enableTaskbarPinning() && canTransitionToTransientTaskbar()) {
             DeviceProfile deviceProfile = mActivityContext.getTransientTaskbarDeviceProfile();
-            actualIconSize = deviceProfile.taskbarIconSize;
+            actualIconSize = deviceProfile.getTaskbarProfile().getIconSize();
         }
         int visualIconSize = (int) (actualIconSize * ICON_VISIBLE_AREA_FACTOR);
 
@@ -178,7 +179,10 @@ public class TaskbarView extends FrameLayout implements FolderIcon.FolderIconPar
         // We always layout taskbar as a transient taskbar when we have taskbar pinning feature on,
         // then we scale and translate the icons to match persistent taskbar designs, so we use
         // taskbar icon size from current device profile to calculate correct item padding.
-        mItemPadding = (mIconTouchSize - mActivityContext.getDeviceProfile().taskbarIconSize) / 2;
+        mItemPadding = (mIconTouchSize - mActivityContext
+                        .getDeviceProfile()
+                        .getTaskbarProfile()
+                        .getIconSize()) / 2;
         mFolderLeaveBehindColor = Themes.getAttrColor(mActivityContext,
                 android.R.attr.textColorTertiary);
 

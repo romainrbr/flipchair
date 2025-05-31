@@ -165,6 +165,7 @@ import com.android.launcher3.celllayout.CellPosMapper;
 import com.android.launcher3.celllayout.CellPosMapper.CellPos;
 import com.android.launcher3.celllayout.CellPosMapper.TwoPanelCellPosMapper;
 import com.android.launcher3.compat.AccessibilityManagerCompat;
+import com.android.launcher3.compose.ComposeFacade;
 import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.dagger.LauncherComponentProvider;
 import com.android.launcher3.debug.TestEventEmitter;
@@ -293,6 +294,9 @@ public class Launcher extends StatefulActivity<LauncherState>
     public static final String INTENT_ACTION_ALL_APPS_TOGGLE =
             "launcher.intent_action_all_apps_toggle";
 
+    private static final String EXCLUDE_CLOSE_WIDGET_PICKER =
+            "launcher.extra.EXCLUDE_CLOSE_WIDGET_PICKER";
+
     private StateManager<LauncherState, Launcher> mStateManager;
 
     private static final int ON_ACTIVITY_RESULT_ANIMATION_DELAY = 500;
@@ -402,7 +406,6 @@ public class Launcher extends StatefulActivity<LauncherState>
     private StartupLatencyLogger mStartupLatencyLogger;
 
     protected WallpaperThemeManager mWallpaperThemeManager;
-
 
     private boolean mIsTopResumedActivity;
 
@@ -1527,8 +1530,12 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (isActionMain) {
             if (!internalStateHandled) {
                 // In all these cases, only animate if we're already on home
-                AbstractFloatingView.closeAllOpenViewsExcept(
-                        this, isStarted(), AbstractFloatingView.TYPE_LISTENER);
+                int excludedViews = AbstractFloatingView.TYPE_LISTENER;
+                if (intent.getBooleanExtra(EXCLUDE_CLOSE_WIDGET_PICKER, false)) {
+                    excludedViews |= TYPE_WIDGETS_FULL_SHEET;
+                }
+                AbstractFloatingView.closeAllOpenViewsExcept(this, isStarted(), excludedViews);
+
 
                 if (!isInState(NORMAL)) {
                     // Only change state, if not already the same. This prevents cancelling any
@@ -2872,14 +2879,19 @@ public class Launcher extends StatefulActivity<LauncherState>
         // Overridden
     }
 
-    /**
-     * Opens the widget picker UI. Returns true if opened.
-     */
+    /** Opens the widget picker UI. Returns true if opened. */
     public boolean openWidgetPicker() {
         if (getPackageManager().isSafeMode()) {
             Toast.makeText(this, R.string.safemode_widget_error, Toast.LENGTH_SHORT).show();
             return false;
         } else {
+            if (com.android.launcher3.Flags.enableWidgetPickerRefactor() &&
+                     ComposeFacade.INSTANCE.isComposeAvailable()) {
+                Intent intent = new Intent(Intent.ACTION_PICK);
+                intent.setPackage(asContext().getPackageName());
+                asContext().startActivity(intent);
+                return true;
+            }
             openWidgetsFullSheet();
             return true;
         }
@@ -2892,6 +2904,13 @@ public class Launcher extends StatefulActivity<LauncherState>
                 this, TYPE_WIDGETS_FULL_SHEET);
         if (floatingView != null) {
             return (WidgetsFullSheet) floatingView;
+        }
+        if (shouldShowHomeBehindDesktop() && !mIsTopResumedActivity) {
+            Intent intent = new Intent(Intent.ACTION_MAIN)
+                    .addCategory(Intent.CATEGORY_HOME)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .putExtra(EXCLUDE_CLOSE_WIDGET_PICKER, true);
+            startActivity(intent);
         }
         return WidgetsFullSheet.show(this, true /* animated */);
     }

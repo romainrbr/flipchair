@@ -908,8 +908,6 @@ public class TouchInteractionService extends Service {
 
     private void onOverviewTargetChanged(boolean isHomeAndOverviewSame) {
         mAllAppsActionManager.setHomeAndOverviewSame(isHomeAndOverviewSame);
-        // TODO (b/399089118): how will this work with per-display Taskbars? Is using the
-        //  default-display container ok?
         RecentsViewContainer newOverviewContainer =
                 mOverviewComponentObserver.getContainerInterface(
                         DEFAULT_DISPLAY).getCreatedContainer();

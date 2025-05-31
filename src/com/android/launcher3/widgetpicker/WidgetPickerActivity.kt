@@ -50,7 +50,7 @@ open class WidgetPickerActivity : BaseActivity() {
         checkNotNull(_dragLayer).recreateControllers()
 
         if (Flags.enableWidgetPickerRefactor() && isComposeAvailable()) {
-            // TODO(b/408283627): add compose picker here.
+            component.widgetPickerComposeWrapper.showAllWidgets(this)
         }
     }
 

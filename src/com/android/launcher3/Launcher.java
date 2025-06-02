@@ -1172,7 +1172,10 @@ public class Launcher extends StatefulActivity<LauncherState>
             getAllAppsExitEvent().ifPresent(getStatsLogManager().logger()::log);
             mAllAppsSessionLogId = null;
         }
+        setTitle(state);
+    }
 
+    protected void setTitle(@NonNull LauncherState state) {
         // Set screen title for Talkback
         setTitle(state.getTitle());
     }

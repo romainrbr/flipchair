@@ -359,9 +359,11 @@ public class BaseDepthController {
      * applied to below {@link #mBaseSurface}.
      * </p>
      */
-    public void setBaseSurfaceOverride(@Nullable SurfaceControl baseSurfaceOverride) {
+    public void setBaseSurfaceOverride(@Nullable SurfaceControl baseSurfaceOverride,
+            boolean applyOnDraw) {
         if (mBaseSurfaceOverride != baseSurfaceOverride) {
-            boolean applyImmediately = mBaseSurfaceOverride != null && baseSurfaceOverride == null;
+            boolean applyImmediately = mBaseSurfaceOverride != null && baseSurfaceOverride == null
+                    && !applyOnDraw;
             mBaseSurfaceOverride = baseSurfaceOverride;
             Log.d(TAG, "setBaseSurfaceOverride: applying blur behind leash " + baseSurfaceOverride);
             SurfaceControl.Transaction transaction = setupBlurSurface();

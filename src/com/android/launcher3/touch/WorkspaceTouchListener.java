@@ -149,8 +149,8 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
             result = true;
         } else {
             // We don't want to handle touch unless we're in AllApps bottom sheet, let workspace
-            // handle it as usual.
-            result = isInAllAppsBottomSheet;
+            // handle it as usual. Also, let workspace handle cancel/up events to settle correctly.
+            result = isInAllAppsBottomSheet && action != ACTION_CANCEL && action != ACTION_UP;
         }
 
         if (action == ACTION_UP || action == ACTION_POINTER_UP) {

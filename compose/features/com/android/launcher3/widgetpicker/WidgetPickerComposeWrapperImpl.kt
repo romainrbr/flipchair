@@ -32,13 +32,14 @@ import com.android.launcher3.compose.core.widgetpicker.WidgetPickerComposeWrappe
 import com.android.launcher3.concurrent.annotations.BackgroundContext
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.util.ApiWrapper
+import com.android.launcher3.widgetpicker.WidgetPickerConfig
 import com.android.launcher3.widgetpicker.WidgetPickerConfig.Companion.EXTRA_IS_PENDING_WIDGET_DRAG
-import com.android.launcher3.widgetpicker.WidgetPickerConfig.Companion.asHostConstraints
 import com.android.launcher3.widgetpicker.data.repository.WidgetAppIconsRepository
 import com.android.launcher3.widgetpicker.data.repository.WidgetUsersRepository
 import com.android.launcher3.widgetpicker.data.repository.WidgetsRepository
 import com.android.launcher3.widgetpicker.listeners.WidgetPickerAddItemListener
 import com.android.launcher3.widgetpicker.listeners.WidgetPickerDragItemListener
+import com.android.launcher3.widgetpicker.shared.model.HostConstraint
 import com.android.launcher3.widgetpicker.shared.model.WidgetHostInfo
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.WidgetPickerEventListeners
@@ -225,5 +226,23 @@ class WidgetPickerComposeWrapperImpl @Inject constructor(
 
             finish()
         }
+
+        /** Builds the host constraints to provide to the widget picker module. */
+        fun WidgetPickerConfig.asHostConstraints() =
+            buildList {
+                if (filteredUsers.isNotEmpty()) {
+                    add(HostConstraint.HostUserConstraint(filteredUsers))
+                }
+                if (categoryInclusionFilter != 0
+                    || categoryExclusionFilter != 0
+                ) {
+                    add(
+                        HostConstraint.HostCategoryConstraint(
+                            categoryInclusionMask = categoryInclusionFilter,
+                            categoryExclusionMask = categoryExclusionFilter,
+                        )
+                    )
+                }
+            }
     }
 }

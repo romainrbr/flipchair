@@ -17,6 +17,7 @@
 package com.android.launcher3.widgetpicker
 
 import android.os.UserHandle
+import com.android.launcher3.widgetpicker.shared.model.HostConstraint
 
 /**
  * Possible parameters sent over by the widget host when launching the widget picker activity.
@@ -57,5 +58,23 @@ data class WidgetPickerConfig(
         const val EXTRA_IS_PENDING_WIDGET_DRAG = "is_pending_widget_drag"
 
         const val HOMESCREEN_WIDGETS_UI_SURFACE = "widgets"
+
+        /** Builds the host constraints to provide to the widget picker module. */
+        fun WidgetPickerConfig.asHostConstraints() =
+            buildList {
+                if (filteredUsers.isNotEmpty()) {
+                    add(HostConstraint.HostUserConstraint(filteredUsers))
+                }
+                if (categoryInclusionFilter != 0
+                    || categoryExclusionFilter != 0
+                ) {
+                    add(
+                        HostConstraint.HostCategoryConstraint(
+                            categoryInclusionMask = categoryInclusionFilter,
+                            categoryExclusionMask = categoryExclusionFilter,
+                        )
+                    )
+                }
+            }
     }
 }

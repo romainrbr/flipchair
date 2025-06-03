@@ -322,6 +322,9 @@ constructor(
     var taskViewId = UNBOUND_TASK_VIEW_ID
     var isEndQuickSwitchCuj = false
     var isBeingDraggedForDismissal = false
+    val isBeingDismissed
+        get() = secondaryDismissTranslationProperty.get(this) != 0f
+
     var sysUiStatusNavFlags: Int = 0
         get() =
             if (enableRefactorTaskThumbnail()) field

@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -366,6 +367,23 @@ public abstract class AbsSwipeUpHandlerTestCase<
             verifyRecentsAnimationFinishedAndCallCallback();
             assertTrue(handler.mStateCallback.hasStates(STATE_HANDLER_INVALIDATED));
         });
+    }
+
+    @Test
+    public void invalidateHandlerWithLauncher_runsGestureAnimationEndCallback() {
+        SWIPE_HANDLER handler = createSwipeHandler();
+        Runnable onGestureAnimationEndCallback = mock(Runnable.class);
+        handler.setGestureAnimationEndCallback(onGestureAnimationEndCallback);
+        handler.onActivityInit(true); // Sets STATE_LAUNCHER_PRESENT
+
+        // Use onConsumerAboutToBeSwitched to call reset(),to sets STATE_HANDLER_INVALIDATED. This
+        // will then call invalidateHandlerWithLauncher. This will hit the reset() in the else
+        // condition of onConsumerAboutToBeSwitched, as the gesture state is a mock and will
+        // return false for the booleans checked in the if-condition.
+        handler.onConsumerAboutToBeSwitched();
+
+        verify(getRecentsView()).onGestureAnimationEnd();
+        verify(onGestureAnimationEndCallback).run();
     }
 
     @Test

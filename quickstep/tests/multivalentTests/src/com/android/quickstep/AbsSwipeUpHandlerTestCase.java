@@ -404,6 +404,13 @@ public abstract class AbsSwipeUpHandlerTestCase<
                 .unregister(eq("AbsSwipeUpHandler.mLauncherOnDestroyCallback")));
     }
 
+    @Test
+    public void testRecentsViewNullability() {
+        // Do not trigger onActivityInit to ensure mRecentsView is null
+        createSwipeUpHandlerForGesture(
+                GestureState.GestureEndTarget.HOME, /* triggerOnActivityInit= */ false);
+    }
+
     /**
      * Verifies that RecentsAnimationController#finish() is called, and captures and runs any
      * callback that was passed to it. This ensures that STATE_CURRENT_TASK_FINISHED is correctly
@@ -425,13 +432,20 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     private SWIPE_HANDLER createSwipeUpHandlerForGesture(GestureState.GestureEndTarget endTarget) {
+        return createSwipeUpHandlerForGesture(endTarget, true);
+    }
+
+    private SWIPE_HANDLER createSwipeUpHandlerForGesture(
+            GestureState.GestureEndTarget endTarget, boolean triggerOnActivityInit) {
         boolean isQuickSwitch = endTarget == GestureState.GestureEndTarget.NEW_TASK;
 
         doReturn(mState).when(mActivityInterface).stateFromGestureEndTarget(any());
 
         SWIPE_HANDLER swipeHandler = createSwipeHandler(SystemClock.uptimeMillis(), isQuickSwitch);
 
-        swipeHandler.onActivityInit(/* alreadyOnHome= */ false);
+        if (triggerOnActivityInit) {
+            swipeHandler.onActivityInit(/* alreadyOnHome= */ false);
+        }
         swipeHandler.onGestureStarted(isQuickSwitch);
         onRecentsAnimationStart(swipeHandler);
 

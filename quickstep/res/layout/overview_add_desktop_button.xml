@@ -24,4 +24,5 @@
     android:background="?attr/addDesktopButtonBackgroundDrawable"
     launcher:focusBorderColor="@color/materialColorOutline"
     android:tint="@color/materialColorOnSurface"
+    android:contentDescription="@string/add_desk_button_content_description"
     android:padding="10dp" />

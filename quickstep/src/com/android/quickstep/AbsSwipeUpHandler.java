@@ -597,7 +597,7 @@ public abstract class AbsSwipeUpHandler<
 
     private void onLauncherStart() {
         final RECENTS_CONTAINER container = mContainerInterface.getCreatedContainer();
-        if (container == null || mContainer != container) {
+        if (container == null || mContainer != container || mRecentsView == null) {
             return;
         }
         if (mStateCallback.hasStates(STATE_HANDLER_INVALIDATED)) {

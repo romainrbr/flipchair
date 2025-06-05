@@ -252,6 +252,9 @@
     <color name="widget_cell_title_color_dark">@color/system_on_surface_dark</color>
     <color name="widget_cell_subtitle_color_dark">@color/system_on_surface_variant_dark</color>
 
+    <color name="suw_all_set_expressive_theme_color">#ECDFE5</color>
+    <color name="suw_all_set_scrim">#40000000</color>
+
     <color name="material_color_surface_container_lowest">#FFFFFF</color>
     <color name="material_color_on_surface">#1B1B1F</color>
 

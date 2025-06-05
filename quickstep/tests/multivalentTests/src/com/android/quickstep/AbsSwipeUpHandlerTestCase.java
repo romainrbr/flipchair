@@ -405,8 +405,9 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     @Test
-    public void testRecentsViewNullability() {
-        // Do not trigger onActivityInit to ensure mRecentsView is null
+    public void test_noActivityInit_doesNotThrowException() {
+        // Do not trigger onActivityInit to ensure AbsSwipeUpHandler.mRecentsView and
+        // AbsSwipeUpHandler.mContainer are null
         createSwipeUpHandlerForGesture(
                 GestureState.GestureEndTarget.HOME, /* triggerOnActivityInit= */ false);
     }
@@ -466,7 +467,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
 
     private void onRecentsAnimationStart(SWIPE_HANDLER absSwipeUpHandler) {
         runOnMainSync(() -> absSwipeUpHandler.onRecentsAnimationStart(
-                mRecentsAnimationController, mRecentsAnimationTargets, /* transitionInfo= */null));
+                mRecentsAnimationController, mRecentsAnimationTargets, /* transitionInfo= */ null));
     }
 
     protected static void runOnMainSync(Runnable runnable) {

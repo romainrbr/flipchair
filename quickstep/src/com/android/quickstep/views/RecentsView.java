@@ -4569,7 +4569,7 @@ public abstract class RecentsView<
             return super.dispatchKeyEvent(event);
         }
 
-        if (mUtils.shouldInterceptKeyEvent(event)) {
+        if (mUtils.shouldInterceptKeyEvent()) {
             return super.dispatchKeyEvent(event);
         }
 

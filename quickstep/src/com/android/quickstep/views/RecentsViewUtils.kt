@@ -23,7 +23,6 @@ import android.graphics.Rect
 import android.util.FloatProperty
 import android.util.Log
 import android.util.Property
-import android.view.KeyEvent
 import android.view.View
 import android.view.View.LAYOUT_DIRECTION_LTR
 import android.view.View.LAYOUT_DIRECTION_RTL
@@ -503,9 +502,9 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     private fun getTaskMenu(): TaskMenuView? =
         getTopOpenViewWithType(recentsView.mContainer, TYPE_TASK_MENU) as? TaskMenuView
 
-    fun shouldInterceptKeyEvent(event: KeyEvent): Boolean {
+    fun shouldInterceptKeyEvent(): Boolean {
         if (enableOverviewIconMenu()) {
-            return getTaskMenu()?.isOpen == true || event.keyCode == KeyEvent.KEYCODE_TAB
+            return getTaskMenu()?.isOpen == true
         }
         return false
     }

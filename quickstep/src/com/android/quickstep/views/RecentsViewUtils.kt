@@ -502,7 +502,7 @@ class RecentsViewUtils(private val recentsView: RecentsView<*, *>) : DesktopVisi
     private fun getTaskMenu(): TaskMenuView? =
         getTopOpenViewWithType(recentsView.mContainer, TYPE_TASK_MENU) as? TaskMenuView
 
-    fun shouldInterceptKeyEvent(): Boolean {
+    fun taskMenuIsOpen(): Boolean {
         if (enableOverviewIconMenu()) {
             return getTaskMenu()?.isOpen == true
         }

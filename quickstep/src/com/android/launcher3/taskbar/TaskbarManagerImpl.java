@@ -293,7 +293,7 @@ public class TaskbarManagerImpl implements DisplayDecorationListener {
                 // get pinned tasks - we care about all tasks, not just the one moved to the front
                 Set<Integer> taskbarPinnedTasks =
                         entry.getValue().getControllers().taskbarViewController
-                                .getTaskIdsForPinnedApps();
+                                .getShownTaskIds();
 
                 // filter out tasks already marked as perceptible
                 taskbarPinnedTasks.removeAll(mPerceptibleTasks);

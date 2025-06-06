@@ -16,7 +16,6 @@
 
 package com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
@@ -27,7 +26,6 @@ import com.android.launcher3.widgetpicker.shared.model.WidgetAppId
 import com.android.launcher3.widgetpicker.ui.WidgetInteractionInfo
 import com.android.launcher3.widgetpicker.ui.components.WidgetsGrid
 import com.android.launcher3.widgetpicker.ui.components.WidgetsSearchBar
-import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
 
 /**
  * View displayed when user opens the full catalog of widgets in widget picker.
@@ -36,7 +34,7 @@ import com.android.launcher3.widgetpicker.ui.theme.WidgetPickerTheme
  * @param onEnterSearchMode callback for when user focuses on the search bar.
  * @param onWidgetInteraction callback for when user interacts with a widget.
  * @param showDragShadow indicates whether to show the drag shadow when user long presses on a
- * widget to drag it.
+ *   widget to drag it.
  * @param viewModel the view model backing the state and data for the landing screen.
  */
 @Composable
@@ -103,13 +101,10 @@ private fun LandingScreen(
     onWorkWidgetAppToggle: (WidgetAppId?) -> Unit,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
-    ) {
+) {
     val featuredWidgetsContent: @Composable () -> Unit = {
         WidgetsGrid(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .wrapContentSize(),
+            modifier = Modifier.fillMaxSize().wrapContentSize(),
             widgetSizeGroups = featuredWidgetsState.sizeGroups,
             showAllWidgetDetails = false,
             previews = featuredWidgetPreviewsState.previews,

@@ -151,6 +151,7 @@
     <color name="widget_picker_featured_header_icon_color_light">
         @color/system_primary_light
     </color>
+    <color name="widget_picker_no_widget_error_color_light">@color/system_on_surface_light</color>
 
     <color name="widget_picker_preview_placeholder_background_light">
         @color/system_secondary_container_light
@@ -222,6 +223,7 @@
     <color name="widget_picker_featured_header_icon_color_dark">
         @color/system_primary_dark
     </color>
+    <color name="widget_picker_no_widget_error_color_dark">@color/system_on_surface_dark</color>
 
     <color name="widget_picker_preview_placeholder_background_dark">
         @color/system_secondary_container_dark

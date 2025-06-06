@@ -488,7 +488,7 @@ constructor(
             ActiveGestureProtoLogProxy.logOnAbsSwipeUpHandlerNotAvailable(command.displayId)
             return true
         }
-        interactionHandler.setGestureEndCallback {
+        interactionHandler.setGestureAnimationEndCallback {
             onTransitionComplete(command, interactionHandler, onCallbackResult)
         }
         interactionHandler.initWhenReady("OverviewCommandHelper: command.type=${command.type}")

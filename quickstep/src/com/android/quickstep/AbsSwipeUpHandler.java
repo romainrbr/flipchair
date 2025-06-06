@@ -216,6 +216,7 @@ public abstract class AbsSwipeUpHandler<
     protected @Nullable RECENTS_CONTAINER mContainer;
     protected @Nullable RECENTS_VIEW mRecentsView;
     protected Runnable mGestureEndCallback;
+    protected Runnable mGestureAnimationEndCallback;
     protected MultiStateCallback mStateCallback;
     protected boolean mCanceled;
     private boolean mRecentsViewScrollLinked = false;
@@ -2176,6 +2177,9 @@ public abstract class AbsSwipeUpHandler<
         if (mRecentsView != null) {
             mRecentsView.onGestureAnimationEnd();
         }
+        if (mGestureAnimationEndCallback != null) {
+            mGestureAnimationEndCallback.run();
+        }
         resetLauncherListeners();
     }
 
@@ -2394,6 +2398,10 @@ public abstract class AbsSwipeUpHandler<
 
     public void setGestureEndCallback(Runnable gestureEndCallback) {
         mGestureEndCallback = gestureEndCallback;
+    }
+
+    public void setGestureAnimationEndCallback(Runnable gestureAnimationEndCallback) {
+        mGestureAnimationEndCallback = gestureAnimationEndCallback;
     }
 
     protected void linkRecentsViewScroll() {

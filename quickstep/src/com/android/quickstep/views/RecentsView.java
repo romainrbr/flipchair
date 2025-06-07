@@ -4569,14 +4569,21 @@ public abstract class RecentsView<
             return super.dispatchKeyEvent(event);
         }
 
-        if (mUtils.shouldInterceptKeyEvent(event)) {
+        if (mUtils.taskMenuIsOpen()) {
             return super.dispatchKeyEvent(event);
         }
 
         switch (event.getKeyCode()) {
-            case KeyEvent.KEYCODE_TAB:
-                return snapToPageRelative(event.isShiftPressed() ? -1 : 1, true /* cycle */,
-                        TaskGridNavHelper.TaskNavDirection.TAB);
+            case KeyEvent.KEYCODE_TAB: {
+                View currentFocus = findFocus();
+                if (currentFocus == null) return super.dispatchKeyEvent(event);
+
+                View nextFocus = focusSearch(currentFocus,
+                        event.isShiftPressed() ? FOCUS_BACKWARD : FOCUS_FORWARD);
+                if (nextFocus != null) {
+                    return nextFocus.requestFocus();
+                }
+            }
             case KeyEvent.KEYCODE_DPAD_RIGHT:
                 return snapToPageRelative(mIsRtl ? -1 : 1, true /* cycle */,
                         TaskGridNavHelper.TaskNavDirection.RIGHT);

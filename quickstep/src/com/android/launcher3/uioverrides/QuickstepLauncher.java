@@ -36,6 +36,7 @@ import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
 import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
 import static com.android.launcher3.LauncherState.ALL_APPS;
+import static com.android.launcher3.LauncherState.FLAG_SKIP_STATE_ANNOUNCEMENT;
 import static com.android.launcher3.LauncherState.NORMAL;
 import static com.android.launcher3.LauncherState.NO_OFFSET;
 import static com.android.launcher3.LauncherState.OVERVIEW;
@@ -675,6 +676,15 @@ public class QuickstepLauncher extends Launcher implements RecentsViewContainer,
             }
 
         }
+    }
+
+    @Override
+    protected void setTitle(@NonNull LauncherState state) {
+        if (state.hasFlag(FLAG_SKIP_STATE_ANNOUNCEMENT)) {
+            // Prevent accessibility title update announcement
+            getWindow().getAttributes().accessibilityTitle = getString(state.getTitle());
+        }
+        super.setTitle(state);
     }
 
     @Override

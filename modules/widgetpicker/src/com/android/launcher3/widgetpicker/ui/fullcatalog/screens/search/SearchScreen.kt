@@ -37,16 +37,14 @@ import com.android.launcher3.widgetpicker.ui.components.WidgetsSearchBar
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.AppIconsState
 import com.android.launcher3.widgetpicker.ui.fullcatalog.screens.landing.PreviewsState
 
-/**
- * Screen showing the search results in the widget picker when browsing the full widget catalog.
- */
+/** Screen showing the search results in the widget picker when browsing the full widget catalog. */
 @Composable
 fun SearchScreen(
     isCompact: Boolean,
     onExitSearchMode: () -> Unit,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
-    viewModel: SearchScreenViewModel
+    viewModel: SearchScreenViewModel,
 ) {
     SearchScreen(
         isCompact = isCompact,
@@ -77,6 +75,13 @@ private fun SearchScreen(
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
 ) {
+    val emptyWidgetsErrorMessage =
+        if (input.isNotEmpty()) {
+            stringResource(R.string.widgets_no_search_results)
+        } else {
+            ""
+        }
+
     val searchBar: @Composable () -> Unit = {
         WidgetsSearchBar(
             text = input,
@@ -100,6 +105,7 @@ private fun SearchScreen(
             onSelectedWidgetAppChange = onSelectedWidgetAppToggle,
             onWidgetInteraction = onWidgetInteraction,
             showDragShadow = showDragShadow,
+            emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
         )
     } else {
         SearchScreenTwoPane(
@@ -111,6 +117,7 @@ private fun SearchScreen(
             onSelectedWidgetAppChange = onSelectedWidgetAppToggle,
             onWidgetInteraction = onWidgetInteraction,
             showDragShadow = showDragShadow,
+            emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
         )
     }
 }
@@ -125,6 +132,7 @@ private fun SearchScreenSinglePane(
     onSelectedWidgetAppChange: (id: WidgetAppId) -> Unit,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
+    emptyWidgetsErrorMessage: String,
 ) {
     SinglePaneLayout(
         searchBar = searchBar,
@@ -136,16 +144,15 @@ private fun SearchScreenSinglePane(
                     selectedWidgetAppId = selectedWidgetAppId,
                     widgetAppHeaderStyle = WidgetAppHeaderStyle.EXPANDABLE,
                     headerDescriptionStyle = AppHeaderDescriptionStyle.COMBINED_WIDGETS_TITLE,
-                    onWidgetAppClick = { widgetApp ->
-                        onSelectedWidgetAppChange(widgetApp.id)
-                    },
+                    onWidgetAppClick = { widgetApp -> onSelectedWidgetAppChange(widgetApp.id) },
                     appIcons = appIconsState.icons,
                     widgetPreviews = widgetPreviewsState.previews,
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
+                    emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
                 )
             }
-        }
+        },
     )
 }
 
@@ -159,6 +166,7 @@ fun SearchScreenTwoPane(
     onSelectedWidgetAppChange: (id: WidgetAppId) -> Unit,
     onWidgetInteraction: (WidgetInteractionInfo) -> Unit,
     showDragShadow: Boolean,
+    emptyWidgetsErrorMessage: String,
 ) {
     TwoPaneLayout(
         searchBar = searchBar,
@@ -172,33 +180,26 @@ fun SearchScreenTwoPane(
                     headerDescriptionStyle = AppHeaderDescriptionStyle.COMBINED_WIDGETS_TITLE,
                     appIcons = appIconsState.icons,
                     widgetPreviews = widgetPreviewsState.previews,
-                    onWidgetAppClick = { widgetApp ->
-                        onSelectedWidgetAppChange(widgetApp.id)
-                    },
+                    onWidgetAppClick = { widgetApp -> onSelectedWidgetAppChange(widgetApp.id) },
                     onWidgetInteraction = onWidgetInteraction,
                     showDragShadow = showDragShadow,
+                    emptyWidgetsErrorMessage = emptyWidgetsErrorMessage,
                 )
             }
         },
-        rightPaneTitle = rightPaneTitle(
-            resultsState = resultsState,
-            selectedWidgetAppId = selectedWidgetAppId,
-        ),
+        rightPaneTitle =
+            rightPaneTitle(resultsState = resultsState, selectedWidgetAppId = selectedWidgetAppId),
         rightContent = {
             selectedWidgetAppId?.let { id ->
                 val selectedWidgets =
                     remember(id, resultsState) {
                         id.let { selectedId ->
-                            resultsState.results.find {
-                                it.id == selectedId
-                            }?.widgetSizeGroups
+                            resultsState.results.find { it.id == selectedId }?.widgetSizeGroups
                         } ?: listOf()
                     }
 
                 WidgetsGrid(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentSize(),
+                    modifier = Modifier.fillMaxWidth().wrapContentSize(),
                     showAllWidgetDetails = true,
                     widgetSizeGroups = selectedWidgets,
                     previews = widgetPreviewsState.previews,
@@ -217,7 +218,7 @@ fun SearchScreenTwoPane(
 @Composable
 private fun rightPaneTitle(
     resultsState: SearchResultsState,
-    selectedWidgetAppId: WidgetAppId?
+    selectedWidgetAppId: WidgetAppId?,
 ): String? {
     val selectedAppName: CharSequence? =
         selectedWidgetAppId?.let { selectedId ->
@@ -225,10 +226,7 @@ private fun rightPaneTitle(
         }
 
     return if (selectedAppName != null) {
-        stringResource(
-            R.string.widget_picker_right_pane_accessibility_label,
-            selectedAppName
-        )
+        stringResource(R.string.widget_picker_right_pane_accessibility_label, selectedAppName)
     } else {
         null
     }

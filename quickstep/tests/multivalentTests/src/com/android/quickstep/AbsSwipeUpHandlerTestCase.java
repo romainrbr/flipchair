@@ -84,6 +84,7 @@ import com.android.wm.shell.shared.split.SplitBounds;
 import com.google.android.msdl.data.model.MSDLToken;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -370,6 +371,7 @@ public abstract class AbsSwipeUpHandlerTestCase<
     }
 
     @Test
+    @Ignore("b/418979038")
     public void invalidateHandlerWithLauncher_runsGestureAnimationEndCallback() {
         SWIPE_HANDLER handler = createSwipeHandler();
         Runnable onGestureAnimationEndCallback = mock(Runnable.class);

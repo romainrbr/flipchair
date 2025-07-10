@@ -18,7 +18,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="widgets_list_header_app_name_fallback_label" msgid="5151621916941957989">"نام برنامه"</string>
-    <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{‫# ابزارک}one{‫# ابزارک}other{‫# ابزارک}}"</string>
+    <string name="widgets_list_header_widgets_count_label" msgid="578128450351893001">"{count,plural, =1{‫# ابزاره}one{‫# ابزاره}other{‫# ابزاره}}"</string>
     <string name="widget_span_dimensions_format" msgid="4325492869474815131">"‏‫%1$d در %2$d"</string>
     <string name="widget_span_dimensions_accessible_format" msgid="6976586776463259811">"‏‫%1$d عرض در %2$d طول"</string>
     <string name="widget_details_accessibility_label" msgid="4525863892199168041">"‏ابزاره <xliff:g id="WIDGET_NAME">%1$s</xliff:g>، %2$d عرض در %3$d ارتفاع"</string>

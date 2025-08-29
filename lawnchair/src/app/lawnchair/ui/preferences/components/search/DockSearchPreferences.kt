@@ -60,9 +60,7 @@ fun DockSearchPreference(
                     )
                 }
                 ExpandAndShrink(visible = hotseatModeAdapter.state.value != DisabledHotseat) {
-                    Column {
-                        DockPreferencesPreview()
-                    }
+                    DockPreferencesPreview()
                 }
                 ExpandAndShrink(visible = isLawnchairHotseat) {
                     Column {

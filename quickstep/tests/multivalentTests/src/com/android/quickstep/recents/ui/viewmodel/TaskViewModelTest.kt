@@ -35,7 +35,6 @@ import com.android.quickstep.recents.viewmodel.RecentsViewData
 import com.android.quickstep.views.TaskViewType
 import com.android.systemui.shared.recents.model.ThumbnailData
 import com.google.common.truth.Truth.assertThat
-import java.time.Duration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -71,8 +70,6 @@ class TaskViewModelTest {
         whenever(getTaskUseCase.invoke(TASK_MODEL_1.id)).thenReturn(flow { emit(TASK_MODEL_1) })
         whenever(getTaskUseCase.invoke(TASK_MODEL_2.id)).thenReturn(flow { emit(TASK_MODEL_2) })
         whenever(getTaskUseCase.invoke(TASK_MODEL_3.id)).thenReturn(flow { emit(TASK_MODEL_3) })
-        whenever(getTaskUseCase.invoke(TASK_MODEL_MINIMIZED.id))
-            .thenReturn(flow { emit(TASK_MODEL_MINIMIZED) })
         whenever(getTaskUseCase.invoke(INVALID_TASK_ID)).thenReturn(flow { emit(null) })
         recentsViewData.runningTaskIds.value = emptySet()
     }
@@ -84,6 +81,7 @@ class TaskViewModelTest {
             val expectedResult =
                 TaskTileUiState(
                     tasks = listOf(TASK_MODEL_1.toUiState()),
+                    isLiveTile = false,
                     hasHeader = false,
                     sysUiStatusNavFlags = FLAGS_APPEARANCE_LIGHT_THEME,
                     taskOverlayEnabled = false,
@@ -131,6 +129,7 @@ class TaskViewModelTest {
                             TASK_MODEL_3.toUiState(),
                             TaskData.NoData(INVALID_TASK_ID),
                         ),
+                    isLiveTile = false,
                     hasHeader = false,
                     sysUiStatusNavFlags = FLAGS_APPEARANCE_LIGHT_THEME,
                     taskOverlayEnabled = false,
@@ -150,34 +149,11 @@ class TaskViewModelTest {
                 TaskTileUiState(
                     tasks =
                         listOf(
-                            TASK_MODEL_1.toUiState(isLiveTile = true),
-                            TASK_MODEL_2.toUiState(isLiveTile = true),
-                            TASK_MODEL_3.toUiState(isLiveTile = true),
+                            TASK_MODEL_1.toUiState(),
+                            TASK_MODEL_2.toUiState(),
+                            TASK_MODEL_3.toUiState(),
                         ),
-                    hasHeader = false,
-                    sysUiStatusNavFlags = FLAGS_APPEARANCE_LIGHT_THEME,
-                    taskOverlayEnabled = false,
-                    isCentralTask = false,
-                )
-            assertThat(sut.state.first()).isEqualTo(expectedResult)
-        }
-
-    @Test
-    fun isMixedLiveTile_when_oneTaskIsMinimized() =
-        testScope.runTest {
-            recentsViewData.runningTaskShowScreenshot.value = false
-            recentsViewData.runningTaskIds.value =
-                setOf(TASK_MODEL_1.id, TASK_MODEL_2.id, TASK_MODEL_3.id, TASK_MODEL_MINIMIZED.id)
-            sut.bind(TASK_MODEL_1.id, TASK_MODEL_2.id, TASK_MODEL_3.id, TASK_MODEL_MINIMIZED.id)
-            val expectedResult =
-                TaskTileUiState(
-                    tasks =
-                        listOf(
-                            TASK_MODEL_1.toUiState(isLiveTile = true),
-                            TASK_MODEL_2.toUiState(isLiveTile = true),
-                            TASK_MODEL_3.toUiState(isLiveTile = true),
-                            TASK_MODEL_MINIMIZED.toUiState(isLiveTile = false),
-                        ),
+                    isLiveTile = true,
                     hasHeader = false,
                     sysUiStatusNavFlags = FLAGS_APPEARANCE_LIGHT_THEME,
                     taskOverlayEnabled = false,
@@ -201,6 +177,7 @@ class TaskViewModelTest {
                             TASK_MODEL_2.toUiState(),
                             TASK_MODEL_3.toUiState(),
                         ),
+                    isLiveTile = false,
                     hasHeader = false,
                     sysUiStatusNavFlags = FLAGS_APPEARANCE_LIGHT_THEME,
                     taskOverlayEnabled = false,
@@ -223,6 +200,7 @@ class TaskViewModelTest {
                             TASK_MODEL_2.toUiState(),
                             TASK_MODEL_3.toUiState(),
                         ),
+                    isLiveTile = false,
                     hasHeader = false,
                     sysUiStatusNavFlags = FLAGS_APPEARANCE_LIGHT_THEME,
                     taskOverlayEnabled = false,
@@ -241,6 +219,7 @@ class TaskViewModelTest {
             val expectedResult =
                 TaskTileUiState(
                     tasks = listOf(TASK_MODEL_1.toUiState(), TASK_MODEL_2.toUiState()),
+                    isLiveTile = false,
                     hasHeader = false,
                     sysUiStatusNavFlags = FLAGS_APPEARANCE_LIGHT_THEME,
                     taskOverlayEnabled = false,
@@ -256,6 +235,7 @@ class TaskViewModelTest {
             val expectedResult =
                 TaskTileUiState(
                     listOf(TaskData.NoData(INVALID_TASK_ID)),
+                    isLiveTile = false,
                     hasHeader = false,
                     sysUiStatusNavFlags = FLAGS_APPEARANCE_DEFAULT,
                     taskOverlayEnabled = false,
@@ -295,28 +275,6 @@ class TaskViewModelTest {
         }
 
     @Test
-    fun taskOverlayDisabled_when_OverlayIsEnabledForVisibleDesktopTask() =
-        testScope.runTest {
-            sut = createTaskViewModel(TaskViewType.DESKTOP)
-            sut.bind(TASK_MODEL_1.id)
-            recentsViewData.overlayEnabled.value = true
-            recentsViewData.settledFullyVisibleTaskIds.value = setOf(1)
-
-            assertThat(sut.state.first().taskOverlayEnabled).isFalse()
-        }
-
-    @Test
-    fun taskOverlayDisabled_when_OverlayIsEnabledForVisibleGroupedTask() =
-        testScope.runTest {
-            sut = createTaskViewModel(TaskViewType.GROUPED)
-            sut.bind(TASK_MODEL_1.id)
-            recentsViewData.overlayEnabled.value = true
-            recentsViewData.settledFullyVisibleTaskIds.value = setOf(1)
-
-            assertThat(sut.state.first().taskOverlayEnabled).isFalse()
-        }
-
-    @Test
     fun isCentralTask_when_CentralTaskIdsMatchTaskIds() =
         testScope.runTest {
             sut.bind(TASK_MODEL_1.id, TASK_MODEL_2.id)
@@ -340,18 +298,15 @@ class TaskViewModelTest {
         verify(isThumbnailValidUseCase).invoke(anyOrNull(), anyInt(), anyInt())
     }
 
-    private fun TaskModel.toUiState(isLiveTile: Boolean = false) =
+    private fun TaskModel.toUiState() =
         TaskData.Data(
             taskId = id,
-            packageName = packageName,
             title = title,
             titleDescription = titleDescription,
             icon = icon!!,
             thumbnailData = thumbnail,
             backgroundColor = backgroundColor,
             isLocked = isLocked,
-            isLiveTile = isLiveTile,
-            remainingAppTimerDuration = remainingAppDuration,
         )
 
     private fun createTaskViewModel(taskViewType: TaskViewType) =
@@ -366,7 +321,6 @@ class TaskViewModelTest {
         )
 
     private companion object {
-        const val PACKAGE_NAME = "com.test"
         const val INVALID_TASK_ID = -1
         const val FLAGS_APPEARANCE_LIGHT_THEME = FLAG_LIGHT_STATUS or FLAG_LIGHT_NAV
         const val FLAGS_APPEARANCE_DEFAULT = 0
@@ -378,54 +332,32 @@ class TaskViewModelTest {
         val TASK_MODEL_1 =
             TaskModel(
                 1,
-                PACKAGE_NAME,
                 "Title 1",
                 "Content Description 1",
                 ShapeDrawable(),
                 ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
                 Color.BLACK,
-                /* isLocked= */ false,
-                /* isMinimized= */ false,
-                /*remainingAppDuration= */ Duration.ofMillis(30),
+                false,
             )
         val TASK_MODEL_2 =
             TaskModel(
                 2,
-                PACKAGE_NAME,
                 "Title 2",
                 "Content Description 2",
                 ShapeDrawable(),
                 ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
                 Color.RED,
-                /* isLocked= */ true,
-                /* isMinimized= */ false,
-                /*remainingAppDuration= */ Duration.ofHours(5).plusMinutes(2),
+                true,
             )
         val TASK_MODEL_3 =
             TaskModel(
                 3,
-                PACKAGE_NAME,
                 "Title 3",
                 "Content Description 3",
                 ShapeDrawable(),
                 ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
                 Color.BLUE,
-                /* isLocked= */ false,
-                /* isMinimized= */ false,
-                /* remainingAppDuration= */ null,
-            )
-        val TASK_MODEL_MINIMIZED =
-            TaskModel(
-                4,
-                PACKAGE_NAME,
-                "Title 4",
-                "Content Description 4",
-                ShapeDrawable(),
-                ThumbnailData(appearance = APPEARANCE_LIGHT_THEME),
-                Color.BLUE,
-                /* isLocked= */ false,
-                /* isMinimized= */ true,
-                /* remainingAppDuration= */ null,
+                false,
             )
     }
 }

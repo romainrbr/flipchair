@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2025, Lawnchair
+ * Modifications copyright 2021, Lawnchair
  */
 package com.android.launcher3.allapps;
 
 import static android.multiuser.Flags.enableMovingContentIntoPrivateSpace;
 
-import static com.android.launcher3.Utilities.ATLEAST_BAKLAVA;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO;
 import static com.android.launcher3.allapps.BaseAllAppsAdapter.VIEW_TYPE_MASK_PRIVATE_SPACE_HEADER;
 import static com.android.launcher3.allapps.SectionDecorationInfo.ROUND_BOTTOM_LEFT;
@@ -74,7 +73,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     private final PrivateProfileManager mPrivateProviderManager;
 
     /**
-     * Info about a fast scroller section, depending if sections are merged, the fast scroller
+     * Info about a fast scroller section, depending if sections are merged, the
+     * fast scroller
      * sections will not be the same set as the section headers.
      */
     public static class FastScrollSectionInfo {
@@ -95,7 +95,6 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         }
     }
 
-
     private final T mActivityContext;
 
     // The set of apps from the system
@@ -108,7 +107,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     private int mAccessibilityResultsCount = 0;
     // The current set of adapter items
     protected final ArrayList<AdapterItem> mAdapterItems = new ArrayList<>();
-    // The set of sections that we allow fast-scrolling to (includes non-merged sections)
+    // The set of sections that we allow fast-scrolling to (includes non-merged
+    // sections)
     private final List<FastScrollSectionInfo> mFastScrollerSections = new ArrayList<>();
 
     // The of ordered component names as a result of a search query
@@ -168,7 +168,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     }
 
     /**
-     * Returns the current filtered list of applications broken down into their sections.
+     * Returns the current filtered list of applications broken down into their
+     * sections.
      */
     public List<AdapterItem> getAdapterItems() {
         return mAdapterItems;
@@ -260,12 +261,14 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         appSteam = appSteam.sorted(mAppNameComparator);
         privateAppStream = privateAppStream.sorted(mAppNameComparator);
 
-        // As a special case for some languages (currently only Simplified Chinese), we may need to
+        // As a special case for some languages (currently only Simplified Chinese), we
+        // may need to
         // coalesce sections
         Locale curLocale = mActivityContext.getResources().getConfiguration().locale;
         boolean localeRequiresSectionSorting = curLocale.equals(Locale.SIMPLIFIED_CHINESE);
         if (localeRequiresSectionSorting) {
-            // Compute the section headers. We use a TreeMap with the section name comparator to
+            // Compute the section headers. We use a TreeMap with the section name
+            // comparator to
             // ensure that the sections are ordered when we iterate over it later
             appSteam = appSteam.collect(Collectors.groupingBy(
                     info -> info.sectionName,
@@ -285,7 +288,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     }
 
     /**
-     * Updates the set of filtered apps with the current filter. At this point, we expect
+     * Updates the set of filtered apps with the current filter. At this point, we
+     * expect
      * mCachedSectionNames to have been calculated for the set of all apps in mApps.
      */
     public void updateAdapterItems() {
@@ -296,7 +300,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         mAdapterItems.clear();
         mAccessibilityResultsCount = 0;
 
-        // Recreate the filtered and sectioned apps (for convenience for the grid layout) from the
+        // Recreate the filtered and sectioned apps (for convenience for the grid
+        // layout) from the
         // ordered set of sections
         if (hasSearchResults()) {
             mAdapterItems.addAll(mSearchResults);
@@ -334,7 +339,8 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                 .filter(AdapterItem::isCountedForAccessibility).count();
 
         if (mNumAppsPerRowAllApps != 0) {
-            // Update the number of rows in the adapter after we do all the merging (otherwise, we
+            // Update the number of rows in the adapter after we do all the merging
+            // (otherwise, we
             // would have to shift the values again)
             int numAppsInSection = 0;
             int numAppsInRow = 0;
@@ -389,35 +395,11 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
     }
 
     private int addPrivateSpaceApps(int position) {
-
-        /* LC-Note: Fix for missing flags and account for NCDFE */
-        boolean enableMovingContentIntoPrivateSpace = false;
-        if (ATLEAST_BAKLAVA) {
-            try {
-                /* LC-Note: Some devices (Android 16 QPR) doesn't have or expose this flag to user.
-                 * Let's assume no, because (the flags) enableMovingContentIntoPrivateSpace seems
-                 * to be False for R8 by default.
-                 * */
-                enableMovingContentIntoPrivateSpace = enableMovingContentIntoPrivateSpace();
-            } catch (NoClassDefFoundError e) {
-                /* LC-Ignored: we already set it false by default. */
-            }
-        }
-        
         // Add Install Apps Button first.
-        if (!ATLEAST_BAKLAVA) {
-            // LC: Baklava added a new behavior for the PS app button. (enableMovingContentIntoPrivateSpace)
-            if (!enableMovingContentIntoPrivateSpace) {
-                mPrivateProviderManager.addPrivateSpaceInstallAppButton(mAdapterItems);
-                position++;
-            }
-        } else {
-            if (Flags.privateSpaceAppInstallerButton()) {
-                mPrivateProviderManager.addPrivateSpaceInstallAppButton(mAdapterItems);
-                position++;
-            }
+        if (Flags.privateSpaceAppInstallerButton() && !enableMovingContentIntoPrivateSpace()) {
+            mPrivateProviderManager.addPrivateSpaceInstallAppButton(mAdapterItems);
+            position++;
         }
-
 
         // Split of private space apps into user-installed and system apps.
         Map<Boolean, List<AppInfo>> split = mPrivateApps.stream()
@@ -451,7 +433,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         // Add system apps.
         position = addAppsWithSections(split.get(false), position);
 
-        if (enableMovingContentIntoPrivateSpace) {
+        if (enableMovingContentIntoPrivateSpace()) {
             // Look for the private space app via package and move it after header.
             int headerIndex = -1;
             int privateSpaceAppIndex = -1;
@@ -464,7 +446,6 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
                         currentItem.itemInfo.getTargetPackage(), PRIVATE_SPACE_PACKAGE)) {
                     currentItem.itemInfo.bitmap = mPrivateProviderManager.preparePSBitmapInfo();
                     currentItem.itemInfo.bitmap.creationFlags |= FLAG_NO_BADGE;
-                    currentItem.itemInfo.title = mPrivateProviderManager.getPSAppTitleOverride();
                     currentItem.itemInfo.contentDescription =
                             mPrivateProviderManager.getPsAppContentDesc();
                     privateSpaceAppIndex = i;
@@ -495,7 +476,7 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
             if (hasPrivateApps) {
                 mAdapterItems.add(AdapterItem.asAppWithDecorationInfo(info,
                         new SectionDecorationInfo(mActivityContext,
-                                getRoundRegions(i, appList.size()))));
+                                getRoundRegions(i, appList.size()), true /* decorateTogether */)));
             } else {
                 mAdapterItems.add(AdapterItem.asApp(info));
             }
@@ -517,20 +498,6 @@ public class AlphabeticalAppsList<T extends Context & ActivityContext> implement
         return position;
     }
 
-
-    /**
-     * Checks if the provided list of apps are from the work/private profile.
-     */
-    protected boolean isWorkOrPrivateSpace(List<AppInfo> appList) {
-        if (appList.isEmpty()) {
-            return false;
-        }
-        return appList.stream().anyMatch(info ->
-                (mWorkProviderManager != null && mWorkProviderManager.getItemInfoMatcher().test(info))
-                        || (mPrivateProviderManager != null
-                        && mPrivateProviderManager.getItemInfoMatcher().test(info)));
-    }
-    
     /**
      * Determines the corner regions that should be rounded for a specific app icon based on its
      * position in a grid. Apps that should only be cared about rounding are the apps in the last

@@ -28,7 +28,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 
-import android.util.Log;
 import androidx.annotation.UiThread;
 
 import com.android.launcher3.dagger.ApplicationContext;
@@ -138,12 +137,7 @@ public class SettingsCache extends ContentObserver {
         if (mKeyCache.containsKey(keySetting)) {
             return mKeyCache.get(keySetting);
         } else {
-            try {
-                return updateValue(keySetting, defaultValue);
-            } catch (SecurityException e) {
-                Log.d("LC_SettingsCache", "Key not readable, assume false for " + keySetting.toString());
-                return false;
-            }
+            return updateValue(keySetting, defaultValue);
         }
     }
 

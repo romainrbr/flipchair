@@ -27,6 +27,7 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.content.Context;
 import android.graphics.Rect;
+import android.view.MotionEvent;
 import android.view.RemoteAnimationTarget;
 
 import androidx.annotation.Nullable;
@@ -44,14 +45,12 @@ import com.android.launcher3.taskbar.LauncherTaskbarUIController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.NavigationMode;
-import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.GestureState.GestureEndTarget;
 import com.android.quickstep.orientation.RecentsPagedOrientationHandler;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
 import com.android.systemui.plugins.shared.LauncherOverlayManager;
-import com.android.wm.shell.shared.desktopmode.DesktopState;
 
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -74,7 +73,7 @@ public final class LauncherActivityInterface extends
         calculateTaskSize(context, dp, outRect, orientationHandler);
         if (dp.isVerticalBarLayout()
                 && DisplayController.getNavigationMode(context) != NavigationMode.NO_BUTTON) {
-            return dp.isSeascape() ? outRect.left : (dp.getDeviceProperties().getWidthPx() - outRect.right);
+            return dp.isSeascape() ? outRect.left : (dp.widthPx - outRect.right);
         } else {
             return LayoutUtils.getShelfTrackingDistance(context, dp, orientationHandler, this);
         }
@@ -212,12 +211,6 @@ public final class LauncherActivityInterface extends
         if (launcher == null) {
             return false;
         }
-        if (DesktopState.fromContext(launcher.asContext()).getShouldShowHomeBehindDesktop()
-                && !launcher.hasWindowFocus()) {
-            // Home is always shown behind desktop, but it is currently not the top task, so treat
-            // it as if it is not visible.
-            return false;
-        }
         if (isInLiveTileMode()) {
             RecentsView recentsView = getVisibleRecentsView();
             if (recentsView == null) {
@@ -327,9 +320,27 @@ public final class LauncherActivityInterface extends
     }
 
     @Override
-    protected ScrimColors getOverviewScrimColorForState(QuickstepLauncher activity,
-            LauncherState state) {
+    protected int getOverviewScrimColorForState(QuickstepLauncher activity, LauncherState state) {
         return state.getWorkspaceScrimColor(activity);
+    }
+
+    @Override
+    public boolean deferStartingActivity(RecentsAnimationDeviceState deviceState, MotionEvent ev) {
+        LauncherTaskbarUIController uiController = getTaskbarController();
+        if (uiController == null) {
+            return super.deferStartingActivity(deviceState, ev);
+        }
+        return uiController.isEventOverAnyTaskbarItem(ev)
+                || super.deferStartingActivity(deviceState, ev);
+    }
+
+    @Override
+    public boolean shouldCancelCurrentGesture() {
+        LauncherTaskbarUIController uiController = getTaskbarController();
+        if (uiController == null) {
+            return super.shouldCancelCurrentGesture();
+        }
+        return uiController.isDraggingItem();
     }
 
     @Override
@@ -346,12 +357,5 @@ public final class LauncherActivityInterface extends
             default:
                 return NORMAL;
         }
-    }
-
-    @Override
-    public boolean isLauncherOverlayShowing() {
-        Launcher launcher = Launcher.ACTIVITY_TRACKER.getCreatedContext();
-
-        return launcher != null && launcher.getWorkspace().isOverlayShown();
     }
 }

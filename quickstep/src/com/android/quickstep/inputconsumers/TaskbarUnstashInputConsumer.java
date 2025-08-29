@@ -17,26 +17,20 @@ package com.android.quickstep.inputconsumers;
 
 import static android.view.MotionEvent.ACTION_MOVE;
 import static android.view.MotionEvent.INVALID_POINTER_ID;
-import static android.view.RoundedCorner.POSITION_BOTTOM_LEFT;
-import static android.view.RoundedCorner.POSITION_BOTTOM_RIGHT;
 
 import static com.android.launcher3.Flags.enableCursorHoverStates;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.MotionEventsUtils.isTrackpadMotionEvent;
 import static com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_TOUCHING;
-import static com.android.systemui.shared.Flags.cursorHotCorner;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.PointF;
 import android.graphics.Rect;
-import android.hardware.display.DisplayManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Display;
 import android.view.InputDevice;
 import android.view.MotionEvent;
-import android.view.RoundedCorner;
 import android.view.VelocityTracker;
 import android.view.ViewConfiguration;
 
@@ -68,9 +62,7 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
 
     private final TaskbarActivityContext mTaskbarActivityContext;
     private final OverviewCommandHelper mOverviewCommandHelper;
-    private final DisplayManager mDisplayManager;
     private final float mUnstashArea;
-    private final int mActionCornerPadding;
     private final int mTaskbarNavThreshold;
     private final int mTaskbarNavThresholdY;
     private final boolean mIsTaskbarAllAppsOpen;
@@ -106,27 +98,18 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
             GestureState gestureState) {
         super(gestureState.getDisplayId(), delegate, inputMonitor);
         mTaskbarActivityContext = taskbarActivityContext;
-        mIsTransientTaskbar = DisplayController.isTransientTaskbar(context);
         mOverviewCommandHelper = overviewCommandHelper;
-        mDisplayManager = context.getSystemService(DisplayManager.class);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
 
         Resources res = context.getResources();
         mUnstashArea = res.getDimensionPixelSize(R.dimen.taskbar_unstash_input_area);
-        mActionCornerPadding = res.getDimensionPixelSize(
-                R.dimen.transient_taskbar_action_corner_padding);
-
-        boolean pinnedTaskbarWithAutoStashing =
-                mTaskbarActivityContext.shouldAllowTaskbarToAutoStash() && !mIsTransientTaskbar;
-
-        mTaskbarNavThreshold =
-                pinnedTaskbarWithAutoStashing ? 0 : TaskbarThresholdUtils.getFromNavThreshold(res,
-                        taskbarActivityContext.getDeviceProfile());
-
-        mTaskbarNavThresholdY = taskbarActivityContext.getDeviceProfile().getDeviceProperties().getHeightPx()
+        mTaskbarNavThreshold = TaskbarThresholdUtils.getFromNavThreshold(res,
+                taskbarActivityContext.getDeviceProfile());
+        mTaskbarNavThresholdY = taskbarActivityContext.getDeviceProfile().heightPx
                 - mTaskbarNavThreshold;
         mIsTaskbarAllAppsOpen = mTaskbarActivityContext.isTaskbarAllAppsOpen();
 
+        mIsTransientTaskbar = DisplayController.isTransientTaskbar(context);
         mTaskbarSlowVelocityYThreshold =
                 res.getDimensionPixelSize(R.dimen.taskbar_slow_velocity_y_threshold);
 
@@ -198,16 +181,16 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
                         float dX = mLastPos.x - mDownPos.x;
                         float dY = mLastPos.y - mDownPos.y;
 
-                        if (mTaskbarActivityContext.shouldAllowTaskbarToAutoStash()) {
+                        if (mIsTransientTaskbar) {
                             boolean passedTaskbarNavThreshold = dY < 0
                                     && Math.abs(dY) >= mTaskbarNavThreshold;
 
-                            // we only care about nav thresholds when we are transient taskbar
                             if (!mHasPassedTaskbarNavThreshold && passedTaskbarNavThreshold
                                     && !mGestureState.isInExtendedSlopRegion()) {
                                 mHasPassedTaskbarNavThreshold = true;
                                 mTaskbarActivityContext.onSwipeToUnstashTaskbar(true);
                             }
+
                             if (dY < 0) {
                                 dY = -OverScroll.dampedScroll(-dY, mTaskbarNavThresholdY);
                                 if (mTransitionCallback != null && !mIsTaskbarAllAppsOpen) {
@@ -295,17 +278,17 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
         if (mIsStashedTaskbarHovered) {
             updateHoveredTaskbarState((int) ev.getX(), (int) ev.getY());
         } else {
-            updateUnhoveredTaskbarState((int) ev.getX(), (int) ev.getY(), ev.getDisplayId());
+            updateUnhoveredTaskbarState((int) ev.getX(), (int) ev.getY());
         }
     }
 
     private void updateHoveredTaskbarState(int x, int y) {
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
         mBottomEdgeBounds.set(
-                (dp.getDeviceProperties().getWidthPx() - (int) mUnstashArea) / 2,
-                dp.getDeviceProperties().getHeightPx() - mStashedTaskbarBottomEdge,
-                (int) (((dp.getDeviceProperties().getWidthPx() - mUnstashArea) / 2) + mUnstashArea),
-                dp.getDeviceProperties().getHeightPx());
+                (dp.widthPx - (int) mUnstashArea) / 2,
+                dp.heightPx - mStashedTaskbarBottomEdge,
+                (int) (((dp.widthPx - mUnstashArea) / 2) + mUnstashArea),
+                dp.heightPx);
 
         if (mBottomEdgeBounds.contains(x, y)) {
             // start a single unstash timeout if hovering bottom edge under the hinted taskbar.
@@ -324,30 +307,15 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
         }
     }
 
-    private void updateUnhoveredTaskbarState(int x, int y, int displayId) {
+    private void updateUnhoveredTaskbarState(int x, int y) {
         sUnstashHandler.removeCallbacksAndMessages(null);
 
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
         mBottomEdgeBounds.set(
                 0,
-                dp.getDeviceProperties().getHeightPx() - mBottomScreenEdge,
-                dp.getDeviceProperties().getWidthPx(),
-                dp.getDeviceProperties().getHeightPx());
-
-        if (cursorHotCorner() && mDisplayManager != null) {
-            Display display = mDisplayManager.getDisplay(displayId);
-            if (display != null) {
-                RoundedCorner leftBottomCorner = display.getRoundedCorner(POSITION_BOTTOM_LEFT);
-                int leftCornerRadius =
-                        leftBottomCorner == null ? 0 : leftBottomCorner.getRadius();
-                RoundedCorner rightBottomCorner = display.getRoundedCorner(
-                        POSITION_BOTTOM_RIGHT);
-                int rightCornerRadius =
-                        rightBottomCorner == null ? 0 : rightBottomCorner.getRadius();
-                mBottomEdgeBounds.inset(leftCornerRadius + mActionCornerPadding, 0,
-                        rightCornerRadius + mActionCornerPadding, 0);
-            }
-        }
+                dp.heightPx - mBottomScreenEdge,
+                dp.widthPx,
+                dp.heightPx);
 
         if (isStashedTaskbarHovered(x, y)) {
             // If enter hovering stashed taskbar, start hint.
@@ -371,11 +339,10 @@ public class TaskbarUnstashInputConsumer extends DelegateInputConsumer {
         }
         DeviceProfile dp = mTaskbarActivityContext.getDeviceProfile();
         mStashedTaskbarHandleBounds.set(
-                (dp.getDeviceProperties().getWidthPx() - (int) mUnstashArea) / 2,
-                dp.getDeviceProperties().getHeightPx()
-                        - dp.getTaskbarProfile().getStashedTaskbarHeight(),
-                (int) (((dp.getDeviceProperties().getWidthPx() - mUnstashArea) / 2) + mUnstashArea),
-                dp.getDeviceProperties().getHeightPx());
+                (dp.widthPx - (int) mUnstashArea) / 2,
+                dp.heightPx - dp.stashedTaskbarHeight,
+                (int) (((dp.widthPx - mUnstashArea) / 2) + mUnstashArea),
+                dp.heightPx);
         return mStashedTaskbarHandleBounds.contains(x, y);
     }
 

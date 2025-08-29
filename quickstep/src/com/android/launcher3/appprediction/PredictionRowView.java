@@ -143,10 +143,9 @@ public class PredictionRowView<T extends Context & ActivityContext>
     @Override
     public int getExpectedHeight() {
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
-        int iconHeight = deviceProfile.getAllAppsProfile().getIconSizePx();
-        int iconPadding = deviceProfile.getAllAppsProfile().getIconDrawablePaddingPx();
-        int textHeight = Utilities.calculateTextHeight(
-                deviceProfile.getAllAppsProfile().getIconTextSizePx());
+        int iconHeight = deviceProfile.allAppsIconSizePx;
+        int iconPadding = deviceProfile.allAppsIconDrawablePaddingPx;
+        int textHeight = Utilities.calculateTextHeight(deviceProfile.allAppsIconTextSizePx);
         int totalHeight = iconHeight + iconPadding + textHeight + mVerticalPadding * 2;
         // Prediction row height will be 4dp bigger than the regular apps in A-Z list when two line
         // is not enabled. Otherwise, the extra height will increase by just the textHeight.
@@ -236,11 +235,7 @@ public class PredictionRowView<T extends Context & ActivityContext>
                     lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
                 } else {
                     // Ensure the all apps icon height matches the workspace icons in portrait mode.
-                    lp.height =
-                            mActivityContext
-                                    .getDeviceProfile()
-                                    .getAllAppsProfile()
-                                    .getCellHeightPx();
+                    lp.height = mActivityContext.getDeviceProfile().allAppsCellHeightPx;
                 }
                 lp.width = 0;
                 lp.weight = 1;

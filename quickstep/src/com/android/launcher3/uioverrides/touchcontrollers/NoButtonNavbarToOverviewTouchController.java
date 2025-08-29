@@ -17,7 +17,7 @@
 package com.android.launcher3.uioverrides.touchcontrollers;
 
 import static com.android.app.animation.Interpolators.ACCELERATE_DECELERATE;
-import static com.android.launcher3.LauncherAnimUtils.SCRIM_COLORS;
+import static com.android.launcher3.LauncherAnimUtils.VIEW_BACKGROUND_COLOR;
 import static com.android.launcher3.LauncherAnimUtils.newSingleUseCancelListener;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.HINT_STATE;
@@ -47,7 +47,6 @@ import com.android.launcher3.taskbar.LauncherTaskbarUIController;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.VibratorWrapper;
-import com.android.launcher3.views.ScrimColorsEvaluator;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.AnimatorControllerWithResistance;
 import com.android.quickstep.util.MotionPauseDetector;
@@ -63,8 +62,6 @@ import java.util.function.BiConsumer;
  * first home screen instead of to Overview.
  */
 public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouchController {
-
-    public static final String TAG = "NoButtonNavbarToOverviewTouchController";
     private static final float ONE_HANDED_ACTIVATED_SLOP_MULTIPLIER = 2.5f;
 
     // How much of the movement to use for translating overview after swipe and hold.
@@ -87,7 +84,7 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
     private AnimatorPlaybackController mOverviewResistYAnim;
 
     // Normal to Hint animation has flag SKIP_OVERVIEW, so we update this scrim with this animator.
-    private ValueAnimator mNormalToHintOverviewScrimAnimator;
+    private ObjectAnimator mNormalToHintOverviewScrimAnimator;
 
     private final QuickstepLauncher mLauncher;
     private boolean mIsTrackpadSwipe;
@@ -137,7 +134,7 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
         float progressMultiplier = super.initCurrentAnimation();
         if (mToState == HINT_STATE) {
             // Track the drag across the entire height of the screen.
-            progressMultiplier = -1f / mLauncher.getDeviceProfile().getDeviceProperties().getHeightPx();
+            progressMultiplier = -1f / mLauncher.getDeviceProfile().heightPx;
         }
         return progressMultiplier;
     }
@@ -164,21 +161,15 @@ public class NoButtonNavbarToOverviewTouchController extends PortraitStatesTouch
         }
 
         if (mFromState == NORMAL && mToState == HINT_STATE) {
-            mNormalToHintOverviewScrimAnimator = ObjectAnimator.ofObject(
+            mNormalToHintOverviewScrimAnimator = ObjectAnimator.ofArgb(
                     mLauncher.getScrimView(),
-                    SCRIM_COLORS,
-                    ScrimColorsEvaluator.INSTANCE,
+                    VIEW_BACKGROUND_COLOR,
                     mFromState.getWorkspaceScrimColor(mLauncher),
                     mToState.getWorkspaceScrimColor(mLauncher));
         }
         mStartedOverview = false;
         mReachedOverview = false;
         mOverviewResistYAnim = null;
-    }
-
-    @Override
-    public String dump() {
-        return TAG;
     }
 
     @Override

@@ -15,11 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Backup
-import androidx.compose.material.icons.outlined.Science
 import androidx.compose.material.icons.rounded.Build
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.TipsAndUpdates
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -32,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
@@ -51,7 +46,6 @@ import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ClickableIcon
 import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
-import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
@@ -85,14 +79,7 @@ fun PreferencesDashboard(
 ) {
     val context = LocalContext.current
     SyncLiveInformation()
-    val prefs = preferenceManager()
-    val prefs2 = preferenceManager2()
-
-    val aboutDescrption = if (prefs.hideVersionInfo.get()) {
-        prefs.pseudonymVersion.get()
-    } else {
-        "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}"
-    }
+    val pref2 = preferenceManager2()
 
     PreferenceLayout(
         label = stringResource(id = R.string.settings),
@@ -113,7 +100,7 @@ fun PreferencesDashboard(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        PreferenceGroup {
+        PreferenceCategoryGroup {
             PreferenceCategory(
                 label = stringResource(R.string.general_label),
                 description = stringResource(R.string.general_description),
@@ -146,7 +133,7 @@ fun PreferencesDashboard(
                 isSelected = currentRoute is Dock,
             )
 
-            val deckLayout = prefs2.deckLayout.getAdapter()
+            val deckLayout = pref2.deckLayout.getAdapter()
             if (!deckLayout.state.value) {
                 PreferenceCategory(
                     label = stringResource(R.string.app_drawer_label),
@@ -193,12 +180,35 @@ fun PreferencesDashboard(
 
             PreferenceCategory(
                 label = stringResource(R.string.about_label),
-                description = aboutDescrption,
+                description = "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}",
                 iconResource = R.drawable.ic_about,
                 onNavigate = { onNavigate(About) },
                 isSelected = currentRoute is About,
             )
         }
+    }
+}
+
+@Composable
+fun PreferenceCategoryGroup(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val color = preferenceGroupColor()
+
+    Surface(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.large,
+        color = color,
+        tonalElevation = if (isSelectedThemeDark) 1.dp else 0.dp,
+    ) {
+        DividerColumn(
+            content = content,
+            startIndent = (-16).dp,
+            endIndent = (-16).dp,
+            color = MaterialTheme.colorScheme.surface,
+            thickness = 2.dp,
+        )
     }
 }
 
@@ -238,87 +248,37 @@ fun RowScope.PreferencesOverflowMenu(
         },
     ) {
         val context = LocalContext.current
-        DropdownMenuItem(
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_about),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            onClick = {
-                openAppInfo(context)
-                hideMenu()
-            },
-            text = {
-                Text(text = stringResource(id = R.string.app_info_drop_target_label))
-            },
-        )
-        DropdownMenuItem(
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Rounded.Refresh,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            onClick = {
-                restartLauncher(context)
-                hideMenu()
-            },
-            text = {
-                Text(text = stringResource(id = R.string.debug_restart_launcher))
-            },
-        )
-        DropdownMenuItem(
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Science,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            onClick = {
-                onNavigate(ExperimentalFeatures)
-                hideMenu()
-            },
-            text = {
-                Text(text = stringResource(id = R.string.experimental_features_label))
-            },
-        )
+        DropdownMenuItem(onClick = {
+            openAppInfo(context)
+            hideMenu()
+        }, text = {
+            Text(text = stringResource(id = R.string.app_info_drop_target_label))
+        })
+        DropdownMenuItem(onClick = {
+            restartLauncher(context)
+            hideMenu()
+        }, text = {
+            Text(text = stringResource(id = R.string.debug_restart_launcher))
+        })
+        DropdownMenuItem(onClick = {
+            onNavigate(ExperimentalFeatures)
+            hideMenu()
+        }, text = {
+            Text(text = stringResource(id = R.string.experimental_features_label))
+        })
         PreferenceDivider(modifier = Modifier.padding(vertical = 8.dp))
-        DropdownMenuItem(
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.Backup,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            onClick = {
-                openCreateBackup()
-                hideMenu()
-            },
-            text = {
-                Text(text = stringResource(id = R.string.create_backup))
-            },
-        )
-        DropdownMenuItem(
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Rounded.SettingsBackupRestore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            onClick = {
-                openRestoreBackup()
-                hideMenu()
-            },
-            text = {
-                Text(text = stringResource(id = R.string.restore_backup))
-            },
-        )
+        DropdownMenuItem(onClick = {
+            openCreateBackup()
+            hideMenu()
+        }, text = {
+            Text(text = stringResource(id = R.string.create_backup))
+        })
+        DropdownMenuItem(onClick = {
+            openRestoreBackup()
+            hideMenu()
+        }, text = {
+            Text(text = stringResource(id = R.string.restore_backup))
+        })
     }
 }
 

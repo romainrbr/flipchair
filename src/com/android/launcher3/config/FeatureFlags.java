@@ -50,6 +50,14 @@ public final class FeatureFlags {
     public static final boolean IS_STUDIO_BUILD = false;
 
     /**
+     * Enable moving the QSB on the 0th screen of the workspace. This is not a configuration feature
+     * and should be modified at a project level.
+     * @deprecated Use {@link BuildConfig#QSB_ON_FIRST_SCREEN} directly
+     */
+    @Deprecated
+    public static final boolean QSB_ON_FIRST_SCREEN = true;
+
+    /**
      * Feature flag to handle define config changes dynamically instead of killing the process.
      * <p>
      *
@@ -157,7 +165,7 @@ public final class FeatureFlags {
 
     // TODO(Block 22): Clean up flags
     public static final BooleanFlag ENABLE_WIDGET_TRANSITION_FOR_RESIZING = getDebugFlag(268553314,
-            "ENABLE_WIDGET_TRANSITION_FOR_RESIZING", ENABLED,
+            "ENABLE_WIDGET_TRANSITION_FOR_RESIZING", DISABLED,
             "Enable widget transition animation when resizing the widgets");
 
     // TODO(Block 27): Clean up flags
@@ -205,7 +213,7 @@ public final class FeatureFlags {
     // Aconfig migration complete for ENABLE_RESPONSIVE_WORKSPACE.
     @VisibleForTesting
     public static final BooleanFlag ENABLE_RESPONSIVE_WORKSPACE = getDebugFlag(241386436,
-            "ENABLE_RESPONSIVE_WORKSPACE", ENABLED,
+            "ENABLE_RESPONSIVE_WORKSPACE", DISABLED,
             "Enables new workspace grid calculations method.");
     public static boolean enableResponsiveWorkspace() {
         return ENABLE_RESPONSIVE_WORKSPACE.get() || Flags.enableResponsiveWorkspace();

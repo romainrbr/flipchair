@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -92,14 +91,15 @@ public class ModelWriter {
         mUiExecutor = Executors.MAIN_EXECUTOR;
     }
 
-    /** Updates the location properties of the item */
-    public void updateItemInfoProps(
+    private void updateItemInfoProps(
             ItemInfo item, int container, int screenId, int cellX, int cellY) {
         CellPos modelPos = mCellPosMapper.mapPresenterToModel(cellX, cellY, screenId, container);
+
         item.container = container;
         item.cellX = modelPos.cellX;
         item.cellY = modelPos.cellY;
         item.screenId = modelPos.screenId;
+
     }
 
     /**
@@ -178,7 +178,7 @@ public class ModelWriter {
     public void moveItemsInDatabase(final ArrayList<ItemInfo> items, int container, int screen) {
         ArrayList<ContentValues> contentValues = new ArrayList<>();
         int count = items.size();
-        notifyOtherCallbacks(c -> c.bindItemsUpdated(new HashSet<>(items)));
+        notifyOtherCallbacks(c -> c.bindItemsModified(items));
 
         for (int i = 0; i < count; i++) {
             ItemInfo item = items.get(i);
@@ -230,7 +230,7 @@ public class ModelWriter {
     }
 
     public void notifyItemModified(ItemInfo item) {
-        notifyOtherCallbacks(c -> c.bindItemsUpdated(Collections.singleton(item)));
+        notifyOtherCallbacks(c -> c.bindItemsModified(Collections.singletonList(item)));
     }
 
     /**
@@ -241,15 +241,9 @@ public class ModelWriter {
     public void addItemToDatabase(final ItemInfo item,
             int container, int screenId, int cellX, int cellY) {
         updateItemInfoProps(item, container, screenId, cellX, cellY);
-        addItemsToDatabase(Collections.singletonList(item));
-    }
 
-    /**
-     * Add provided items to the database. Also assigns an ID to each item.
-     */
-    public void addItemsToDatabase(final List<ItemInfo> items) {
-        items.forEach(info -> info.id = mModel.getModelDbController().generateNewItemId());
-        notifyOtherCallbacks(c -> c.bindItemsAdded(items));
+        item.id = mModel.getModelDbController().generateNewItemId();
+        notifyOtherCallbacks(c -> c.bindItems(Collections.singletonList(item), false));
 
         ModelVerifier verifier = new ModelVerifier();
         final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
@@ -257,18 +251,14 @@ public class ModelWriter {
             // Write the item on background thread, as some properties might have been
             // updated in
             // the background.
-            for (ItemInfo item: items) {
-                final ContentWriter writer = new ContentWriter(mContext);
-                item.onAddToDatabase(writer);
-                writer.put(Favorites._ID, item.id);
-                mModel.getModelDbController().insert(writer.getValues(mContext));
-            }
+            final ContentWriter writer = new ContentWriter(mContext);
+            item.onAddToDatabase(writer);
+            writer.put(Favorites._ID, item.id);
 
+            mModel.getModelDbController().insert(writer.getValues(mContext));
             synchronized (mBgDataModel) {
-                for (ItemInfo item: items) {
-                    checkItemInfoLocked(item.id, item, stackTrace);
-                }
-                mBgDataModel.addItems(mContext, items, mOwner);
+                checkItemInfoLocked(item.id, item, stackTrace);
+                mBgDataModel.addItem(mContext, item, true);
                 verifier.verifyModel();
             }
         }).executeOnModelThread();
@@ -306,9 +296,9 @@ public class ModelWriter {
         enqueueDeleteRunnable(newModelTask(() -> {
             for (ItemInfo item : items) {
                 mModel.getModelDbController().delete(itemIdMatch(item.id), null);
+                mBgDataModel.removeItem(mContext, item);
+                verifier.verifyModel();
             }
-            mBgDataModel.removeItem(mContext, items, mOwner);
-            verifier.verifyModel();
         }));
     }
 
@@ -322,13 +312,12 @@ public class ModelWriter {
         enqueueDeleteRunnable(newModelTask(() -> {
             mModel.getModelDbController().delete(
                     Favorites.CONTAINER + "=" + info.id, null);
+            mBgDataModel.removeItem(mContext, info.getContents());
+            info.getContents().clear();
 
             mModel.getModelDbController().delete(
                     Favorites._ID + "=" + info.id, null);
-
-            List<ItemInfo> itemsToDelete = new ArrayList<>(info.getContents());
-            itemsToDelete.add(info);
-            mBgDataModel.removeItem(mContext, itemsToDelete, mOwner);
+            mBgDataModel.removeItem(mContext, info);
             verifier.verifyModel();
         }));
     }
@@ -434,7 +423,6 @@ public class ModelWriter {
             mModel.getModelDbController().update(
                     mWriter.get().getValues(mContext), itemIdMatch(mItemId), null);
             updateItemArrays(mItem, mItemId);
-            mBgDataModel.updateItems(Collections.singletonList(mItem), mOwner);
         }
     }
 
@@ -459,7 +447,6 @@ public class ModelWriter {
                     updateItemArrays(item, itemId);
                 }
                 t.commit();
-                mBgDataModel.updateItems(mItems, mOwner);
             } catch (Exception e) {
                 e.printStackTrace();
             }

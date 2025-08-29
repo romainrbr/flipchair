@@ -98,7 +98,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableGsf() {
-        return true;
+        return false;
     }
 
     @Override

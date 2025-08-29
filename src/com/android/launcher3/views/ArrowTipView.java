@@ -125,38 +125,6 @@ public class ArrowTipView extends AbstractFloatingView {
         return R.id.arrow;
     }
 
-    protected void applyLayoutParamsFromGrid(
-        View parent, int arrowMarginStart, int gravity,
-        boolean matchParentWidth) {
-        DeviceProfile grid = mActivityContext.getDeviceProfile();
-
-        DragLayer.LayoutParams params = (DragLayer.LayoutParams)
-            getLayoutParams();
-        params.gravity = gravity;
-        params.leftMargin = mArrowMinOffset + grid.getInsets().left;
-        params.rightMargin = mArrowMinOffset + grid.getInsets().right;
-        if (matchParentWidth) {
-          params.width = LayoutParams.MATCH_PARENT;
-        }
-
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams)
-            mArrowView.getLayoutParams();
-        lp.gravity = gravity;
-
-        if (parent.getLayoutDirection() == LAYOUT_DIRECTION_RTL) {
-          arrowMarginStart = parent.getMeasuredWidth() - arrowMarginStart;
-        }
-        if (gravity == Gravity.END) {
-            lp.setMarginEnd(Math.max(mArrowMinOffset,
-                                parent.getMeasuredWidth() - params.rightMargin
-                                  - arrowMarginStart - mArrowWidth / 2));
-        } else if (gravity == Gravity.START) {
-            lp.setMarginStart(Math.max(mArrowMinOffset,
-                        arrowMarginStart - params.leftMargin
-                            - mArrowWidth / 2));
-        }
-    }
-
     @Override
     public boolean onControllerInterceptTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN) {
@@ -255,12 +223,28 @@ public class ArrowTipView extends AbstractFloatingView {
         ViewGroup parent = mActivityContext.getDragLayer();
         parent.addView(this);
 
-        applyLayoutParamsFromGrid(
-            /* parent= */ parent,
-            /* arrowMarginStart= */ arrowMarginStart,
-            /* gravity= */ gravity,
-            /* matchParentWidth= */ true
-        );
+        DeviceProfile grid = mActivityContext.getDeviceProfile();
+
+        DragLayer.LayoutParams params = (DragLayer.LayoutParams) getLayoutParams();
+        params.gravity = gravity;
+        params.leftMargin = mArrowMinOffset + grid.getInsets().left;
+        params.rightMargin = mArrowMinOffset + grid.getInsets().right;
+        params.width = LayoutParams.MATCH_PARENT;
+        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) mArrowView.getLayoutParams();
+
+        lp.gravity = gravity;
+
+        if (parent.getLayoutDirection() == LAYOUT_DIRECTION_RTL) {
+            arrowMarginStart = parent.getMeasuredWidth() - arrowMarginStart;
+        }
+        if (gravity == Gravity.END) {
+            lp.setMarginEnd(Math.max(mArrowMinOffset,
+                    parent.getMeasuredWidth() - params.rightMargin - arrowMarginStart
+                            - mArrowWidth / 2));
+        } else if (gravity == Gravity.START) {
+            lp.setMarginStart(Math.max(mArrowMinOffset,
+                    arrowMarginStart - params.leftMargin - mArrowWidth / 2));
+        }
         requestLayout();
         post(() -> setY(top - (mIsPointingUp ? 0 : getHeight())));
 

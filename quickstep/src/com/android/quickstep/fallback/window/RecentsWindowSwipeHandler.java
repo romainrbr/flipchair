@@ -20,18 +20,14 @@ import static android.content.Intent.EXTRA_COMPONENT_NAME;
 import static android.content.Intent.EXTRA_USER;
 
 import static com.android.app.animation.Interpolators.ACCELERATE;
-import static com.android.launcher3.GestureNavContract.EXTRA_ENABLE_GESTURE_CONTRACT;
 import static com.android.launcher3.GestureNavContract.EXTRA_GESTURE_CONTRACT;
 import static com.android.launcher3.GestureNavContract.EXTRA_ICON_POSITION;
 import static com.android.launcher3.GestureNavContract.EXTRA_ICON_SURFACE;
 import static com.android.launcher3.GestureNavContract.EXTRA_ON_FINISH_CALLBACK;
 import static com.android.launcher3.GestureNavContract.EXTRA_REMOTE_CALLBACK;
 import static com.android.launcher3.anim.AnimatorListeners.forEndCallback;
-import static com.android.quickstep.OverviewComponentObserver.startHomeIntentSafely;
 
-import android.animation.Animator;
 import android.app.ActivityManager.RunningTaskInfo;
-import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Matrix;
@@ -62,7 +58,6 @@ import androidx.annotation.UiThread;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
-import com.android.launcher3.anim.AnimationSuccessListener;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.SpringAnimationBuilder;
@@ -72,9 +67,7 @@ import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.quickstep.AbsSwipeUpHandler;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RecentsAnimationController;
-import com.android.quickstep.RecentsAnimationDeviceState;
 import com.android.quickstep.RecentsAnimationTargets;
-import com.android.quickstep.RotationTouchHelper;
 import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.fallback.FallbackRecentsView;
 import com.android.quickstep.fallback.RecentsState;
@@ -108,7 +101,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     private static StaticMessageReceiver sMessageReceiver = null;
 
     private FallbackHomeAnimationFactory mActiveAnimationFactory;
-    private final RecentsWindowManager mRecentsWindowManager;
+    private final RecentsDisplayModel mRecentsDisplayModel;
 
     private final boolean mRunningOverHome;
 
@@ -118,14 +111,12 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     private boolean mAppCanEnterPip;
 
     public RecentsWindowSwipeHandler(Context context, TaskAnimationManager taskAnimationManager,
-            RecentsAnimationDeviceState deviceState, RotationTouchHelper rotationTouchHelper,
-            RecentsWindowManager recentsWindowManager, GestureState gestureState, long touchTimeMs,
-            boolean continuingLastGesture,  InputConsumerController inputConsumer,
-            MSDLPlayerWrapper msdlPlayerWrapper) {
-        super(context, taskAnimationManager, deviceState, rotationTouchHelper, gestureState,
-                touchTimeMs, continuingLastGesture, inputConsumer, msdlPlayerWrapper);
+            GestureState gestureState, long touchTimeMs, boolean continuingLastGesture,
+            InputConsumerController inputConsumer, MSDLPlayerWrapper msdlPlayerWrapper) {
+        super(context, taskAnimationManager, gestureState, touchTimeMs,
+                continuingLastGesture, inputConsumer, msdlPlayerWrapper);
 
-        mRecentsWindowManager = recentsWindowManager;
+        mRecentsDisplayModel = RecentsDisplayModel.getINSTANCE().get(context);
         mRunningOverHome = mGestureState.getRunningTask() != null
                 && mGestureState.getRunningTask().isHomeTask();
 
@@ -171,7 +162,11 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         boolean fromHomeToHome = mRunningOverHome
                 && endTarget == GestureState.GestureEndTarget.HOME;
         if (fromHomeToHome) {
-            mRecentsWindowManager.startHome(/* finishRecentsAnimation= */ false);
+            RecentsWindowManager manager =
+                    mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId());
+            if (manager != null) {
+                manager.startHome(/* finishRecentsAnimation= */ false);
+            }
         }
         super.animateGestureEnd(
                 startShift,
@@ -187,11 +182,8 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         if (mActiveAnimationFactory != null) {
             return;
         }
-        setHomeScaleAndAlpha(
-                builder,
-                app,
-                mCurrentShift.value,
-                mRunningOverHome ? Utilities.boundToRange(1 - mCurrentShift.value, 0, 1) : 0f);
+        setHomeScaleAndAlpha(builder, app, mCurrentShift.value,
+                Utilities.boundToRange(1 - mCurrentShift.value, 0, 1));
     }
 
     private void setHomeScaleAndAlpha(SurfaceProperties builder,
@@ -219,21 +211,12 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
             return new FallbackPipToHomeAnimationFactory();
         }
         mActiveAnimationFactory = new FallbackHomeAnimationFactory(duration);
-        startHomeIntent(
-                mActiveAnimationFactory, runningTaskTarget, "RecentsWindowSwipeHandler-home");
-        return mActiveAnimationFactory;
-    }
-
-    private void startHomeIntent(
-            @Nullable FallbackHomeAnimationFactory gestureContractAnimationFactory,
-            @Nullable RemoteAnimationTarget runningTaskTarget,
-            @NonNull String reason) {
-        ActivityOptions options = ActivityOptions.makeCustomAnimation(mContext, 0, 0);
+        //todo: b/368410893 follow up on this as its intent focused and seems to cut immediately
         Intent intent = new Intent(mGestureState.getHomeIntent());
-        if (gestureContractAnimationFactory != null && runningTaskTarget != null) {
-            gestureContractAnimationFactory.addGestureContract(intent, runningTaskTarget.taskInfo);
+        if (runningTaskTarget != null) {
+            mActiveAnimationFactory.addGestureContract(intent, runningTaskTarget.taskInfo);
         }
-        startHomeIntentSafely(mContext, intent, options.toBundle(), reason);
+        return mActiveAnimationFactory;
     }
 
     @Override
@@ -245,14 +228,16 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
             // the PiP task appearing.
             recentsCallback = () -> {
                 callback.run();
-                mRecentsWindowManager.startHome();
+                RecentsWindowManager manager =
+                        mRecentsDisplayModel.getRecentsWindowManager(mGestureState.getDisplayId());
+                if (manager != null) {
+                    manager.startHome();
+                }
             };
         } else {
             recentsCallback = callback;
         }
-        if (mRecentsView != null) {
-            mRecentsView.cleanupRemoteTargets();
-        }
+        mRecentsView.cleanupRemoteTargets();
         mRecentsAnimationController.finish(
                 true /* toRecents */, recentsCallback, true /* sendUserLeaveHint */);
     }
@@ -270,7 +255,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
     @Override
     protected void notifyGestureAnimationStartToRecents() {
         if (mRunningOverHome) {
-            if (DisplayController.getNavigationMode(mContext).hasGestures && mRecentsView != null) {
+            if (DisplayController.getNavigationMode(mContext).hasGestures) {
                 mRecentsView.onGestureAnimationStartOnHome(
                         mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
                                 /* splitTaskIds = */ null));
@@ -285,11 +270,9 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
             // copied from {@link LauncherSwipeHandlerV2.LauncherHomeAnimationFactory}
-            long accuracy = 2 * Math.max(mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
-            return mRecentsWindowManager
-                    .getStateManager()
-                    .createAnimationToNewWorkspace(
-                            RecentsState.HOME, accuracy, StateAnimationConfig.SKIP_ALL_ANIMATIONS);
+            long accuracy = 2 * Math.max(mDp.widthPx, mDp.heightPx);
+            return mContainer.getStateManager().createAnimationToNewWorkspace(
+                    RecentsState.HOME, accuracy, StateAnimationConfig.SKIP_ALL_ANIMATIONS);
         }
     }
 
@@ -336,18 +319,9 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
         @NonNull
         @Override
         public AnimatorPlaybackController createActivityAnimationToHome() {
-            // TODO(b/377678992): Implement a new AtomicAnimationFactory for RecentsWindowManager
             PendingAnimation pa = new PendingAnimation(mDuration);
             pa.setFloat(mRecentsAlpha, AnimatedFloat.VALUE, 0, ACCELERATE);
             pa.setFloat(mHomeAlpha, AnimatedFloat.VALUE, 1, ACCELERATE);
-            pa.addListener(new AnimationSuccessListener() {
-                @Override
-                public void onAnimationSuccess(Animator animator) {
-                    mRecentsWindowManager
-                            .getStateManager()
-                            .goToState(RecentsState.HOME, false);
-                }
-            });
             return pa.createPlaybackController();
         }
 
@@ -361,7 +335,7 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
                     .setStartValue(mVerticalShiftForScale.value)
                     .setEndValue(0)
                     .setStartVelocity(-velocity / mTransitionDragLength)
-                    .setMinimumVisibleChange(1f / mDp.getDeviceProperties().getHeightPx())
+                    .setMinimumVisibleChange(1f / mDp.heightPx)
                     .setDampingRatio(0.6f)
                     .setStiffness(800)
                     .build(mVerticalShiftForScale, AnimatedFloat.VALUE)
@@ -380,8 +354,6 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
                             FallbackHomeAnimationFactory.this
                                     ::updateHomeActivityTransformDuringHomeAnim));
 
-            mTransformParams.setHomeBuilderProxy(FallbackHomeAnimationFactory.this
-                    ::updateHomeActivityTransformDuringHomeAnim);
             mTransformParams.setTargetSet(mRecentsAnimationTargets);
         }
 
@@ -464,7 +436,6 @@ public class RecentsWindowSwipeHandler extends AbsSwipeUpHandler<RecentsWindowMa
                 }
 
                 Bundle gestureNavContract = new Bundle();
-                gestureNavContract.putBoolean(EXTRA_ENABLE_GESTURE_CONTRACT, !mIsSwipeForSplit);
                 gestureNavContract.putParcelable(EXTRA_COMPONENT_NAME, key.getComponent());
                 gestureNavContract.putParcelable(EXTRA_USER, UserHandle.of(key.userId));
                 gestureNavContract.putParcelable(

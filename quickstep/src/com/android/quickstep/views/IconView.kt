@@ -157,20 +157,20 @@ class IconView : View, TaskViewIcon {
         val deviceProfile: DeviceProfile =
             (ActivityContext.lookupContext(context) as ActivityContext).getDeviceProfile()
         orientationHandler.setTaskIconParams(
-            iconParams = layoutParams as FrameLayout.LayoutParams,
-            taskIconMargin = deviceProfile.overviewProfile.taskMarginPx,
-            taskIconHeight = deviceProfile.overviewProfile.taskIconSizePx,
-            thumbnailTopMargin = deviceProfile.overviewProfile.taskThumbnailTopMarginPx,
+            iconParams = getLayoutParams() as FrameLayout.LayoutParams,
+            taskIconMargin = deviceProfile.overviewTaskMarginPx,
+            taskIconHeight = deviceProfile.overviewTaskIconSizePx,
+            thumbnailTopMargin = deviceProfile.overviewTaskThumbnailTopMarginPx,
             isRtl = layoutDirection == LAYOUT_DIRECTION_RTL,
         )
         updateLayoutParams<FrameLayout.LayoutParams> {
-            height = deviceProfile.overviewProfile.taskIconSizePx
+            height = deviceProfile.overviewTaskIconSizePx
             width = height
         }
         setRotation(orientationHandler.degreesRotated)
         val iconDrawableSize =
-            if (isGridTask) deviceProfile.overviewProfile.taskIconDrawableSizeGridPx
-            else deviceProfile.overviewProfile.taskIconDrawableSizePx
+            if (isGridTask) deviceProfile.overviewTaskIconDrawableSizeGridPx
+            else deviceProfile.overviewTaskIconDrawableSizePx
         setDrawableSize(iconDrawableSize, iconDrawableSize)
     }
 

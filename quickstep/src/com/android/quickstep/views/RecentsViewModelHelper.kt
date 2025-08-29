@@ -21,6 +21,7 @@ import com.android.quickstep.ViewUtils
 import com.android.quickstep.recents.viewmodel.RecentsViewModel
 import com.android.systemui.shared.recents.model.ThumbnailData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,10 +44,10 @@ class RecentsViewModelHelper(
         // Update recentsViewModel and apply the thumbnailOverride ASAP, before waiting inside
         // viewAttachedScope.
         recentsViewModel.setRunningTaskShowScreenshot(true)
-        recentsCoroutineScope.launch(dispatcherProvider.lightweightBackground) {
+        recentsCoroutineScope.launch(dispatcherProvider.background) {
             recentsViewModel.waitForRunningTaskShowScreenshotToUpdate()
             recentsViewModel.waitForThumbnailsToUpdate(updatedThumbnails)
-            withContext(dispatcherProvider.main) {
+            withContext(Dispatchers.Main.immediate) {
                 ViewUtils.postFrameDrawn(taskView, onFinishRunnable)
             }
         }

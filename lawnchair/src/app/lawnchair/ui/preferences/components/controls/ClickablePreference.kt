@@ -20,8 +20,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,7 +63,6 @@ fun ClickablePreference(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PreferenceClickConfirmation(
     title: String,
@@ -80,7 +77,6 @@ fun PreferenceClickConfirmation(
         buttons = {
             OutlinedButton(
                 onClick = onDismissRequest,
-                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(text = stringResource(id = android.R.string.cancel))
             }
@@ -90,7 +86,6 @@ fun PreferenceClickConfirmation(
                     onDismissRequest()
                     onConfirm()
                 },
-                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(text = stringResource(id = android.R.string.ok))
             }

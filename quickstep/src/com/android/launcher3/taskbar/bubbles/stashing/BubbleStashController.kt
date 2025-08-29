@@ -186,14 +186,12 @@ interface BubbleStashController {
     fun getHandleViewAlpha(): MultiPropertyFactory<View>.MultiProperty? = null
 
     /**
-     * Default implementation only analyse [isBubblesShowingOnHome] and return value is equal to
-     * [targetTranslationYForState].
+     * Returns bubble bar Y position according to [isBubblesShowingOnHome] and
+     * [isBubblesShowingOnOverview] values. Default implementation only analyse
+     * [isBubblesShowingOnHome] and return translationY to align with the hotseat vertical center.
+     * For Other cases align bubbles with the taskbar.
      */
     val bubbleBarTranslationY: Float
-        get() = targetTranslationYForState
-
-    /** Returns bubble bar Y target position according to [isBubblesShowingOnHome] value. */
-    val targetTranslationYForState: Float
         get() =
             if (isBubblesShowingOnHome) {
                 bubbleBarTranslationYForHotseat

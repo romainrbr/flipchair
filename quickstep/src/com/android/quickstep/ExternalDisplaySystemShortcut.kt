@@ -75,11 +75,12 @@ class ExternalDisplaySystemShortcut(
 
                         !Flags.moveToExternalDisplayShortcut() -> null
 
-                        desktopModeCompatPolicy.shouldDisableDesktopEntryPoints(
+                        desktopModeCompatPolicy.isTopActivityExemptFromDesktopWindowing(
                             taskKey.baseActivity?.packageName,
                             taskKey.numActivities,
                             taskKey.isTopActivityNoDisplay,
                             taskKey.isActivityStackTransparent,
+                            taskKey.userId,
                         ) -> null
 
                         else -> {

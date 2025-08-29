@@ -240,10 +240,7 @@ public abstract class ButtonDropTarget extends TextView
 
     protected abstract boolean supportsDrop(ItemInfo info);
 
-    /**
-     * Returns the accessibility action that {@link ButtonDropTarget} supports for the itemInfo.
-     */
-    public abstract int getSupportedAccessibilityAction(ItemInfo info, View view);
+    public abstract boolean supportsAccessibilityDrop(ItemInfo info, View view);
 
     @Override
     public boolean isDropEnabled() {
@@ -295,16 +292,14 @@ public abstract class ButtonDropTarget extends TextView
     @Override
     public void prepareAccessibilityDrop() { }
 
-    /** Performs a drop in case of accessibility services with the provided action for the item. */
-    public abstract void onAccessibilityDrop(View view, ItemInfo item, int action);
+    public abstract void onAccessibilityDrop(View view, ItemInfo item);
 
     public abstract void completeDrop(DragObject d);
 
     @Override
     public void getHitRectRelativeToDragLayer(android.graphics.Rect outRect) {
         super.getHitRect(outRect);
-        outRect.bottom +=
-                mActivityContext.getDeviceProfile().getDropTargetProfile().getDragPaddingPx();
+        outRect.bottom += mActivityContext.getDeviceProfile().dropTargetDragPaddingPx;
 
         sTempCords[0] = sTempCords[1] = 0;
         mActivityContext.getDragLayer().getDescendantCoordRelativeToSelf(this, sTempCords);

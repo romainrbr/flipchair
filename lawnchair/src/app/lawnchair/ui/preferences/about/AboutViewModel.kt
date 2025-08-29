@@ -3,7 +3,6 @@ package app.lawnchair.ui.preferences.about
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import app.lawnchair.preferences.PreferenceManager
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import java.io.File
@@ -19,7 +18,6 @@ class AboutViewModel(
 ) : AndroidViewModel(application) {
 
     private val api: GitHubService = gitHubApiRetrofit.create()
-    private val prefs: PreferenceManager = PreferenceManager.getInstance(application)
 
     private val nightlyBuildsRepository = NightlyBuildsRepository(
         applicationContext = application,
@@ -33,11 +31,7 @@ class AboutViewModel(
     init {
         _uiState.update {
             it.copy(
-                versionName = if (prefs.hideVersionInfo.get()) {
-                    prefs.pseudonymVersion.get() + " (pseudonym)"
-                } else {
-                    BuildConfig.VERSION_NAME
-                },
+                versionName = BuildConfig.VERSION_NAME,
                 commitHash = BuildConfig.COMMIT_HASH,
                 coreTeam = team,
                 supportAndPr = supportAndPr,

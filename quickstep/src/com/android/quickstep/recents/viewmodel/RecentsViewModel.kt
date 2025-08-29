@@ -25,17 +25,13 @@ import kotlinx.coroutines.flow.first
 class RecentsViewModel(
     private val recentsTasksRepository: RecentTasksRepository,
     private val recentsViewData: RecentsViewData,
-    private val displayId: Int,
 ) {
-    private var visibleTaskIds = emptySet<Int>()
-
     fun refreshAllTaskData() {
-        recentsTasksRepository.getAllTaskData(displayId, true)
+        recentsTasksRepository.getAllTaskData(true)
     }
 
     fun updateVisibleTasks(visibleTaskIdList: List<Int>) {
-        visibleTaskIds = visibleTaskIdList.toSet()
-        recentsTasksRepository.setVisibleTasks(displayId, visibleTaskIds)
+        recentsTasksRepository.setVisibleTasks(visibleTaskIdList.toSet())
     }
 
     fun updateTasksFullyVisible(taskIds: Set<Int>) {
@@ -51,10 +47,9 @@ class RecentsViewModel(
     }
 
     suspend fun waitForThumbnailsToUpdate(updatedThumbnails: Map<Int, ThumbnailData>?) {
-        val visibleThumbnails = updatedThumbnails?.filterKeys { it in visibleTaskIds }
-        if (visibleThumbnails.isNullOrEmpty()) return
+        if (updatedThumbnails.isNullOrEmpty()) return
         combine(
-                visibleThumbnails.map {
+                updatedThumbnails.map {
                     recentsTasksRepository.getThumbnailById(it.key).filter { thumbnailData ->
                         thumbnailData?.snapshotId == it.value.snapshotId
                     }

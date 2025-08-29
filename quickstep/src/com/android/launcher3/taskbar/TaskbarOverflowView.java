@@ -39,7 +39,6 @@ import androidx.annotation.VisibleForTesting;
 import androidx.core.graphics.ColorUtils;
 
 import com.android.app.animation.Interpolators;
-import com.android.launcher3.R;
 import com.android.launcher3.Reorderable;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.icons.IconNormalizer;
@@ -338,17 +337,6 @@ public class TaskbarOverflowView extends FrameLayout implements Reorderable {
                 break;
             }
         }
-    }
-
-    /**
-     * @return Tooltip to be used for the taskbar overflow view - returns null if the view should
-     *         not have a tooltip.
-     */
-    public String getTextForTooltipPopup() {
-        if (mIsActive) {
-            return null;
-        }
-        return getResources().getString(R.string.taskbar_overflow_a11y_title);
     }
 
     /**

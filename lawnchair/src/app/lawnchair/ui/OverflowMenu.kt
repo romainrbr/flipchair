@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +32,6 @@ fun OverflowMenu(
             expanded = showMenu.value,
             onDismissRequest = { showMenu.value = false },
             offset = DpOffset(x = (-2).dp, y = (-48).dp),
-            shape = MaterialTheme.shapes.large,
         ) {
             block(overflowMenuScope)
         }

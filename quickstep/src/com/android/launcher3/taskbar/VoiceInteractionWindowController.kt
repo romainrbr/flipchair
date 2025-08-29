@@ -67,7 +67,6 @@ class VoiceInteractionWindowController(val context: TaskbarActivityContext) :
         separateWindowForTaskbarBackground =
             object : BaseDragLayer<TaskbarActivityContext>(context, null, 0) {
                 override fun recreateControllers() {
-                    super.recreateControllers()
                     mControllers = emptyArray()
                 }
 

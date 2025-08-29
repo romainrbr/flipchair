@@ -65,9 +65,10 @@ public class FastBitmapDrawableTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        FastBitmapDrawable.setFlagHoverEnabled(true);
         when(mFastBitmapDrawable.isVisible()).thenReturn(true);
-        mFastBitmapDrawable.isPressed = false;
-        mFastBitmapDrawable.isHovered = false;
+        mFastBitmapDrawable.mIsPressed = false;
+        mFastBitmapDrawable.mIsHovered = false;
         mFastBitmapDrawable.resetScale();
     }
 
@@ -79,7 +80,7 @@ public class FastBitmapDrawableTest {
 
         // No scale changes without state change.
         assertFalse("State change handled.", isHandled);
-        assertNull("Scale animation not null.", mFastBitmapDrawable.scaleAnimation);
+        assertNull("Scale animation not null.", mFastBitmapDrawable.mScaleAnimation);
     }
 
     @Test
@@ -90,13 +91,13 @@ public class FastBitmapDrawableTest {
 
         // Animate to state pressed.
         assertTrue("State change not handled.", isHandled);
-        assertEquals("Duration not correct.", mFastBitmapDrawable.scaleAnimation.getDuration(),
+        assertEquals("Duration not correct.", mFastBitmapDrawable.mScaleAnimation.getDuration(),
                 CLICK_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.",
                 (float) SCALE.get(mFastBitmapDrawable), PRESSED_SCALE, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator()
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator()
                         instanceof AccelerateInterpolator);
     }
 
@@ -108,13 +109,26 @@ public class FastBitmapDrawableTest {
 
         // Animate to state hovered.
         assertTrue("State change not handled.", isHandled);
-        assertEquals("Duration not correct.", mFastBitmapDrawable.scaleAnimation.getDuration(),
+        assertEquals("Duration not correct.", mFastBitmapDrawable.mScaleAnimation.getDuration(),
                 HOVER_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.",
                 (float) SCALE.get(mFastBitmapDrawable), HOVERED_SCALE, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator() instanceof PathInterpolator);
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator() instanceof PathInterpolator);
+    }
+
+    @Test
+    public void testOnStateChange_stateHoveredFlagDisabled() {
+        FastBitmapDrawable.setFlagHoverEnabled(false);
+        int[] state = new int[]{android.R.attr.state_hovered};
+
+        boolean isHandled = mFastBitmapDrawable.onStateChange(state);
+
+        // No state change with flag disabled.
+        assertFalse("Hover state change handled with flag disabled.", isHandled);
+        assertNull("Animation should not run with hover flag disabled.",
+                mFastBitmapDrawable.mScaleAnimation);
     }
 
     @Test
@@ -125,13 +139,13 @@ public class FastBitmapDrawableTest {
 
         // Animate to pressed state only.
         assertTrue("State change not handled.", isHandled);
-        assertEquals("Duration not correct.", mFastBitmapDrawable.scaleAnimation.getDuration(),
+        assertEquals("Duration not correct.", mFastBitmapDrawable.mScaleAnimation.getDuration(),
                 CLICK_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.",
                 (float) SCALE.get(mFastBitmapDrawable), PRESSED_SCALE, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator()
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator()
                         instanceof AccelerateInterpolator);
     }
 
@@ -143,20 +157,20 @@ public class FastBitmapDrawableTest {
 
         // Animate to pressed state only.
         assertTrue("State change not handled.", isHandled);
-        assertEquals("Duration not correct.", mFastBitmapDrawable.scaleAnimation.getDuration(),
+        assertEquals("Duration not correct.", mFastBitmapDrawable.mScaleAnimation.getDuration(),
                 CLICK_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.",
                 (float) SCALE.get(mFastBitmapDrawable), PRESSED_SCALE, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator()
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator()
                         instanceof AccelerateInterpolator);
     }
 
     @Test
     public void testOnStateChange_stateHoveredAndPressedToPressed() {
-        mFastBitmapDrawable.isPressed = true;
-        mFastBitmapDrawable.isHovered = true;
+        mFastBitmapDrawable.mIsPressed = true;
+        mFastBitmapDrawable.mIsHovered = true;
         SCALE.setValue(mFastBitmapDrawable, PRESSED_SCALE);
         int[] state = new int[]{android.R.attr.state_pressed};
 
@@ -170,8 +184,8 @@ public class FastBitmapDrawableTest {
 
     @Test
     public void testOnStateChange_stateHoveredAndPressedToHovered() {
-        mFastBitmapDrawable.isPressed = true;
-        mFastBitmapDrawable.isHovered = true;
+        mFastBitmapDrawable.mIsPressed = true;
+        mFastBitmapDrawable.mIsHovered = true;
         SCALE.setValue(mFastBitmapDrawable, PRESSED_SCALE);
         int[] state = new int[]{android.R.attr.state_hovered};
 
@@ -185,7 +199,7 @@ public class FastBitmapDrawableTest {
 
     @Test
     public void testOnStateChange_stateHoveredToPressed() {
-        mFastBitmapDrawable.isHovered = true;
+        mFastBitmapDrawable.mIsHovered = true;
         SCALE.setValue(mFastBitmapDrawable, HOVERED_SCALE);
         int[] state = new int[]{android.R.attr.state_pressed};
 
@@ -199,7 +213,7 @@ public class FastBitmapDrawableTest {
 
     @Test
     public void testOnStateChange_statePressedToHovered() {
-        mFastBitmapDrawable.isPressed = true;
+        mFastBitmapDrawable.mIsPressed = true;
         SCALE.setValue(mFastBitmapDrawable, PRESSED_SCALE);
         int[] state = new int[]{android.R.attr.state_hovered};
 
@@ -213,7 +227,7 @@ public class FastBitmapDrawableTest {
 
     @Test
     public void testOnStateChange_stateDefaultFromPressed() {
-        mFastBitmapDrawable.isPressed = true;
+        mFastBitmapDrawable.mIsPressed = true;
         SCALE.setValue(mFastBitmapDrawable, PRESSED_SCALE);
         int[] state = new int[]{};
 
@@ -221,18 +235,18 @@ public class FastBitmapDrawableTest {
 
         // Animate to default state from pressed state.
         assertTrue("State change not handled.", isHandled);
-        assertEquals("Duration not correct.", mFastBitmapDrawable.scaleAnimation.getDuration(),
+        assertEquals("Duration not correct.", mFastBitmapDrawable.mScaleAnimation.getDuration(),
                 CLICK_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.", (float) SCALE.get(mFastBitmapDrawable), 1f, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator()
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator()
                         instanceof DecelerateInterpolator);
     }
 
     @Test
     public void testOnStateChange_stateDefaultFromHovered() {
-        mFastBitmapDrawable.isHovered = true;
+        mFastBitmapDrawable.mIsHovered = true;
         SCALE.setValue(mFastBitmapDrawable, HOVERED_SCALE);
         int[] state = new int[]{};
 
@@ -240,12 +254,12 @@ public class FastBitmapDrawableTest {
 
         // Animate to default state from hovered state.
         assertTrue("State change not handled.", isHandled);
-        assertEquals("Duration not correct.", mFastBitmapDrawable.scaleAnimation.getDuration(),
+        assertEquals("Duration not correct.", mFastBitmapDrawable.mScaleAnimation.getDuration(),
                 HOVER_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.", (float) SCALE.get(mFastBitmapDrawable), 1f, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator() instanceof PathInterpolator);
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator() instanceof PathInterpolator);
     }
 
     @Test
@@ -258,12 +272,12 @@ public class FastBitmapDrawableTest {
         // Animate to hovered state from midway to pressed state.
         assertTrue("State change not handled.", isHandled);
         assertEquals("Duration not correct.",
-                mFastBitmapDrawable.scaleAnimation.getDuration(), HOVER_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+                mFastBitmapDrawable.mScaleAnimation.getDuration(), HOVER_FEEDBACK_DURATION);
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.",
                 (float) SCALE.get(mFastBitmapDrawable), HOVERED_SCALE, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator() instanceof PathInterpolator);
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator() instanceof PathInterpolator);
     }
 
     @Test
@@ -276,19 +290,19 @@ public class FastBitmapDrawableTest {
         // Animate to pressed state from midway to hovered state.
         assertTrue("State change not handled.", isHandled);
         assertEquals("Duration not correct.",
-                mFastBitmapDrawable.scaleAnimation.getDuration(), CLICK_FEEDBACK_DURATION);
-        mFastBitmapDrawable.scaleAnimation.end();
+                mFastBitmapDrawable.mScaleAnimation.getDuration(), CLICK_FEEDBACK_DURATION);
+        mFastBitmapDrawable.mScaleAnimation.end();
         assertEquals("End value not correct.",
                 (float) SCALE.get(mFastBitmapDrawable), PRESSED_SCALE, EPSILON);
         assertTrue("Wrong interpolator used.",
-                mFastBitmapDrawable.scaleAnimation.getInterpolator()
+                mFastBitmapDrawable.mScaleAnimation.getInterpolator()
                         instanceof AccelerateInterpolator);
     }
 
     @Test
     public void testOnStateChange_stateDefaultFromPressedNotVisible() {
         when(mFastBitmapDrawable.isVisible()).thenReturn(false);
-        mFastBitmapDrawable.isPressed = true;
+        mFastBitmapDrawable.mIsPressed = true;
         SCALE.setValue(mFastBitmapDrawable, PRESSED_SCALE);
         clearInvocations(mFastBitmapDrawable);
         int[] state = new int[]{};
@@ -297,7 +311,7 @@ public class FastBitmapDrawableTest {
 
         // No animations when state was pressed but drawable no longer visible. Set values directly.
         assertTrue("State change not handled.", isHandled);
-        assertNull("Scale animation not null.", mFastBitmapDrawable.scaleAnimation);
+        assertNull("Scale animation not null.", mFastBitmapDrawable.mScaleAnimation);
         assertEquals("End value not correct.", (float) SCALE.get(mFastBitmapDrawable), 1f, EPSILON);
         verify(mFastBitmapDrawable).invalidateSelf();
     }
@@ -305,7 +319,7 @@ public class FastBitmapDrawableTest {
     @Test
     public void testOnStateChange_stateDefaultFromHoveredNotVisible() {
         when(mFastBitmapDrawable.isVisible()).thenReturn(false);
-        mFastBitmapDrawable.isHovered = true;
+        mFastBitmapDrawable.mIsHovered = true;
         SCALE.setValue(mFastBitmapDrawable, HOVERED_SCALE);
         clearInvocations(mFastBitmapDrawable);
         int[] state = new int[]{};
@@ -314,7 +328,7 @@ public class FastBitmapDrawableTest {
 
         // No animations when state was hovered but drawable no longer visible. Set values directly.
         assertTrue("State change not handled.", isHandled);
-        assertNull("Scale animation not null.", mFastBitmapDrawable.scaleAnimation);
+        assertNull("Scale animation not null.", mFastBitmapDrawable.mScaleAnimation);
         assertEquals("End value not correct.", (float) SCALE.get(mFastBitmapDrawable), 1f, EPSILON);
         verify(mFastBitmapDrawable).invalidateSelf();
     }

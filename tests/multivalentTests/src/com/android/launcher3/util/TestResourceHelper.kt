@@ -26,24 +26,21 @@ import kotlin.IntArray
 class TestResourceHelper(private val context: Context, specsFileId: Int) :
     ResourceHelper(context, specsFileId) {
 
-    val responsiveStyleables =
-        listOf(
+    val responsiveStyleables = listOf(
             R.styleable.SizeSpec,
             R.styleable.WorkspaceSpec,
             R.styleable.FolderSpec,
             R.styleable.AllAppsSpec,
-            R.styleable.ResponsiveSpecGroup,
-            R.styleable.ResponsiveSpec,
-            R.styleable.CellSpec,
-        )
+            R.styleable.ResponsiveSpecGroup
+    )
 
     override fun obtainStyledAttributes(attrs: AttributeSet, styleId: IntArray): TypedArray {
         val clone =
-            if (responsiveStyleables.any { styleId.contentEquals(it) }) {
-                convertStyleId(styleId)
-            } else {
-                styleId.clone()
-            }
+                if (responsiveStyleables.any { styleId.contentEquals(it) }) {
+                    convertStyleId(styleId)
+                } else {
+                    styleId.clone()
+                }
 
         return context.obtainStyledAttributes(attrs, clone)
     }

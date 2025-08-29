@@ -27,7 +27,6 @@ sealed class SmartspaceCalendar(@StringRes val nameResourceId: Int, val formatCu
         override fun toString() = "gregorian"
     }
     object Persian : SmartspaceCalendar(nameResourceId = R.string.smartspace_calendar_persian) {
-        // Officially known as Solar Hijri
         override fun toString() = "persian"
     }
 }

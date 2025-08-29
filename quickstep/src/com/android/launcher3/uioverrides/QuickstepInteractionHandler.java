@@ -75,14 +75,8 @@ class QuickstepInteractionHandler implements RemoteViews.InteractionHandler,
             return true;
         }
         Pair<Intent, ActivityOptions> options = remoteResponse.getLaunchOptions(view);
-
-        ActivityOptionsWrapper activityOptions = null;
-        try {
-            activityOptions = mLauncher.getAppTransitionManager()
-                    .getActivityLaunchOptions(hostView, (ItemInfo) hostView.getTag());
-        } catch (NullPointerException e) {
-            Log.e("pE(C7evQZDJ)", "Failed to get activity launch options");
-        }
+        ActivityOptionsWrapper activityOptions = mLauncher.getAppTransitionManager()
+                .getActivityLaunchOptions(hostView, (ItemInfo) hostView.getTag());
         if (!pendingIntent.isActivity()) {
             // In the event this pending intent eventually launches an activity, i.e. a trampoline,
             // use the Quickstep transition animation.
@@ -98,8 +92,7 @@ class QuickstepInteractionHandler implements RemoteViews.InteractionHandler,
                             pendingIntent.getCreatorPackage(),
                             activityOptions.options.getRemoteAnimationAdapter());
                 }
-            } catch (NullPointerException | RemoteException e) {
-                // pE-TODO(C7evQZDJ): Remove NullPointerException after fixing
+            } catch (RemoteException e) {
                 // Do nothing.
             }
         }
@@ -111,20 +104,11 @@ class QuickstepInteractionHandler implements RemoteViews.InteractionHandler,
         } catch (Throwable t) {
             // ignore
         }
-        // pE-TODO(C7evQZDJ): Remove activityOptions null check
-        if (activityOptions != null) {
-            options = Pair.create(options.first, activityOptions.options);
-        }
+        options = Pair.create(options.first, activityOptions.options);
         if (pendingIntent.isActivity()) {
             logAppLaunch(hostView.getTag());
         }
-        if (activityOptions != null) {
-            return RemoteViews.startPendingIntent(hostView, pendingIntent, options);
-        } else {
-            Log.d("pE(C7evQZDJ)", "activityOptions is null!");
-            return RemoteViews.startPendingIntent(hostView, pendingIntent,
-                remoteResponse.getLaunchOptions(view));
-        }
+        return RemoteViews.startPendingIntent(hostView, pendingIntent, options);
     }
 
     /**

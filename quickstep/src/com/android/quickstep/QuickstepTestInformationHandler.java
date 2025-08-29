@@ -12,7 +12,6 @@ import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
 
-import com.android.launcher3.R;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
 import com.android.launcher3.testing.TestInformationHandler;
 import com.android.launcher3.testing.shared.TestProtocol;
@@ -23,7 +22,6 @@ import com.android.quickstep.util.TISBindHelper;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.RecentsViewContainer;
 import com.android.systemui.shared.recents.model.Task;
-import com.android.wm.shell.shared.bubbles.DeviceConfig;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -74,7 +72,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             }
 
             case TestProtocol.REQUEST_BACKGROUND_TO_OVERVIEW_SWIPE_HEIGHT: {
-                final float swipeHeight = mDeviceProfile.getDeviceProperties().getHeightPx() / 2f;
+                final float swipeHeight = mDeviceProfile.heightPx / 2f;
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD, (int) swipeHeight);
                 return response;
             }
@@ -97,28 +95,13 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
 
             case TestProtocol.REQUEST_GET_OVERVIEW_PAGE_SPACING: {
                 response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        mDeviceProfile.getOverviewProfile().getPageSpacing());
-                return response;
-            }
-
-            case TestProtocol.REQUEST_GET_BUBBLE_BAR_DROP_TARGET_SIZE: {
-                int dimenResId = DeviceConfig.isSmallTablet(mContext)
-                        ? R.dimen.drag_zone_bubble_fold : R.dimen.drag_zone_bubble_tablet;
-                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        mContext.getResources().getDimensionPixelSize(dimenResId));
+                        mDeviceProfile.overviewPageSpacing);
                 return response;
             }
 
             case TestProtocol.REQUEST_GET_OVERVIEW_CURRENT_PAGE_INDEX: {
                 return getLauncherUIProperty(Bundle::putInt,
                         launcher -> launcher.<RecentsView>getOverviewPanel().getCurrentPage());
-            }
-
-            case TestProtocol.REQUEST_GET_OVERVIEW_FIRST_TASKVIEW_INDEX: {
-                return getLauncherUIProperty(Bundle::putInt,
-                        launcher ->
-                                launcher.<RecentsView<?, ?>>getOverviewPanel()
-                                        .getFirstTaskViewIndex());
             }
 
             case TestProtocol.REQUEST_HAS_TIS: {
@@ -191,7 +174,7 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
                 return response;
 
             case TestProtocol.REQUEST_REFRESH_OVERVIEW_TARGET:
-                runOnTISBinder(TouchInteractionService.TISBinder::refreshOverviewTargetForTest);
+                runOnTISBinder(TouchInteractionService.TISBinder::refreshOverviewTarget);
                 return response;
 
             case TestProtocol.REQUEST_RECREATE_TASKBAR:
@@ -215,32 +198,6 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
             case TestProtocol.REQUEST_EJECT_FAKE_TRACKPAD:
                 runOnTISBinder(tisBinder -> tisBinder.ejectFakeTrackpadForTesting());
                 return response;
-            case TestProtocol.REQUEST_TASKBAR_PRIMARY_DISPLAY_ID: {
-                return getTISBinderUIProperty(Bundle::putInt, tisBinder ->
-                        tisBinder.getTaskbarManager().getPrimaryDisplayId());
-            }
-
-            case TestProtocol.REQUEST_DISMISS_MAGNETIC_DETACH_THRESHOLD: {
-                final Resources resources = mContext.getResources();
-                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        resources.getDimensionPixelSize(R.dimen.task_dismiss_detach_threshold));
-                return response;
-            }
-
-            case TestProtocol.REQUEST_TASKBAR_ACTION_CORNER_PADDING: {
-                final Resources resources = mContext.getResources();
-                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        resources.getDimensionPixelSize(
-                                R.dimen.transient_taskbar_action_corner_padding));
-                return response;
-            }
-            case TestProtocol.REQUEST_TASKBAR_UNSTASHED_INPUT_AREA: {
-                final Resources resources = mContext.getResources();
-                response.putInt(TestProtocol.TEST_INFO_RESPONSE_FIELD,
-                        resources.getDimensionPixelSize(
-                                R.dimen.taskbar_unstash_input_area));
-                return response;
-            }
         }
 
         return super.call(method, arg, extras);
@@ -249,22 +206,15 @@ public class QuickstepTestInformationHandler extends TestInformationHandler {
     @Override
     protected WindowInsets getWindowInsets() {
         RecentsViewContainer container = getRecentsViewContainer();
-        WindowInsets insets = container == null || container.getRootView() == null
+        WindowInsets insets = container == null
                 ? null : container.getRootView().getRootWindowInsets();
         return insets == null ? super.getWindowInsets() : insets;
     }
 
-    @Nullable
     private RecentsViewContainer getRecentsViewContainer() {
         // TODO (b/400647896): support per-display container in e2e tests
-        BaseContainerInterface<?, ?> containerInterface = OverviewComponentObserver.INSTANCE.get(
-                        mContext)
-                .getContainerInterface(DEFAULT_DISPLAY);
-        if (containerInterface != null) {
-            return containerInterface.getCreatedContainer();
-        } else {
-            return null;
-        }
+        return OverviewComponentObserver.INSTANCE.get(mContext)
+                .getContainerInterface(DEFAULT_DISPLAY).getCreatedContainer();
     }
 
     @Override

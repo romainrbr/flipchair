@@ -19,12 +19,12 @@ package com.android.quickstep.recents.di
 import android.content.Context
 import android.util.Log
 import com.android.launcher3.util.coroutines.DispatcherProvider
+import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.RecentsModel
 import com.android.quickstep.recents.data.RecentTasksRepository
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegate
 import com.android.quickstep.recents.data.TaskVisualsChangedDelegateImpl
 import com.android.quickstep.recents.data.TasksRepository
-import com.android.quickstep.recents.domain.usecase.GetRemainingAppTimerDurationUseCase
 import com.android.quickstep.recents.domain.usecase.GetSysUiStatusNavFlagsUseCase
 import com.android.quickstep.recents.domain.usecase.GetTaskUseCase
 import com.android.quickstep.recents.domain.usecase.GetThumbnailPositionUseCase
@@ -38,14 +38,11 @@ import kotlinx.coroutines.SupervisorJob
 
 internal typealias RecentsScopeId = String
 
-fun Any.toScopeId(): String = this as? RecentsScopeId ?: this.hashCode().toString()
-
-class RecentsDependencies
-private constructor(appContext: Context, dispatcherProvider: DispatcherProvider) {
+class RecentsDependencies private constructor(appContext: Context) {
     private val scopes = mutableMapOf<RecentsScopeId, RecentsDependenciesScope>()
 
     init {
-        startDefaultScope(appContext, dispatcherProvider)
+        startDefaultScope(appContext)
     }
 
     /**
@@ -53,10 +50,11 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
      * are global while others are per-RecentsView. The scope is used to differentiate between
      * RecentsViews.
      */
-    private fun startDefaultScope(appContext: Context, dispatcherProvider: DispatcherProvider) {
+    private fun startDefaultScope(appContext: Context) {
         Log.d(TAG, "startDefaultScope")
         createScope(DEFAULT_SCOPE_ID).apply {
             set(RecentsViewData::class.java.simpleName, RecentsViewData())
+            val dispatcherProvider: DispatcherProvider = ProductionDispatchers
             val recentsCoroutineScope =
                 CoroutineScope(
                     SupervisorJob() + dispatcherProvider.unconfined + CoroutineName("RecentsView")
@@ -80,7 +78,7 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
                         iconCache,
                         taskVisualsChangedDelegate,
                         recentsCoroutineScope,
-                        dispatcherProvider,
+                        ProductionDispatchers,
                     )
                 }
             set(RecentTasksRepository::class.java.simpleName, recentTasksRepository)
@@ -94,7 +92,7 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
      * @return the scope id associated with the new RecentsDependenciesScope.
      */
     fun createRecentsViewScope(viewContext: Context): String {
-        val scopeId = viewContext.toScopeId()
+        val scopeId = viewContext.hashCode().toString()
         Log.d(TAG, "createRecentsViewScope $scopeId")
         val scope =
             createScope(scopeId).apply {
@@ -170,13 +168,16 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
         return instance
     }
 
-    fun getScope(scope: Any) = getScope(scope.toScopeId())
+    fun getScope(scope: Any): RecentsDependenciesScope {
+        val scopeId: RecentsScopeId = scope as? RecentsScopeId ?: scope.hashCode().toString()
+        return getScope(scopeId)
+    }
 
     fun getScope(scopeId: RecentsScopeId): RecentsDependenciesScope =
         scopes[scopeId] ?: createScope(scopeId)
 
     fun removeScope(scope: Any) {
-        val scopeId = scope.toScopeId()
+        val scopeId: RecentsScopeId = scope as? RecentsScopeId ?: scope.hashCode().toString()
         scopes[scopeId]?.close()
         scopes.remove(scopeId)
         log("Scope $scopeId removed")
@@ -196,13 +197,7 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
             when (modelClass) {
                 IsThumbnailValidUseCase::class.java ->
                     IsThumbnailValidUseCase(rotationStateRepository = inject(scopeId))
-                GetRemainingAppTimerDurationUseCase::class.java ->
-                    GetRemainingAppTimerDurationUseCase(appTimersRepository = inject(scopeId))
-                GetTaskUseCase::class.java ->
-                    GetTaskUseCase(
-                        tasksRepository = inject(scopeId),
-                        getRemainingAppTimerDurationUseCase = inject(scopeId),
-                    )
+                GetTaskUseCase::class.java -> GetTaskUseCase(repository = inject(scopeId))
                 GetSysUiStatusNavFlagsUseCase::class.java -> GetSysUiStatusNavFlagsUseCase()
                 GetThumbnailPositionUseCase::class.java ->
                     GetThumbnailPositionUseCase(
@@ -247,25 +242,17 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
 
         @Volatile private var instance: RecentsDependencies? = null
 
-        private fun initialize(
-            context: Context,
-            dispatcherProvider: DispatcherProvider,
-        ): RecentsDependencies {
+        private fun initialize(context: Context): RecentsDependencies {
             Log.d(TAG, "initializing")
             synchronized(this) {
-                val newInstance =
-                    RecentsDependencies(context.applicationContext, dispatcherProvider)
+                val newInstance = RecentsDependencies(context.applicationContext)
                 instance = newInstance
                 return newInstance
             }
         }
 
-        @JvmStatic
-        fun maybeInitialize(
-            context: Context,
-            dispatcherProvider: DispatcherProvider,
-        ): RecentsDependencies {
-            return instance ?: initialize(context, dispatcherProvider)
+        fun maybeInitialize(context: Context): RecentsDependencies {
+            return instance ?: initialize(context)
         }
 
         fun getInstance(): RecentsDependencies {
@@ -280,7 +267,7 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
         fun destroy(viewContext: Context) {
             synchronized(this) {
                 val localInstance = instance ?: return
-                val scopeId = viewContext.toScopeId()
+                val scopeId = viewContext.hashCode().toString()
                 val scope = localInstance.scopes[scopeId]
                 if (scope == null) {
                     Log.e(
@@ -303,12 +290,6 @@ private constructor(appContext: Context, dispatcherProvider: DispatcherProvider)
                 }
             }
         }
-
-        fun hasScope(scope: Any) =
-            synchronized(this) {
-                val localInstance = instance ?: return false
-                localInstance.scopes.containsKey(scope.toScopeId())
-            }
     }
 }
 
@@ -323,7 +304,8 @@ inline fun <reified T> RecentsDependencies.Companion.get(
     extras: RecentsDependenciesExtras = RecentsDependenciesExtras(),
     noinline factory: ((extras: RecentsDependenciesExtras) -> T)? = null,
 ): T {
-    return getInstance().inject(scope.toScopeId(), extras, factory)
+    val scopeId: RecentsScopeId = scope as? RecentsScopeId ?: scope.hashCode().toString()
+    return getInstance().inject(scopeId, extras, factory)
 }
 
 inline fun <reified T> RecentsDependencies.Companion.get(

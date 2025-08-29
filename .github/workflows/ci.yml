@@ -38,7 +38,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v4
         with:
           cache-encryption-key: Da25KUVSE5jbGds2zXmfXw==
       - name: Write sign info
@@ -51,11 +51,10 @@ jobs:
             echo storeFile='${{ github.workspace }}/key.jks' >> keystore.properties
             echo ${{ secrets.KEYSTORE }} | base64 --decode > ${{ github.workspace }}/key.jks
           fi
-        # Release variant is disabled due to build conflict | assembleLawnWithQuickstepNightlyRelease
       - name: Build debug APK
-        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepPlayDebug --no-configuration-cache
+        run: ./gradlew assembleLawnWithQuickstepGithubDebug assembleLawnWithQuickstepPlayDebug assembleLawnWithQuickstepNightlyRelease --no-configuration-cache
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v4
         with:
           name: Debug APK
           path: build/outputs/apk/**/*.apk
@@ -70,7 +69,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew spotlessCheck
 
   send-notifications:
@@ -82,7 +81,7 @@ jobs:
         with:
           submodules: true
           fetch-depth: 0
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install Python packages
@@ -90,7 +89,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install gitpython requests
       - name: Download artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v5
         with:
           name: Debug APK
           path: artifacts/debug-apk
@@ -119,14 +118,13 @@ jobs:
 
   nightly-release:
     runs-on: ubuntu-latest
-    if: false
-    # if: github.repository_owner == 'LawnchairLauncher' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
+    if: github.repository_owner == 'LawnchairLauncher' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
     needs: build-debug-apk
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v5
         with:
           name: Debug APK
       # Note the # and () symbols are not supported in GitHub Release filenames, even manually

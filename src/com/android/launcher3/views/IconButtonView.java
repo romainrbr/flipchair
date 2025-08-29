@@ -121,7 +121,7 @@ public class IconButtonView extends BubbleTextView {
         @TargetApi(Build.VERSION_CODES.TIRAMISU)
         IconDrawable(Bitmap b, int colorBg, Drawable fg) {
             super(b);
-            paint.setColorFilter(new BlendModeColorFilter(colorBg, BlendMode.SRC_IN));
+            mPaint.setColorFilter(new BlendModeColorFilter(colorBg, BlendMode.SRC_IN));
             mFg = fg;
         }
 

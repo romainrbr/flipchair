@@ -18,8 +18,6 @@
 
 package com.android.launcher3;
 
-import static android.view.View.MeasureSpec.makeMeasureSpec;
-
 import static com.android.launcher3.LauncherAnimUtils.VIEW_TRANSLATE_X;
 import static com.android.launcher3.util.MultiTranslateDelegate.INDEX_BUBBLE_ADJUSTMENT_ANIM;
 
@@ -78,12 +76,11 @@ public class Hotseat extends CellLayout implements Insettable {
     public static final int ALPHA_CHANNEL_TASKBAR_ALIGNMENT = 0;
     public static final int ALPHA_CHANNEL_PREVIEW_RENDERER = 1;
     public static final int ALPHA_CHANNEL_TASKBAR_STASH = 2;
-    public static final int ALPHA_CHANNEL_ASSISTANT_VISIBILITY = 3;
-    public static final int ALPHA_CHANNEL_CHANNELS_COUNT = 4;
+    public static final int ALPHA_CHANNEL_CHANNELS_COUNT = 3;
 
     @Retention(RetentionPolicy.RUNTIME)
     @IntDef({ALPHA_CHANNEL_TASKBAR_ALIGNMENT, ALPHA_CHANNEL_PREVIEW_RENDERER,
-            ALPHA_CHANNEL_TASKBAR_STASH, ALPHA_CHANNEL_ASSISTANT_VISIBILITY})
+            ALPHA_CHANNEL_TASKBAR_STASH})
     public @interface HotseatQsbAlphaId {
     }
 
@@ -143,20 +140,10 @@ public class Hotseat extends CellLayout implements Insettable {
         }
         int layoutId = hotseatMode.getLayoutResourceId();
 
-        //mQsb = LayoutInflater.from(context).inflate(layoutId, this, false);
-        // pE-TODO(QPR1): Investigate Qsb
-        if (Flags.enableQsbOnHotseat()) {
-            mQsb = LayoutInflater.from(context).inflate(R.layout.qsb_container_hotseat, this,
-                    false);
-        } else {
-            mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this,
-                    false);
-        }
-
+        mQsb = LayoutInflater.from(context).inflate(R.layout.search_container_hotseat, this, false);
         addView(mQsb);
         mIconsAlphaChannels = new MultiValueAlpha(getShortcutsAndWidgets(),
                 ALPHA_CHANNEL_CHANNELS_COUNT);
-        mIconsAlphaChannels.setUpdateVisibility(true);
         if (mQsb instanceof Reorderable qsbReorderable) {
             mQsbTranslationX = qsbReorderable.getTranslateDelegate()
                     .getTranslationX(MultiTranslateDelegate.INDEX_NAV_BAR_ANIM);
@@ -164,27 +151,6 @@ public class Hotseat extends CellLayout implements Insettable {
         mIconsTranslationXFactory = new MultiPropertyFactory<>(getShortcutsAndWidgets(),
                 VIEW_TRANSLATE_X, ICONS_TRANSLATION_X_CHANNELS_COUNT, Float::sum);
         mQsbAlphaChannels = new MultiValueAlpha(mQsb, ALPHA_CHANNEL_CHANNELS_COUNT);
-        mQsbAlphaChannels.setUpdateVisibility(true);
-
-        setUpBackground();
-    }
-
-    private void setUpBackground() {
-        if(!preferenceManager.getHotseatBG().get()) return;
-
-        var bgColor = PreferenceExtensionsKt.firstBlocking(preferenceManager2.getHotseatBackgroundColor());
-        var transparency = preferenceManager.getHotseatBGAlpha().get();
-        var alphaValue = (transparency * 255) / 100;
-        var baseColor = bgColor.getColorPreferenceEntry().getLightColor().invoke(getContext());
-        var finalColor = Color.argb(alphaValue, Color.red(baseColor), Color.green(baseColor), Color.blue(baseColor));
-        int insetHorizontalLeft = preferenceManager.getHotseatBGHorizontalInsetLeft().get();
-        int insetHorizontalRight = preferenceManager.getHotseatBGHorizontalInsetRight().get();
-        int insetVerticalTop = preferenceManager.getHotseatBGVerticalInsetTop().get();
-        int insetVerticalBottom = preferenceManager.getHotseatBGVerticalInsetBottom().get();
-        InsetDrawable bg = new InsetDrawable(DrawableTokens.BgCellLayout.resolve(getContext()),
-            insetHorizontalLeft, insetVerticalTop, insetHorizontalRight, insetVerticalBottom);
-        bg.setTint(finalColor);
-        setBackground(bg);
     }
 
     /** Provides translation X for hotseat icons for the channel. */
@@ -381,17 +347,8 @@ public class Hotseat extends CellLayout implements Insettable {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         DeviceProfile dp = mActivity.getDeviceProfile();
-
-        // LC: Fix weird sizing with hotseatQsbWidth being 0 on phone
-        int width;
-        if (dp.isQsbInline) {
-            width = dp.hotseatQsbWidth;
-        } else {
-            width = getShortcutsAndWidgets().getMeasuredWidth();
-        }
-        
-        mQsb.measure(makeMeasureSpec(width, MeasureSpec.EXACTLY),
-                makeMeasureSpec(dp.getHotseatProfile().getQsbHeight(), MeasureSpec.EXACTLY));
+        mQsb.measure(MeasureSpec.makeMeasureSpec(dp.hotseatQsbWidth, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(dp.hotseatQsbHeight, MeasureSpec.EXACTLY));
     }
 
     @Override
@@ -411,7 +368,7 @@ public class Hotseat extends CellLayout implements Insettable {
         int right = left + qsbMeasuredWidth;
 
         int bottom = b - t - dp.getQsbOffsetY();
-        int top = bottom - dp.getHotseatProfile().getQsbHeight();
+        int top = bottom - dp.hotseatQsbHeight;
         mQsb.layout(left, top, right, bottom);
     }
 

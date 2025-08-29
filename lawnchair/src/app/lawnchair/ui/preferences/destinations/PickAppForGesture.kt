@@ -20,6 +20,7 @@ import app.lawnchair.util.App
 import app.lawnchair.util.appsState
 import app.lawnchair.util.kotlinxJson
 import com.android.launcher3.R
+import kotlinx.serialization.encodeToString
 
 @Composable
 fun PickAppForGesture() {

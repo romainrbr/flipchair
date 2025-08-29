@@ -19,13 +19,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.os.UserHandle
+import android.text.TextUtils
+import android.util.Pair
 import androidx.annotation.WorkerThread
 import com.android.launcher3.celllayout.CellPosMapper
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.icons.IconCache
-import com.android.launcher3.logging.DumpManager
-import com.android.launcher3.logging.DumpManager.LauncherDumpable
+import com.android.launcher3.model.AddWorkspaceItemsTask
 import com.android.launcher3.model.AllAppsList
 import com.android.launcher3.model.BaseLauncherBinder.BaseLauncherBinderFactory
 import com.android.launcher3.model.BgDataModel
@@ -40,15 +41,21 @@ import com.android.launcher3.model.ModelLauncherCallbacks
 import com.android.launcher3.model.ModelTaskController
 import com.android.launcher3.model.ModelWriter
 import com.android.launcher3.model.PackageUpdatedTask
+import com.android.launcher3.model.ReloadStringCacheTask
 import com.android.launcher3.model.ShortcutsChangedTask
 import com.android.launcher3.model.UserLockStateChangedTask
 import com.android.launcher3.model.UserManagerState
+import com.android.launcher3.model.WorkspaceItemSpaceFinder
+import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutRequest
 import com.android.launcher3.util.DaggerSingletonTracker
+import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.PackageUserKey
+import com.android.launcher3.util.Preconditions
+import java.io.FileDescriptor
 import java.io.PrintWriter
 import java.util.concurrent.CancellationException
 import java.util.function.Consumer
@@ -78,9 +85,9 @@ constructor(
     private val mBgDataModel: BgDataModel,
     private val loaderFactory: LoaderTaskFactory,
     private val binderFactory: BaseLauncherBinderFactory,
+    private val spaceFinderFactory: Provider<WorkspaceItemSpaceFinder>,
     val modelDbController: ModelDbController,
-    dumpManager: DumpManager,
-) : LauncherDumpable {
+) {
 
     private val mCallbacksList = ArrayList<BgDataModel.Callbacks>(1)
 
@@ -122,10 +129,15 @@ constructor(
         }
         lifecycle.addCloseable { destroy() }
         modelDelegate.init(this, mBgAllAppsList, mBgDataModel)
-        lifecycle.addCloseable(dumpManager.register(this))
     }
 
     fun newModelCallbacks() = ModelLauncherCallbacks(this::enqueueModelUpdateTask)
+
+    /** Adds the provided items to the workspace. */
+    fun addAndBindAddedWorkspaceItems(itemList: List<Pair<ItemInfo?, Any?>?>) {
+        callbacks.forEach { it.preAddApps() }
+        enqueueModelUpdateTask(AddWorkspaceItemsTask(itemList, spaceFinderFactory.get()))
+    }
 
     fun getWriter(
         verifyChanges: Boolean,
@@ -154,6 +166,10 @@ constructor(
     fun destroy() {
         mModelDestroyed = true
         MODEL_EXECUTOR.execute { modelDelegate.destroy() }
+    }
+
+    fun reloadStringCache() {
+        enqueueModelUpdateTask(ReloadStringCacheTask(this.modelDelegate))
     }
 
     /**
@@ -232,6 +248,7 @@ constructor(
     /** Removes an existing callback */
     fun removeCallbacks(callbacks: BgDataModel.Callbacks) {
         synchronized(mCallbacksList) {
+            Preconditions.assertUIThread()
             if (mCallbacksList.remove(callbacks)) {
                 if (stopLoader()) {
                     // Rebind existing callbacks
@@ -255,6 +272,7 @@ constructor(
 
     /** Adds a callbacks to receive model updates */
     fun addCallbacks(callbacks: BgDataModel.Callbacks) {
+        Preconditions.assertUIThread()
         synchronized(mCallbacksList) { mCallbacksList.add(callbacks) }
     }
 
@@ -275,6 +293,9 @@ constructor(
             val bindAllCallbacks = wasRunning || !bindDirectly || newCallbacks.isEmpty()
             val callbacksList = if (bindAllCallbacks) callbacks else newCallbacks
             if (callbacksList.isNotEmpty()) {
+                // Clear any pending bind-runnables from the synchronized load process.
+                callbacksList.forEach { MAIN_EXECUTOR.execute(it::clearPendingBinds) }
+
                 val launcherBinder = binderFactory.createBinder(callbacksList)
                 if (bindDirectly) {
                     // Divide the set of loaded items into those that we are binding synchronously,
@@ -315,13 +336,6 @@ constructor(
             return false
         }
     }
-
-    /**
-     * Checks whether the launcher model is active.
-     *
-     * @return true if the model is loaded or if loader task is running.
-     */
-    fun isActive(): Boolean = mModelLoaded || mIsLoaderTaskRunning
 
     /**
      * Loads the model if not loaded
@@ -441,8 +455,8 @@ constructor(
         }
     }
 
-    override fun dump(prefix: String, writer: PrintWriter, args: Array<String>?) {
-        if (args?.getOrNull(0) == "--all") {
+    fun dumpState(prefix: String?, fd: FileDescriptor?, writer: PrintWriter, args: Array<String?>) {
+        if (args.isNotEmpty() && TextUtils.equals(args[0], "--all")) {
             writer.println(prefix + "All apps list: size=" + mBgAllAppsList.data.size)
             for (info in mBgAllAppsList.data) {
                 writer.println(
@@ -451,6 +465,8 @@ constructor(
             }
             writer.println()
         }
+        modelDelegate.dump(prefix, fd, writer, args)
+        mBgDataModel.dump(prefix, fd, writer, args)
     }
 
     /** Returns true if there are any callbacks attached to the model */

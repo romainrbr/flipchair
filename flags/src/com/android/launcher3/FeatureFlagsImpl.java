@@ -13,14 +13,14 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean allAppsBlur() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean allAppsSheetForHandheld() {
-        return true;
+        return false;
     }
 
     @Override
@@ -139,7 +139,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableExpressiveDismissTaskMotion() {
-        return true;
+        return false;
     }
 
     @Override
@@ -244,7 +244,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableLauncherIconShapes() {
-        return true;
+        return false;
     }
 
     @Override
@@ -258,14 +258,14 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableLauncherVisualRefresh() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean enableMouseInteractionChanges() {
-        return true;
+        return false;
     }
 
     @Override
@@ -286,7 +286,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableOverviewBackgroundWallpaperBlur() {
-        return true;
+        return false;
     }
 
     @Override
@@ -503,7 +503,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableTwoPaneLauncherSettings() {
-        return true;
+        return false;
     }
 
     @Override
@@ -524,7 +524,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableUnfoldStateAnimation() {
-        return true;
+        return false;
     }
 
     @Override
@@ -566,14 +566,14 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean expressiveThemeInTaskbarAndNavigation() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean extendibleThemeManager() {
-        return true;
+        return false;
     }
 
     @Override
@@ -622,7 +622,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean msdlFeedback() {
-        return true;
+        return false;
     }
 
     @Override
@@ -664,7 +664,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean predictiveBackToHomeBlur() {
-        return true;
+        return false;
     }
 
     @Override

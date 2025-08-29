@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
 }
 
 // LC-Build-TODO: addFrameworkJar() doesn't work, what???
@@ -17,7 +17,7 @@ compileOnlyCommonJars()
 
 // TODO: Pull out surfaceeffects outside of src and have separate build files there.
 android {
-    buildToolsVersion "36.1.0"
+    buildToolsVersion "36.0.0"
     namespace "com.android.systemui.animation"
     buildFeatures {
         aidl true

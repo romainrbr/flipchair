@@ -122,7 +122,7 @@ class LawnchairIconProvider @JvmOverloads constructor(
         return iconPack.getIcon(componentName)
     }
 
-    fun isThemeEnabled(): Boolean {
+   fun isThemeEnabled(): Boolean {
         return mThemedIconMap != DISABLED_MAP
     }
 
@@ -140,14 +140,11 @@ class LawnchairIconProvider @JvmOverloads constructor(
             res.getXml(R.xml.grayscale_icon_map).use { parser ->
                 val depth = parser.getDepth()
                 var type: Int
-                while ((parser.next().also { type = it }) != XmlPullParser.START_TAG &&
-                    type != XmlPullParser.END_DOCUMENT
-                    );
-                while ((
-                        (parser.next().also { type = it }) != XmlPullParser.END_TAG ||
-                            parser.getDepth() > depth
-                        ) &&
-                    type != XmlPullParser.END_DOCUMENT
+                while ((parser.next().also { type = it }) != XmlPullParser.START_TAG
+                    && type != XmlPullParser.END_DOCUMENT
+                );
+                while (((parser.next().also { type = it }) != XmlPullParser.END_TAG
+                        || parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT
                 ) {
                     if (type != XmlPullParser.START_TAG) {
                         continue
@@ -371,7 +368,7 @@ class LawnchairIconProvider @JvmOverloads constructor(
                 packageName = themeMapName,
             )
             if (isOlderLawniconsInstalled) {
-                // updateMapWithDynamicIcons(context, map)
+                //updateMapWithDynamicIcons(context, map)
             }
         }
 

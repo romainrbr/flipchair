@@ -16,14 +16,12 @@
 package com.android.launcher3.taskbar.overlay;
 
 import android.content.Context;
-import android.graphics.Point;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
-import com.android.launcher3.Flags;
 import com.android.launcher3.R;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.taskbar.BaseTaskbarContext;
@@ -59,14 +57,13 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
             Context windowContext,
             TaskbarActivityContext taskbarContext,
             TaskbarControllers controllers) {
-        super(windowContext, taskbarContext.getDisplayId(), taskbarContext.isPrimaryDisplay());
+        super(windowContext, taskbarContext.isPrimaryDisplay());
         mTaskbarContext = taskbarContext;
         mOverlayController = controllers.taskbarOverlayController;
         mDragController = new TaskbarDragController(this);
         mDragController.init(controllers);
         mDragLayer = new TaskbarOverlayDragLayer(this);
         mStashedTaskbarHeight = controllers.taskbarStashController.getStashedHeight();
-        updateBlurStyle();
 
         mUiController = controllers.uiController;
         onViewCreated();
@@ -129,20 +126,6 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
-    public boolean isAllAppsBackgroundBlurEnabled() {
-        return Flags.allAppsBlur() && mOverlayController != null
-                && mOverlayController.isBackgroundBlurEnabled();
-    }
-
-    /** Apply the blur or blur fallback style to the current theme. */
-    private void updateBlurStyle() {
-        if (!Flags.allAppsBlur()) {
-            return;
-        }
-        getTheme().applyStyle(getAllAppsBlurStyleResId(), true);
-    }
-
-    @Override
     public View.OnClickListener getItemOnClickListener() {
         return mTaskbarContext.getItemOnClickListener();
     }
@@ -184,11 +167,6 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
-    public boolean isTaskbarShowingDesktopTasks() {
-        return mTaskbarContext.isTaskbarShowingDesktopTasks();
-    }
-
-    @Override
     public boolean showLockedTaskbarOnHome() {
         return mTaskbarContext.showLockedTaskbarOnHome();
     }
@@ -199,18 +177,8 @@ public class TaskbarOverlayContext extends BaseTaskbarContext {
     }
 
     @Override
-    public Point getScreenSize() {
-        return mTaskbarContext.getScreenSize();
-    }
-
-    @Override
-    public int getDisplayHeight() {
-        return mTaskbarContext.getDisplayHeight();
-    }
-
-    @Override
-    public void notifyConfigChanged() {
-        mTaskbarContext.notifyConfigChanged();
+    public boolean isPrimaryDisplay() {
+        return mTaskbarContext.isPrimaryDisplay();
     }
 
     @Override

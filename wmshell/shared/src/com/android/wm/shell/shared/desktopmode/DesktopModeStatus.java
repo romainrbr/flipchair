@@ -327,12 +327,8 @@ public class DesktopModeStatus {
      * necessarily enabling desktop mode
      */
     public static boolean overridesShowAppHandle(@NonNull Context context) {
-        try {
-            return (Flags.showAppHandleLargeScreens() || enableBubbleToFullscreen())
-                    && deviceHasLargeScreen(context);
-        } catch (Throwable t) {
-            return false;
-        }
+        return (Flags.showAppHandleLargeScreens() || enableBubbleToFullscreen())
+                && deviceHasLargeScreen(context);
     }
 
     /**

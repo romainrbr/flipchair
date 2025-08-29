@@ -39,8 +39,7 @@ fun SelectIconPreference(componentKey: ComponentKey) {
     val iconPacks by LocalPreferenceInteractor.current.iconPacks.collectAsStateWithLifecycle()
     val navController = LocalNavController.current
     val scope = rememberCoroutineScope()
-    val launcherAppState = LauncherAppState.getInstance(context)
-    val model = launcherAppState.model
+    val model = LauncherAppState.getInstance(context).model
 
     val repo = IconOverrideRepository.INSTANCE.get(context)
     OnResult<IconPickerItem> { item ->
@@ -50,7 +49,6 @@ fun SelectIconPreference(componentKey: ComponentKey) {
                 it.setResult(Activity.RESULT_OK)
                 it.finish()
                 model.onAppIconChanged(componentKey.componentName.packageName, componentKey.user)
-                model.forceReload()
             }
         }
     }
@@ -70,7 +68,6 @@ fun SelectIconPreference(componentKey: ComponentKey) {
                                 it.setResult(Activity.RESULT_OK)
                                 it.finish()
                                 model.onAppIconChanged(componentKey.componentName.packageName, componentKey.user)
-                                model.forceReload()
                             }
                         }
                     },
@@ -78,9 +75,9 @@ fun SelectIconPreference(componentKey: ComponentKey) {
             }
         }
         preferenceGroupItems(
+            heading = { stringResource(id = R.string.pick_icon_from_label) },
             items = iconPacks,
             isFirstChild = !hasOverride,
-            heading = { stringResource(id = R.string.pick_icon_from_label) },
         ) { _, iconPack ->
             AppItem(
                 label = iconPack.name,

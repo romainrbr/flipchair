@@ -10,6 +10,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import androidx.core.content.edit
 import com.android.launcher3.LauncherPrefs
+import com.android.launcher3.Utilities
 import com.android.launcher3.dagger.ApplicationContext
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppSingleton

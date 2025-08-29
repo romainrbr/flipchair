@@ -167,11 +167,11 @@ public class WorkUtilityView extends LinearLayout implements Insettable,
             int bottomMargin = getResources().getDimensionPixelSize(R.dimen.work_fab_margin_bottom);
             DeviceProfile dp = ActivityContext.lookupContext(getContext()).getDeviceProfile();
             if (mActivityContext.getAppsView().isSearchBarFloating()) {
-                bottomMargin += dp.getHotseatProfile().getQsbHeight();
+                bottomMargin += dp.hotseatQsbHeight;
             }
 
-            if (!dp.getDeviceProperties().isGestureMode() && dp.isTaskbarPresent) {
-                bottomMargin += dp.getTaskbarProfile().getHeight();
+            if (!dp.isGestureMode && dp.isTaskbarPresent) {
+                bottomMargin += dp.taskbarHeight;
             }
 
             lp.bottomMargin = bottomMargin;

@@ -175,12 +175,6 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = ColorOption.fromString(context.getString(R.string.config_default_app_drawer_bg_color)),
     )
 
-    val appDrawerSearchBarBackground = preference(
-        key = booleanPreferencesKey(name = "all_apps_search_bar_background"),
-        defaultValue = context.resources.getBoolean(R.bool.config_default_search_bar_background),
-        onSet = { reloadHelper.recreate() },
-    )
-
     val notificationDotColor = preference(
         key = stringPreferencesKey(name = "notification_dot_color"),
         parse = ColorOption::fromString,
@@ -569,6 +563,18 @@ class PreferenceManager2 @Inject constructor(
         key = booleanPreferencesKey(name = "enable_smartspace"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_enable_smartspace),
         onSet = { reloadHelper.restart() },
+    )
+
+    val enableDotPagination = preference(
+        key = booleanPreferencesKey(name = "enable_dot_pagination"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_dot_pagination),
+        onSet = { reloadHelper.recreate() },
+    )
+
+    val enableMaterialUPopUp = preference(
+        key = booleanPreferencesKey(name = "enable_material_u_popup"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_material_u_popup),
+        onSet = { reloadHelper.recreate() },
     )
 
     val twoLineAllApps = preference(

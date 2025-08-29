@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 /**
  * A rule that generates a file that helps diagnosing cases when the test process was terminated
@@ -86,17 +85,13 @@ public class SamplerRule implements TestRule {
                         int count = 0;
                         while (true) {
                             writer.write(
-                                    "Slice # "
-                                    + (count++)
-                                    + " @ "
-                                    + new SimpleDateFormat("HH:mm:ss.SSS").format(new Date())
-                                            + "\r\n");
-                            for (Map.Entry<Thread, StackTraceElement[]> entry :
-                                     getAllStackTraces().entrySet()) {
-                                writer.write("  Thread \"" + entry.getKey().getName()
-                                                 + "\"\r\n");
-                                for (StackTraceElement frame : entry.getValue()) {
-                                    writer.write("    " + frame.toString() + "\r\n");
+                                    "#"
+                                            + (count++)
+                                            + " =============================================\r\n");
+                            for (StackTraceElement[] stack : getAllStackTraces().values()) {
+                                writer.write("---------------------\r\n");
+                                for (StackTraceElement frame : stack) {
+                                    writer.write(frame.toString() + "\r\n");
                                 }
                             }
                             writer.flush();

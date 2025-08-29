@@ -28,10 +28,12 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.LauncherModel.CallbackTask;
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
+import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.CollectionInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -85,7 +87,7 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
         final Context context = taskController.getContext();
 
         synchronized (dataModel) {
-            IntArray workspaceScreens = dataModel.itemsIdMap.collectWorkspaceScreens();
+            IntArray workspaceScreens = dataModel.collectWorkspaceScreens();
 
             List<ItemInfo> filteredItems = new ArrayList<>();
             for (Pair<ItemInfo, Object> entry : mItemList) {
@@ -122,11 +124,10 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                     InstallSessionHelper.INSTANCE.get(context);
             LauncherApps launcherApps = context.getSystemService(LauncherApps.class);
 
-            ModelWriter writer = taskController.getModelWriter();
             for (ItemInfo item : filteredItems) {
                 // Find appropriate space for the item.
-                int[] coords = mItemSpaceFinder.findSpaceForItem(workspaceScreens,
-                        addedWorkspaceScreensFinal, addedItemsFinal, item.spanX, item.spanY);
+                int[] coords = mItemSpaceFinder.findSpaceForItem(
+                        workspaceScreens, addedWorkspaceScreensFinal, item.spanX, item.spanY);
                 int screenId = coords[0];
 
                 ItemInfo itemInfo;
@@ -193,21 +194,40 @@ public class AddWorkspaceItemsTask implements ModelUpdateTask {
                     }
                 }
 
-                // Save the WorkspaceItemInfo for binding in the workspace
-                writer.updateItemInfoProps(itemInfo,
+                // Add the shortcut to the db
+                taskController.getModelWriter().addItemToDatabase(itemInfo,
                         LauncherSettings.Favorites.CONTAINER_DESKTOP, screenId,
                         coords[1], coords[2]);
+
+                // Save the WorkspaceItemInfo for binding in the workspace
                 addedItemsFinal.add(itemInfo);
 
                 // log bitmap and label
                 FileLog.d(LOG, "Adding item info to workspace: " + itemInfo);
             }
-            // Add the shortcut to the db
-            writer.addItemsToDatabase(addedItemsFinal);
         }
 
         if (!addedItemsFinal.isEmpty()) {
-            taskController.scheduleCallbackTask(cb -> cb.bindItemsAdded(addedItemsFinal));
+            taskController.scheduleCallbackTask(new CallbackTask() {
+                @Override
+                public void execute(@NonNull Callbacks callbacks) {
+                    final ArrayList<ItemInfo> addAnimated = new ArrayList<>();
+                    final ArrayList<ItemInfo> addNotAnimated = new ArrayList<>();
+                    if (!addedItemsFinal.isEmpty()) {
+                        ItemInfo info = addedItemsFinal.get(addedItemsFinal.size() - 1);
+                        int lastScreenId = info.screenId;
+                        for (ItemInfo i : addedItemsFinal) {
+                            if (i.screenId == lastScreenId) {
+                                addAnimated.add(i);
+                            } else {
+                                addNotAnimated.add(i);
+                            }
+                        }
+                    }
+                    callbacks.bindAppsAdded(addedWorkspaceScreensFinal,
+                            addNotAnimated, addAnimated);
+                }
+            });
         }
     }
 

@@ -28,7 +28,6 @@ import android.graphics.Insets;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Property;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,6 +38,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.widget.FrameLayout;
 
 import com.android.launcher3.AbstractFloatingView;
+import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.InsettableFrameLayout;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.testing.shared.ResourceUtils;
@@ -54,8 +54,6 @@ import java.util.ArrayList;
  */
 public abstract class BaseDragLayer<T extends Context & ActivityContext>
         extends InsettableFrameLayout {
-
-    public static final String TAG = "BaseDragLayer";
 
     public static final Property<LayoutParams, Integer> LAYOUT_X =
             new Property<LayoutParams, Integer>(Integer.TYPE, "x") {
@@ -130,13 +128,7 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
     /**
      * Called to reinitialize touch controllers.
      */
-    public void recreateControllers() {
-        if (mControllers != null) {
-            for (TouchController controller : mControllers) {
-                controller.onTouchControllerDestroyed();
-            }
-        }
-    }
+    public abstract void recreateControllers();
 
     /**
      * Same as {@link #isEventOverView(View, MotionEvent, View)} where evView == this drag layer.
@@ -201,12 +193,6 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
         mActiveController = null;
         if (canFindActiveController()) {
             mActiveController = findControllerToHandleTouch(ev);
-            if (mActiveController != null) {
-                // Logging here won't show log on every touch event, only on the start of new
-                // gestures to prevent spamming the logcat with logs.
-                Log.i(TAG, mActiveController.dump());
-            }
-
         }
         return mActiveController != null;
     }
@@ -529,8 +515,7 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
         writer.println(prefix + "DragLayer:");
         if (mActiveController != null) {
             writer.println(prefix + "\tactiveController: " + mActiveController);
-            writer.println(prefix + "\t" + mActiveController.dump());
-
+            mActiveController.dump(prefix + "\t", writer);
         }
         writer.println(prefix + "\tdragLayerAlpha : " + mMultiValueAlpha );
     }
@@ -571,11 +556,12 @@ public abstract class BaseDragLayer<T extends Context & ActivityContext>
     public WindowInsets dispatchApplyWindowInsets(WindowInsets insets) {
         if (Utilities.ATLEAST_R) {
             Insets gestureInsets = insets.getMandatorySystemGestureInsets();
-        mSystemGestureRegion.set(gestureInsets.left, gestureInsets.top, gestureInsets.right,
-                gestureInsets.bottom);
-        if (mContainer.getDeviceProfile().isTaskbarPresent) {
+            int gestureInsetBottom = gestureInsets.bottom;
+            Insets imeInset = insets.getInsets(WindowInsets.Type.ime());
+            DeviceProfile dp = mContainer.getDeviceProfile();
+            if (dp.isTaskbarPresent) {
                 // Ignore taskbar gesture insets to avoid interfering with TouchControllers.
-            mSystemGestureRegion.bottom = ResourceUtils.getNavbarSize(
+                gestureInsetBottom = ResourceUtils.getNavbarSize(
                     ResourceUtils.NAVBAR_BOTTOM_GESTURE_SIZE, getResources());
             }
             mSystemGestureRegion.set(

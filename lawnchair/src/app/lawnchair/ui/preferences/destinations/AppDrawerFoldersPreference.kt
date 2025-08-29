@@ -13,11 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -249,7 +246,6 @@ fun AppDrawerFoldersPreference(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FolderEditSheet(
     folderInfo: FolderInfo,
@@ -266,7 +262,6 @@ fun FolderEditSheet(
         buttons = {
             OutlinedButton(
                 onClick = onDismiss,
-                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(stringResource(android.R.string.cancel))
             }
@@ -276,7 +271,6 @@ fun FolderEditSheet(
                     onRename(folderInfo, textFieldValue.text)
                     onDismiss()
                 },
-                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(stringResource(android.R.string.ok))
             }
@@ -314,7 +308,6 @@ fun FolderEditSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FolderItem(
     folderInfo: FolderInfo,
@@ -345,7 +338,6 @@ fun FolderItem(
                     onClick = {
                         onItemDelete(folderInfo)
                     },
-                    shapes = IconButtonDefaults.shapes(),
                 ) {
                     Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }

@@ -1,9 +1,9 @@
 import com.android.build.api.dsl.ManagedVirtualDevice
 
 plugins {
-    alias(libs.plugins.android.test)
-    alias(libs.plugins.androidx.baselineprofile)
-    alias(libs.plugins.kotlin.android)
+    id 'com.android.test'
+    id 'androidx.baselineprofile'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
@@ -20,8 +20,7 @@ android {
         lawn { dimension = "app" }
         withQuickstep { dimension = "recents" }
         github { dimension = "channel" }
-        nightly { dimension = "channel" }
-        play { dimension = "channel" }
+        market { dimension = "channel" }
     }
 
     testOptions.managedDevices.devices {

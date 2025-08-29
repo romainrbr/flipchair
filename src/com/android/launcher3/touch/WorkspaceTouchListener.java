@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2025, Lawnchair
+ * Modifications copyright 2021, Lawnchair
  */
 package com.android.launcher3.touch;
 
@@ -23,14 +23,13 @@ import static android.view.MotionEvent.ACTION_MOVE;
 import static android.view.MotionEvent.ACTION_POINTER_UP;
 import static android.view.MotionEvent.ACTION_UP;
 
+import static com.android.launcher3.Flags.enableMouseInteractionChanges;
 import static com.android.launcher3.LauncherState.ALL_APPS;
 import static com.android.launcher3.LauncherState.NORMAL;
-import static com.android.launcher3.Utilities.shouldEnableMouseInteractionChanges;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ALLAPPS_CLOSE_TAP_OUTSIDE;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SPLIT_SELECTION_EXIT_INTERRUPTED;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_WORKSPACE_LONGPRESS;
 
-import android.content.Intent;
 import android.app.admin.DevicePolicyManager;
 import android.content.Context;
 import android.graphics.PointF;
@@ -57,15 +56,19 @@ import com.android.launcher3.util.TouchUtil;
 import app.lawnchair.LawnchairLauncher;
 
 /**
- * Helper class to handle touch on empty space in workspace and show options popup on long press
+ * Helper class to handle touch on empty space in workspace and show options
+ * popup on long press
  */
 public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListener
         implements OnTouchListener {
 
     /**
-     * STATE_PENDING_PARENT_INFORM is the state between longPress performed & the next motionEvent.
-     * This next event is used to send an ACTION_CANCEL to Workspace, to that it clears any
-     * temporary scroll state. After that, the state is set to COMPLETED, and we just eat up all
+     * STATE_PENDING_PARENT_INFORM is the state between longPress performed & the
+     * next motionEvent.
+     * This next event is used to send an ACTION_CANCEL to Workspace, to that it
+     * clears any
+     * temporary scroll state. After that, the state is set to COMPLETED, and we
+     * just eat up all
      * subsequent motion events.
      */
     private static final int STATE_CANCELLED = 0;
@@ -124,15 +127,6 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
                     maybeShowMenu();
                     return true;
                 }
-
-                // When home is shown behind tasks, then a touch on the workspace should go home.
-                if (mLauncher.shouldShowHomeBehindDesktop() && !mLauncher.isTopResumedActivity()) {
-                    Intent intent = new Intent(Intent.ACTION_MAIN)
-                            .addCategory(Intent.CATEGORY_HOME)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    mLauncher.startActivity(intent);
-                    return true;
-                }
             }
 
             mWorkspace.onTouchEvent(ev);
@@ -154,7 +148,8 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
         final boolean result;
         if (mLongPressState == STATE_COMPLETED) {
-            // We have handled the touch, so workspace does not need to know anything anymore.
+            // We have handled the touch, so workspace does not need to know anything
+            // anymore.
             result = true;
         } else if (mLongPressState == STATE_REQUESTED) {
             mWorkspace.onTouchEvent(ev);
@@ -167,15 +162,15 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
             result = true;
         } else {
-            // We don't want to handle touch unless we're in AllApps bottom sheet, let workspace
-            // handle it as usual. Also, let workspace handle cancel/up events to settle correctly.
-            result = isInAllAppsBottomSheet && action != ACTION_CANCEL && action != ACTION_UP;
+            // We don't want to handle touch unless we're in AllApps bottom sheet, let
+            // workspace
+            // handle it as usual.
+            result = isInAllAppsBottomSheet;
         }
 
         if (action == ACTION_UP || action == ACTION_POINTER_UP) {
             if (!mWorkspace.isHandlingTouch()) {
-                final CellLayout currentPage =
-                        (CellLayout) mWorkspace.getChildAt(mWorkspace.getCurrentPage());
+                final CellLayout currentPage = (CellLayout) mWorkspace.getChildAt(mWorkspace.getCurrentPage());
                 if (currentPage != null) {
                     mWorkspace.onWallpaperTap(ev);
                 }
@@ -213,8 +208,7 @@ public class WorkspaceTouchListener extends GestureDetector.SimpleOnGestureListe
 
     @Override
     public void onLongPress(MotionEvent event) {
-        if (event.getSource() == InputDevice.SOURCE_MOUSE && shouldEnableMouseInteractionChanges(
-                mWorkspace.getContext())) {
+        if (event.getSource() == InputDevice.SOURCE_MOUSE && enableMouseInteractionChanges()) {
             // Stop mouse long press events from showing the menu.
             return;
         }

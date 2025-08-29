@@ -43,8 +43,6 @@ import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 import android.widget.FrameLayout;
 
-import androidx.annotation.VisibleForTesting;
-
 import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.InsettableFrameLayout;
 import com.android.launcher3.R;
@@ -80,7 +78,7 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
     protected int mCloseChildFadeStartDelay = 0;
     protected int mCloseChildFadeDuration = 140;
 
-    @VisibleForTesting public static final int OPEN_DURATION_U = 200;
+    private static final int OPEN_DURATION_U = 200;
     private static final int OPEN_FADE_START_DELAY_U = 0;
     private static final int OPEN_FADE_DURATION_U = 83;
     private static final int OPEN_CHILD_FADE_START_DELAY_U = 0;
@@ -146,7 +144,7 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
 
         // Initialize arrow view
         final Resources resources = getResources();
-        mArrowColor = ColorTokens.PopupArrow.resolveColor(context);
+        mArrowColor = getContext().getColor(R.color.materialColorSurfaceContainer);
         mChildContainerMargin = resources.getDimensionPixelSize(R.dimen.popup_margin);
         mArrowWidth = resources.getDimensionPixelSize(R.dimen.popup_arrow_width);
         mArrowHeight = resources.getDimensionPixelSize(R.dimen.popup_arrow_height);
@@ -177,7 +175,8 @@ public abstract class ArrowPopup<T extends Context & ActivityContext>
                 ColorTokens.PopupShadeThird.resolveColor(context)
             };
         } else {
-            mColors = new int[]{ColorTokens.PopupArrow.resolveColor(context)};
+            // Lawnchair-TODO-Colour: materialColorSurfaceContainer
+            mColors = new int[]{getContext().getColor(R.color.materialColorSurfaceContainer)};
         }
     }
 

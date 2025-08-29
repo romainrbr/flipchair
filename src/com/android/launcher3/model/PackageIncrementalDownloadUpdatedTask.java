@@ -20,11 +20,12 @@ import android.os.UserHandle;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
-import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
+import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
-import com.android.launcher3.util.FlagOp;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,21 +58,25 @@ public class PackageIncrementalDownloadUpdatedTask implements ModelUpdateTask {
                 mUser);
 
         synchronized (appsList) {
-            taskController.bindIncrementalUpdates(appsList.updatePromiseInstallInfo(
-                    downloadInfo,
-                    FlagOp.NO_OP.removeFlag(ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE)));
+            List<AppInfo> updatedAppInfos = appsList.updatePromiseInstallInfo(downloadInfo);
+            if (!updatedAppInfos.isEmpty()) {
+                for (AppInfo appInfo : updatedAppInfos) {
+                    appInfo.runtimeStatusFlags &= ~ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
+                    taskController.scheduleCallbackTask(
+                            c -> c.bindIncrementalDownloadProgressUpdated(appInfo));
+                }
+            }
             taskController.bindApplicationsIfNeeded();
         }
 
-        final List<ItemInfo> updatedWorkspaceItems;
+        final ArrayList<WorkspaceItemInfo> updatedWorkspaceItems = new ArrayList<>();
         synchronized (dataModel) {
-            updatedWorkspaceItems = dataModel.updateAndCollectWorkspaceItemInfos(mUser, si -> {
+            dataModel.forAllWorkspaceItemInfos(mUser, si -> {
                 if (mPackageName.equals(si.getTargetPackage())) {
                     si.runtimeStatusFlags &= ~ItemInfoWithIcon.FLAG_INSTALL_SESSION_ACTIVE;
                     si.setProgressLevel(downloadInfo);
-                    return true;
+                    updatedWorkspaceItems.add(si);
                 }
-                return false;
             });
         }
         taskController.bindUpdatedWorkspaceItems(updatedWorkspaceItems);

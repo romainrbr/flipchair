@@ -15,6 +15,8 @@
  */
 package com.android.launcher3.model;
 
+import static com.android.launcher3.model.ModelUtils.WIDGET_FILTER;
+
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -22,11 +24,13 @@ import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
+import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.pm.PackageInstallInfo;
-import com.android.launcher3.util.FlagOp;
 import com.android.launcher3.util.InstantAppResolver;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -63,30 +67,37 @@ public class PackageInstallStateChangedTask implements ModelUpdateTask {
         }
 
         synchronized (apps) {
-            taskController.bindIncrementalUpdates(
-                    apps.updatePromiseInstallInfo(mInstallInfo, FlagOp.NO_OP));
+            List<AppInfo> updatedAppInfos = apps.updatePromiseInstallInfo(mInstallInfo);
+            if (!updatedAppInfos.isEmpty()) {
+                for (AppInfo appInfo : updatedAppInfos) {
+                    taskController.scheduleCallbackTask(
+                            c -> c.bindIncrementalDownloadProgressUpdated(appInfo));
+                }
+            }
             taskController.bindApplicationsIfNeeded();
         }
 
         synchronized (dataModel) {
-            final List<ItemInfo> updates = dataModel.updateAndCollectWorkspaceItemInfos(
-                    mInstallInfo.user,
-                    si -> {
-                        if (si.hasPromiseIconUi()
-                                && mInstallInfo.packageName.equals(si.getTargetPackage())) {
-                            si.setProgressLevel(mInstallInfo);
-                            return true;
-                        }
-                        return false;
-                    },
-                    widget -> {
-                        if (widget.providerName.getPackageName()
-                                .equals(mInstallInfo.packageName)) {
-                            widget.installProgress = mInstallInfo.progress;
-                            return true;
-                        }
-                        return false;
+            final HashSet<ItemInfo> updates = new HashSet<>();
+            dataModel.forAllWorkspaceItemInfos(mInstallInfo.user, si -> {
+                if (si.hasPromiseIconUi()
+                        && mInstallInfo.packageName.equals(si.getTargetPackage())) {
+                    si.setProgressLevel(mInstallInfo);
+                    updates.add(si);
+                }
+            });
+
+            dataModel.itemsIdMap.stream()
+                    .filter(WIDGET_FILTER)
+                    .filter(item -> mInstallInfo.user.equals(item.user))
+                    .map(item -> (LauncherAppWidgetInfo) item)
+                    .filter(widget -> widget.providerName.getPackageName()
+                            .equals(mInstallInfo.packageName))
+                    .forEach(widget -> {
+                        widget.installProgress = mInstallInfo.progress;
+                        updates.add(widget);
                     });
+
             if (!updates.isEmpty()) {
                 taskController.bindUpdatedWorkspaceItems(updates);
             }

@@ -1,5 +1,5 @@
 package com.android.launcher3;
-
+// TODO(b/303773055): Remove the annotation after access issue is resolved.
 /** @hide */
 public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
@@ -26,7 +26,28 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
+    public boolean coordinateWorkspaceScale() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableActiveGestureProtoLog() {
+        return true;
+    }
+
+    @Override
+
+
     public boolean enableAddAppWidgetViaConfigActivityV2() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableAdditionalHomeAnimations() {
         return true;
     }
 
@@ -75,13 +96,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableCoroutineThreadingImprovements() {
-        return true;
-    }
-
-    @Override
-
-
     public boolean enableCursorHoverStates() {
         return true;
     }
@@ -96,7 +110,14 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableDesktopMenuOnSecondaryDisplayBugfix() {
+    public boolean enableDesktopTaskAlphaAnimation() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableDesktopWindowingCarouselDetach() {
         return false;
     }
 
@@ -119,13 +140,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     public boolean enableExpressiveDismissTaskMotion() {
         return true;
-    }
-
-    @Override
-
-
-    public boolean enableExpressiveFolderExpansion() {
-        return false;
     }
 
     @Override
@@ -173,8 +187,15 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableGridOnlyOverview() {
+    public boolean enableGridMigrationFix() {
         return true;
+    }
+
+    @Override
+
+
+    public boolean enableGridOnlyOverview() {
+        return false;
     }
 
     @Override
@@ -187,7 +208,21 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
+    public boolean enableHandleDelayedGestureCallbacks() {
+        return true;
+    }
+
+    @Override
+
+
     public boolean enableHomeTransitionListener() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableHoverOfChildElementsInTaskview() {
         return true;
     }
 
@@ -229,15 +264,8 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableLongPressRemoveShortcut() {
-        return false;
-    }
-
-    @Override
-
-
     public boolean enableMouseInteractionChanges() {
-        return false;
+        return true;
     }
 
     @Override
@@ -264,6 +292,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
+    public boolean enableOverviewCommandHelperTimeout() {
+        return true;
+    }
+
+    @Override
+
+
     public boolean enableOverviewDesktopTileWallpaperBackground() {
         return false;
     }
@@ -272,13 +307,20 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableOverviewIconMenu() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean enableOverviewOnConnectedDisplays() {
+        return false;
+    }
+
+    @Override
+
+
+    public boolean enablePinningAppWithContextMenu() {
         return false;
     }
 
@@ -306,13 +348,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableQsbOnHotseat() {
-        return false;
-    }
-
-    @Override
-
-
     public boolean enableRebootUnlockAnimation() {
         return false;
     }
@@ -334,22 +369,8 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableRefactorDigitalWellbeingToast() {
-        return false;
-    }
-
-    @Override
-
-
-    public boolean enableRefactorTaskContentView() {
-        return false;
-    }
-
-    @Override
-
-
     public boolean enableRefactorTaskThumbnail() {
-        return true;
+        return false;
     }
 
     @Override
@@ -357,13 +378,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     public boolean enableResponsiveWorkspace() {
         return true;
-    }
-
-    @Override
-
-
-    public boolean enableReversibleHomeActionCorner() {
-        return false;
     }
 
     @Override
@@ -383,7 +397,35 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableSimultaneousOverviewTriggerOnExtendedDesktop() {
+    public boolean enableSeparateExternalDisplayTasks() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableShortcutDontSuggestApp() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableShowEnabledShortcutsInAccessibilityMenu() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableSmartspaceAsAWidget() {
+        return false;
+    }
+
+    @Override
+
+
+    public boolean enableSmartspaceRemovalToggle() {
         return false;
     }
 
@@ -453,13 +495,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableTaskbarUiThread() {
-        return false;
-    }
-
-    @Override
-
-
     public boolean enableTieredWidgetsByDefaultInPicker() {
         return false;
     }
@@ -468,7 +503,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableTwoPaneLauncherSettings() {
-        return false;
+        return true;
     }
 
     @Override
@@ -489,14 +524,21 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableUnfoldStateAnimation() {
-        return false;
+        return true;
     }
 
     @Override
 
 
-    public boolean enableWidgetPickerRefactor() {
-        return false;
+    public boolean enableUnfoldedTwoPanePicker() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean enableUseTopVisibleActivityForExcludeFromRecentTask() {
+        return true;
     }
 
     @Override
@@ -524,13 +566,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean expressiveThemeInTaskbarAndNavigation() {
-        return false;
+        return true;
     }
 
     @Override
 
 
-    public boolean externalDataAccess() {
+    public boolean extendibleThemeManager() {
         return true;
     }
 
@@ -559,13 +601,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean gsfRes() {
-        return true;
-    }
-
-    @Override
-
-
-    public boolean homeScreenEditImprovements() {
         return false;
     }
 
@@ -586,13 +621,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean modelRepository() {
-        return false;
-    }
-
-    @Override
-
-
     public boolean msdlFeedback() {
         return true;
     }
@@ -600,8 +628,15 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean nudgePill() {
-        return false;
+    public boolean multilineSearchBar() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean navigateToChildPreference() {
+        return true;
     }
 
     @Override
@@ -622,7 +657,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean oneGridSpecs() {
-        return true;
+        return false;
     }
 
     @Override
@@ -650,6 +685,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean privateSpaceAnimation() {
+        return true;
+    }
+
+    @Override
+
+
+    public boolean privateSpaceAppInstallerButton() {
         return true;
     }
 
@@ -684,28 +726,42 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean restoreArchivedAppIconsFromDb() {
+    public boolean removeExcludeFromScreenMagnificationFlagUsage() {
         return true;
+    }
+
+    @Override
+
+
+    public boolean restoreArchivedAppIconsFromDb() {
+        return false;
     }
 
     @Override
 
 
     public boolean restoreArchivedShortcuts() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean showTaskbarPinningPopupFromAnywhere() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean syncAppLaunchWithTaskbarStash() {
+        return false;
+    }
+
+    @Override
+
+
+    public boolean taskbarOverflow() {
         return true;
     }
 
@@ -714,6 +770,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     public boolean taskbarQuietModeChangeSupport() {
         return false;
+    }
+
+    @Override
+
+
+    public boolean useActivityOverlay() {
+        return true;
     }
 
     @Override
@@ -734,7 +797,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean workSchedulerInWorkProfile() {
-        return true;
+        return false;
     }
 
 }

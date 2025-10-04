@@ -91,7 +91,6 @@
     <string name="wallpaper">Fondo de pantalla</string>
     <string name="style">Estilo</string>
     <string name="background_opacity">Opacidad del fondo</string>
-    <string name="pref_all_apps_search_bar_background">Separated Search bar background</string>
     <!-- Toast text and tips -->
     <string name="copied_toast">Copiado al portapapeles</string>
     <string name="calculator_search_result_copied_toast">Resultado copiado al portapapeles</string>
@@ -466,7 +465,7 @@
     <string name="home_screen_lock_description">Evita cambiar sin querer la disposición de la pantalla de inicio</string>
     <string name="show_dot_pagination_label">Mostrar paginación de puntos</string>
     <string name="show_dot_pagination_description">Usar puntos en vez de líneas para mostrar el número de página</string>
-    <string name="show_material_u_popup_label">Usar nuevo estilo de ventana emergente</string>
+    <string name="show_material_u_popup_label">Usar el nuevo estilo del menú emergente</string>
     <string name="show_material_u_popup_description">Usar el estilo de «Material You» animado y minimalista para los menús emergentes</string>
     <string name="popup_menu">Menú emergente</string>
     <string name="popup_menu_items">Elementos del menú emergente</string>
@@ -609,7 +608,7 @@
     <string name="search_algorithm_global_search_via_asi">Búsqueda global (a través de ASI)</string>
     <string name="custom_search_label">Nombre del buscador</string>
     <string name="custom_search_url">URL del buscador</string>
-    <string name="custom_search_suggestions_url">Search suggestions URL</string>
+    <string name="custom_search_suggestions_url">URL de sugerencias de búsqueda</string>
     <string name="custom_search_input_hint">&#37;s se reemplazará con la consulta de búsqueda</string>
     <string name="custom_search_suggestions_hint">&#37;s will be replaced with the search query. Results must be in JSON OpenSearch format.</string>
     <!-- Labels of each search result types -->

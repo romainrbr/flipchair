@@ -17,18 +17,16 @@
 package com.android.wm.shell.flicker.pip
 
 import android.graphics.Rect
-import android.platform.test.annotations.FlakyTest
-import android.platform.test.annotations.RequiresDevice
-import android.platform.test.annotations.RequiresFlagsDisabled
 import android.tools.Rotation
 import android.tools.flicker.junit.FlickerParametersRunnerFactory
 import android.tools.flicker.legacy.FlickerBuilder
 import android.tools.flicker.legacy.LegacyFlickerTest
 import android.tools.flicker.legacy.LegacyFlickerTestFactory
 import android.tools.flicker.rules.RemoveAllTasksButHomeRule
+import androidx.test.filters.FlakyTest
+import androidx.test.filters.RequiresDevice
 import com.android.server.wm.flicker.helpers.setRotation
 import com.android.server.wm.flicker.testapp.ActivityOptions
-import com.android.wm.shell.Flags
 import com.android.wm.shell.flicker.pip.common.PipTransition
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -42,7 +40,6 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 @Parameterized.UseParametersRunnerFactory(FlickerParametersRunnerFactory::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RequiresFlagsDisabled(Flags.FLAG_ENABLE_PIP2)
 class PipDragThenSnapTest(flicker: LegacyFlickerTest) : PipTransition(flicker) {
     // represents the direction in which the pip window should be snapping
     private var willSnapRight: Boolean = true
@@ -59,8 +56,7 @@ class PipDragThenSnapTest(flicker: LegacyFlickerTest) : PipTransition(flicker) {
                 // Launch the PIP activity and wait for it to enter PiP mode
                 setRotation(Rotation.ROTATION_0)
                 RemoveAllTasksButHomeRule.removeAllTasksButHome()
-                pipApp.launchViaIntent(wmHelper, stringExtras = stringExtras)
-                pipApp.waitForPip(wmHelper)
+                pipApp.launchViaIntentAndWaitForPip(wmHelper, stringExtras = stringExtras)
 
                 // get the initial region bounds and cache them
                 val initRegion = pipApp.getWindowRect(wmHelper)
@@ -183,13 +179,6 @@ class PipDragThenSnapTest(flicker: LegacyFlickerTest) : PipTransition(flicker) {
     @FlakyTest(bugId = 294993100)
     override fun taskBarWindowIsAlwaysVisible() {
         super.taskBarWindowIsAlwaysVisible()
-    }
-
-    // Overridden to remove @Postsubmit annotation
-    @Test
-    @FlakyTest(bugId = 294993100)
-    override fun pipLayerHasCorrectCornersAtEnd() {
-        // No rounded corners as we go back to fullscreen in new orientation.
     }
 
     companion object {

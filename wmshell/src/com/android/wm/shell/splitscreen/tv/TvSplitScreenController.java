@@ -18,12 +18,10 @@ package com.android.wm.shell.splitscreen.tv;
 
 import static android.view.Display.DEFAULT_DISPLAY;
 
-import android.app.IActivityTaskManager;
 import android.content.Context;
 import android.os.Handler;
 
 import com.android.launcher3.icons.IconProvider;
-import com.android.wm.shell.RootDisplayAreaOrganizer;
 import com.android.wm.shell.RootTaskDisplayAreaOrganizer;
 import com.android.wm.shell.ShellTaskOrganizer;
 import com.android.wm.shell.common.DisplayController;
@@ -34,18 +32,15 @@ import com.android.wm.shell.common.MultiInstanceHelper;
 import com.android.wm.shell.common.ShellExecutor;
 import com.android.wm.shell.common.SyncTransactionQueue;
 import com.android.wm.shell.common.SystemWindows;
-import com.android.wm.shell.common.split.SplitState;
+import com.android.wm.shell.common.TransactionPool;
+import com.android.wm.shell.draganddrop.DragAndDropController;
 import com.android.wm.shell.recents.RecentTasksController;
-import com.android.wm.shell.shared.TransactionPool;
-import com.android.wm.shell.shared.desktopmode.DesktopState;
 import com.android.wm.shell.splitscreen.SplitScreenController;
 import com.android.wm.shell.splitscreen.StageCoordinator;
 import com.android.wm.shell.sysui.ShellCommandHandler;
 import com.android.wm.shell.sysui.ShellController;
 import com.android.wm.shell.sysui.ShellInit;
 import com.android.wm.shell.transition.Transitions;
-
-import com.google.android.msdl.domain.MSDLPlayer;
 
 import java.util.Optional;
 
@@ -66,14 +61,9 @@ public class TvSplitScreenController extends SplitScreenController {
     private final IconProvider mIconProvider;
     private final Optional<RecentTasksController> mRecentTasksOptional;
     private final LaunchAdjacentController mLaunchAdjacentController;
-    private final SplitState mSplitState;
-    private final MSDLPlayer mMSDLPlayer;
-    private final RootTaskDisplayAreaOrganizer mRootTDAOrganizer;
-    private final RootDisplayAreaOrganizer mRootDisplayAreaOrganizer;
 
     private final Handler mMainHandler;
     private final SystemWindows mSystemWindows;
-    private final IActivityTaskManager mActivityTaskManager;
 
     public TvSplitScreenController(Context context,
             ShellInit shellInit,
@@ -91,22 +81,14 @@ public class TvSplitScreenController extends SplitScreenController {
             Optional<RecentTasksController> recentTasks,
             LaunchAdjacentController launchAdjacentController,
             MultiInstanceHelper multiInstanceHelper,
-            SplitState splitState,
             ShellExecutor mainExecutor,
             Handler mainHandler,
-            SystemWindows systemWindows,
-            RootDisplayAreaOrganizer rootDisplayAreaOrganizer,
-            DesktopState desktopState,
-            IActivityTaskManager activityTaskManager,
-            MSDLPlayer msdlPlayer) {
+            SystemWindows systemWindows) {
         super(context, shellInit, shellCommandHandler, shellController, shellTaskOrganizer,
                 syncQueue, rootTDAOrganizer, displayController, displayImeController,
                 displayInsetsController, null, transitions, transactionPool,
                 iconProvider, recentTasks, launchAdjacentController, Optional.empty(),
-                Optional.empty(), Optional.empty(), null /* stageCoordinator */,
-                multiInstanceHelper, splitState,
-                mainExecutor, mainHandler, rootDisplayAreaOrganizer, desktopState,
-                activityTaskManager, msdlPlayer);
+                Optional.empty(), null /* stageCoordinator */, multiInstanceHelper, mainExecutor);
 
         mTaskOrganizer = shellTaskOrganizer;
         mSyncQueue = syncQueue;
@@ -120,14 +102,9 @@ public class TvSplitScreenController extends SplitScreenController {
         mIconProvider = iconProvider;
         mRecentTasksOptional = recentTasks;
         mLaunchAdjacentController = launchAdjacentController;
-        mSplitState = splitState;
-        mMSDLPlayer = msdlPlayer;
 
         mMainHandler = mainHandler;
         mSystemWindows = systemWindows;
-        mRootTDAOrganizer = rootTDAOrganizer;
-        mRootDisplayAreaOrganizer = rootDisplayAreaOrganizer;
-        mActivityTaskManager = activityTaskManager;
     }
 
     /**
@@ -140,9 +117,7 @@ public class TvSplitScreenController extends SplitScreenController {
                 mTaskOrganizer, mDisplayController, mDisplayImeController,
                 mDisplayInsetsController, mTransitions, mTransactionPool,
                 mIconProvider, mMainExecutor, mMainHandler,
-                mRecentTasksOptional, mLaunchAdjacentController, mSplitState, mSystemWindows,
-                mRootTDAOrganizer, mRootDisplayAreaOrganizer, getDesktopState(),
-                mActivityTaskManager, mMSDLPlayer);
+                mRecentTasksOptional, mLaunchAdjacentController, mSystemWindows);
     }
 
 }

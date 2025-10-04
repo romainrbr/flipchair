@@ -33,9 +33,6 @@ public interface TaskStackListenerCallback {
 
     default void onRecentTaskListFrozenChanged(boolean frozen) { }
 
-    /** A task is removed from recents as a result of another task being added to recent tasks. */
-    default void onRecentTaskRemovedForAddTask(int taskId) { }
-
     @BinderThread
     default void onTaskStackChangedBackground() { }
 

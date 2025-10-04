@@ -16,6 +16,7 @@
 
 package com.android.wm.shell.pip;
 
+import android.content.ComponentName;
 import android.os.RemoteException;
 import android.view.IPinnedTaskListener;
 import android.view.WindowManagerGlobal;
@@ -69,6 +70,12 @@ public class PinnedStackListenerForwarder {
         }
     }
 
+    private void onActivityHidden(ComponentName componentName) {
+        for (PinnedTaskListener listener : mListeners) {
+            listener.onActivityHidden(componentName);
+        }
+    }
+
     @BinderThread
     private class PinnedTaskListenerImpl extends IPinnedTaskListener.Stub {
         @Override
@@ -84,6 +91,13 @@ public class PinnedStackListenerForwarder {
                 PinnedStackListenerForwarder.this.onImeVisibilityChanged(imeVisible, imeHeight);
             });
         }
+
+        @Override
+        public void onActivityHidden(ComponentName componentName) {
+            mMainExecutor.execute(() -> {
+                PinnedStackListenerForwarder.this.onActivityHidden(componentName);
+            });
+        }
     }
 
     /**
@@ -94,5 +108,7 @@ public class PinnedStackListenerForwarder {
         public void onMovementBoundsChanged(boolean fromImeAdjustment) {}
 
         public void onImeVisibilityChanged(boolean imeVisible, int imeHeight) {}
+
+        public void onActivityHidden(ComponentName componentName) {}
     }
 }

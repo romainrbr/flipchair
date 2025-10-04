@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
@@ -22,6 +22,7 @@ addFrameworkJar('framework-16.jar')
 compileOnlyCommonJars()
 
 dependencies {
+    compileOnly projects.plugincore
     compileOnly projects.common
     implementation libs.google.errorprone.annotations
 }

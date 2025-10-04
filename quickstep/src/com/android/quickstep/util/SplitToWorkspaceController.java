@@ -157,7 +157,7 @@ public class SplitToWorkspaceController {
     private void startWorkspaceAnimation(@NonNull View view, @Nullable Bitmap bitmap,
             @Nullable Drawable icon) {
         DeviceProfile dp = mLauncher.getDeviceProfile();
-        boolean isTablet = dp.getDeviceProperties().isTablet();
+        boolean isTablet = dp.isTablet;
         SplitAnimationTimings timings = AnimUtils.getDeviceSplitToConfirmTimings(isTablet);
         PendingAnimation pendingAnimation = new PendingAnimation(timings.getDuration());
 

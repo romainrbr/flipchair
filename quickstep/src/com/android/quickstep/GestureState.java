@@ -41,7 +41,7 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.statemanager.BaseState;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.quickstep.TopTaskTracker.CachedTaskInfo;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.util.ActiveGestureErrorDetector;
 import com.android.quickstep.util.ActiveGestureLog;
 import com.android.quickstep.util.ActiveGestureProtoLogProxy;
@@ -194,7 +194,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
 
     public GestureState(OverviewComponentObserver componentObserver, int displayId, int gestureId) {
         mDisplayId = displayId;
-        mHomeIntent = componentObserver.getHomeIntent(displayId);
+        mHomeIntent = componentObserver.getHomeIntent();
         mOverviewIntent = componentObserver.getOverviewIntent();
         mContainerInterface = componentObserver.getContainerInterface(displayId);
         mStateCallback = new MultiStateCallback(
@@ -323,7 +323,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
      */
     public boolean useSyntheticRecentsTransition() {
         return mRunningTask.isHomeTask()
-                && mContainerInterface.getCreatedContainer() instanceof RecentsWindowManager;
+                && RecentsWindowFlags.Companion.getEnableOverviewInWindow();
     }
 
     /**
@@ -361,8 +361,7 @@ public class GestureState implements RecentsAnimationCallbacks.RecentsAnimationL
      * @return the single top-most running taskId for this gesture
      */
     public int getTopRunningTaskId() {
-        var taskIds = getRunningTaskIds(/* getMultipleTasks = */ false);
-        return taskIds.length != 0 ? taskIds[0] : INVALID_TASK_ID;
+        return getRunningTaskIds(false /*getMultipleTasks*/)[0];
     }
 
     /**

@@ -72,11 +72,6 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     @CallSuper
     protected void onDestroy() {
         mControllers = null;
-        RecentsView recentsView = getRecentsView();
-        if (recentsView != null) {
-            recentsView.setTaskLaunchListener(null);
-            recentsView.setTaskLaunchCancelledRunnable(null);
-        }
     }
 
     protected boolean isTaskbarTouchable() {
@@ -168,13 +163,6 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
     }
 
     /**
-     * @return if we should allow taskbar to auto stash
-     */
-    public boolean shouldAllowTaskbarToAutoStash() {
-        return mControllers.taskbarActivityContext.shouldAllowTaskbarToAutoStash();
-    }
-
-    /**
      * @param ev MotionEvent in screen coordinates.
      * @return Whether any Taskbar item could handle the given MotionEvent if given the chance.
      */
@@ -232,15 +220,6 @@ public class TaskbarUIController implements BubbleBarController.BubbleBarLocatio
         } else {
             mControllers.taskbarAllAppsController.toggle();
         }
-    }
-
-    public boolean isDraggingItem() {
-        boolean bubblesDragging = false;
-        if (mControllers.bubbleControllers.isPresent()) {
-            bubblesDragging =
-                    mControllers.bubbleControllers.get().bubbleDragController.isDragging();
-        }
-        return mControllers.taskbarDragController.isDragging() || bubblesDragging;
     }
 
     @CallSuper

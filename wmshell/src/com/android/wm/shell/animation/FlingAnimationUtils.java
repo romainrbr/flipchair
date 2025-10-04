@@ -23,8 +23,6 @@ import android.view.ViewPropertyAnimator;
 import android.view.animation.Interpolator;
 import android.view.animation.PathInterpolator;
 
-import com.android.wm.shell.shared.animation.Interpolators;
-
 import javax.inject.Inject;
 
 /**

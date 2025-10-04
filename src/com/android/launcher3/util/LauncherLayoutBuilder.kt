@@ -16,7 +16,6 @@
 package com.android.launcher3.util
 
 import android.util.Xml
-import androidx.annotation.VisibleForTesting
 import com.android.launcher3.AutoInstallsLayout.ATTR_CLASS_NAME
 import com.android.launcher3.AutoInstallsLayout.ATTR_CONTAINER
 import com.android.launcher3.AutoInstallsLayout.ATTR_PACKAGE_NAME
@@ -64,10 +63,6 @@ class LauncherLayoutBuilder {
                 ATTR_SCREEN to screen.toString()
             )
         )
-
-    @VisibleForTesting
-    fun withBaseValues(baseValues: Map<String, String>) =
-        ItemTarget(baseValues)
 
     @Throws(IOException::class) fun build() = StringWriter().apply { build(this) }.toString()
 

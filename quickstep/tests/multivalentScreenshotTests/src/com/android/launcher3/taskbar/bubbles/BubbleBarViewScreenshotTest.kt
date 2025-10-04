@@ -26,7 +26,7 @@ import android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
 import com.android.launcher3.R
-import com.android.wm.shell.shared.bubbles.BubbleBarLocation
+import com.android.launcher3.taskbar.bubbles.testing.FakeBubbleViewFactory
 import com.google.android.apps.nexuslauncher.imagecomparison.goldenpathmanager.ViewScreenshotGoldenPathManager
 import org.junit.Rule
 import org.junit.Test
@@ -69,7 +69,7 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_oneBubble") { activity ->
             activity.actionBar?.hide()
             setupBubbleBarView()
-            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), false)
+            bubbleBarView.addBubble(createBubble("key1", Color.GREEN))
             val container = FrameLayout(context)
             val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             container.layoutParams = lp
@@ -83,8 +83,8 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         screenshotRule.screenshotTest("bubbleBarView_collapsed_twoBubbles") { activity ->
             activity.actionBar?.hide()
             setupBubbleBarView()
-            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), true)
-            bubbleBarView.addBubble(createBubble("key2", Color.CYAN), true)
+            bubbleBarView.addBubble(createBubble("key1", Color.GREEN))
+            bubbleBarView.addBubble(createBubble("key2", Color.CYAN))
             val container = FrameLayout(context)
             val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             container.layoutParams = lp
@@ -105,14 +105,14 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         ) { activity ->
             activity.actionBar?.hide()
             setupBubbleBarView()
-            bubbleBarView.addBubble(createBubble("key1", Color.GREEN), false)
-            bubbleBarView.addBubble(createBubble("key2", Color.CYAN), false)
-            bubbleBarView.addBubble(createBubble("key3", Color.MAGENTA), false)
+            bubbleBarView.addBubble(createBubble("key1", Color.GREEN))
+            bubbleBarView.addBubble(createBubble("key2", Color.CYAN))
+            bubbleBarView.addBubble(createBubble("key3", Color.MAGENTA))
             val container = FrameLayout(context)
             val lp = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
             container.layoutParams = lp
             container.addView(bubbleBarView)
-            bubbleBarView.animateExpanded(true)
+            bubbleBarView.isExpanded = true
             container
         }
     }
@@ -124,23 +124,6 @@ class BubbleBarViewScreenshotTest(emulationSpec: DeviceEmulationSpec) {
         val paddingTop =
             context.resources.getDimensionPixelSize(R.dimen.bubblebar_pointer_visible_size)
         bubbleBarView.setPadding(0, paddingTop, 0, 0)
-        bubbleBarView.setController(
-            object : BubbleBarView.Controller {
-                override fun getBubbleBarTranslationY(): Float = 0f
-
-                override fun onBubbleBarTouched() {}
-
-                override fun expandBubbleBar() {}
-
-                override fun dismissBubbleBar() {}
-
-                override fun updateBubbleBarLocation(location: BubbleBarLocation?, source: Int) {}
-
-                override fun setIsDragging(dragging: Boolean) {}
-
-                override fun onBubbleBarExpandedStateChanged(expanded: Boolean) {}
-            }
-        )
         bubbleBarView.visibility = View.VISIBLE
         bubbleBarView.alpha = 1f
     }

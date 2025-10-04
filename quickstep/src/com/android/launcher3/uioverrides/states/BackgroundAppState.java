@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.uioverrides.states;
 
+import static com.android.launcher3.Flags.enableDesktopWindowingCarouselDetach;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_BACKGROUND;
 
@@ -24,7 +25,6 @@ import android.graphics.Color;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.allapps.AllAppsTransitionController;
-import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.util.BaseDepthController;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
@@ -35,8 +35,7 @@ import com.android.quickstep.views.RecentsView;
 public class BackgroundAppState extends OverviewState {
 
     private static final int STATE_FLAGS = FLAG_DISABLE_RESTORE | FLAG_RECENTS_VIEW_VISIBLE
-            | FLAG_WORKSPACE_INACCESSIBLE | FLAG_NON_INTERACTIVE | FLAG_CLOSE_POPUPS
-            | FLAG_SKIP_STATE_ANNOUNCEMENT;
+            | FLAG_WORKSPACE_INACCESSIBLE | FLAG_NON_INTERACTIVE | FLAG_CLOSE_POPUPS;
 
     public BackgroundAppState(int id) {
         this(id, LAUNCHER_STATE_BACKGROUND);
@@ -56,7 +55,7 @@ public class BackgroundAppState extends OverviewState {
                 launcher,
                 launcher.getDeviceProfile(),
                 recentsView.getPagedOrientationHandler(),
-                recentsView.getContainerInterface());
+                recentsView.getSizeStrategy());
         AllAppsTransitionController controller = launcher.getAllAppsController();
         float scrollRange = Math.max(controller.getShiftRange(), 1);
         float progressDelta = (transitionLength / scrollRange);
@@ -93,6 +92,11 @@ public class BackgroundAppState extends OverviewState {
     }
 
     @Override
+    public boolean detachDesktopCarousel() {
+        return enableDesktopWindowingCarouselDetach();
+    }
+
+    @Override
     public boolean showExplodedDesktopView() {
         return false;
     }
@@ -110,10 +114,8 @@ public class BackgroundAppState extends OverviewState {
     }
 
     @Override
-    public ScrimColors getWorkspaceScrimColor(Launcher launcher) {
-        return new ScrimColors(
-                /* backgroundColor= */ Color.TRANSPARENT,
-                /* foregroundColor= */ Color.TRANSPARENT);
+    public int getWorkspaceScrimColor(Launcher launcher) {
+        return Color.TRANSPARENT;
     }
 
     @Override

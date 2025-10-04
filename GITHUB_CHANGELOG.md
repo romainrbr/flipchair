@@ -1,185 +1,17 @@
-# Bubble Tea
-
-## Bubble Tea [QPR1]
-
-### 🏗️ Snapshot 10 (Development 4 Release 1)
-
-Bug fixes only
-
-Build: BS10.2111 (latest), BS10.2011
-
-This is a developer-focused change log:
-* Fix a lot of internal basic functionality
-* Re-added some Lawnchair-specific code
-* Fix workspace navigation
-* Fix allapps navigation
-
-### 🥞 Snapshot 9 (Development 4 Release 1)
-
-This snapshot marks the first time Bubble Tea QPR1 is able to assemble the APK without errors, 
-all that's left is bug bash testing. Limited visibility closed testing is available.
-
-Build: BS9.2011
-
-This is a developer-focused change log:
-* Re-added searchuilib
-* SearchUiLib updated to latest commits before being private
-* Exclude disabled variant of Compose launcher3 features
-* Fix all errors in Lawnchair side
-
-### Snapshot 8 (Development 4 Release 1)
-
-Build: BS8.1811
-
-This snapshot marks the first time Bubble Tea QPR1 is able to compile ALL of the Launcher3 code 
-without errors, that leaves Lawnchair code as the remaining task before successfully compiling 
-Bubble Tea QPR1
-
-This is a developer-focused change log:
-* Migrate some functions to new changes
-* WM-Shell (and WM-Shell Shared) updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Add Mechanics (SystemUI Platform Library)
-* Some unresolved reference in Lawnchair code
-
-### Snapshot 7 (Development 4 Release 1)
-
-Build: BS7.1711
-
-This snapshot marks the first time Bubble Tea QPR1 is able to pass KSP build stage without any 
-hiccups, the next 1 or 2 snapshots will be focusing on compilation stage, which should be the last 
-stage before we can get started on pE Development 4. 
-
-This is a developer-focused change log:
-* Codebase updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Prebuilt updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Platform libs updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-  * Move ViewCapture to platform lib
-  * Add Displaylib
-* Flags updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Pull concurrent, dagger (the launcher3) as module
-  * TODO? We might need to migrate it to build source like compose instead
-* Lots of prebuilt documentations update
-* Add compose as part of launcher3 build source
-  * Removed test because I hate configuration gradle
-  * cc: @validcube fix me, cc: too bad
-
-## Bubble Tea [r2]
-
-Lawnchair 16 pE Development 3 is here! Contributors are encouraged to target this branch instead of 
+Lawnchair 16 pE Development 1 is here! Contributors are encouraged to target this branch instead of 
 older (i.e., Lawnchair `15-dev`).
 
-### 🥞 Development 3
-
-Build: BD3.1711
-
-The biggest change log ever, this marked the end of Bubble Tea [r2] branch as future development 
-switched to Bubble Tea [QPR1]. See you at Snapshot 7 or Development 4!
-
-(Again) Originally going to launch D3 if most of the issue on tracker have been resolved, but hit a 
-stability milestone instead.
-
-This release includes 4 new features, and 33 bug fixes, 
-Reimplemented some of Lawnchair features, better sizing of home screen, updated README.md screenshot 
-and the inclusion of Bubble Tea project into the official Lawnchair repository as 16-dev!
-
-This release have been tested with:
-* ☁️ Pixel 6 (Android 12.0)
-* 📱 Nothing (3a)-series (Android 15, Android 16.0)
-* 📱 Vivo Y21 (Android 12.0)
-* 📱 HTC Wildfire E3 lite (Android 12.0)
-* Many more! Unfortunately I only count build from pE Open testing!
+### 🏗️ Development 2 (Draft)
 
 Compatibility list:
 
-| 🏗️ Crash   | 💫 Limited features | 🥞 Fully supported |
-|-------------|---------------------|--------------------|
-| Android 8.1 |                     | Android 12.0       |
-| Android 9   |                     | Android 12.1       |
-| Android 10  |                     | Android 13         |
-| Android 11  |                     | Android 14         |
-|             |                     | Android 15         |
-|             |                     | Android 16         |
-
-> [!NOTE]
-> QuickSwitch compatibility have not been tested at any time during the development of Bubble Tea!
-
-#### Features
-* [Lawnchair] Complex Clover icon shape
-* [Lawnchair] Very Sunny icon shape
-* [Lawnchair/Font] Update Google Fonts listing to 25102025
-* [Lawnchair/Gesture] Allow Open Quick Settings*
-
-#### Fixes
-* Disable OEM override on launcher settings, (reimplement `ENABLE_AUTO_INSTALLS_LAYOUT` | c51b2a221838aefb610b7146fc4ef7cb34e5e495)
-* [Lawnchair/Iconloaderlib] Reimplement custom app name
-* [Lawnchair] Reimplement Launcher3 debug page
-* [Lawnchair] Reimplement Caddy and App drawer folder
-* [Lawnchair] Reimplement Hotseat toggle
-* [Lawnchair] Reimplement Favorite application label
-* [Lawnchair] Hotseat positioning with favorite icon label enabled placed the same even if label is disabled
-* [Lawnchair] Hotseat background now have a reasonably sized margin compared to D2
-* [Lawnchair] Qsb sizing now correctly estimate the width based on width of the app/widget layout or DeviceProfile on device with inlined Qsb
-* [Lawnchair] Reimplement Allapps opacity configuration
-* [DeviceProfile] Crash from createWindowContext on less than Android 12.0
-* [QuickstepLauncher] Ignore trying to set SystemUiProxy icon sizes on less than Android 12.1
-* [Lawnchair/BlankActivity] Apply Material 3 Expressive button animations
-* [Launcher] Disable add widget button if home screen is locked
-* [Lawnchair/Iconloaderlib] Crash when trying to set `null` monochrome icon on less than Android 12.1
-* [SystemUI/Unfold] Crash when getting configuration for foldable-specific resources
-* [Lawnchair/Iconloaderlib] Don't parse monochrome drawable in Android 12.1 or less
-* [Launcher3/AllApps] Allow theming of Expressive allapps
-* ~~[Lawnchair] Lawnchair can now be compiled in release mode~~
-  * [Lawnchair] Fix crashes with WM-Shell
-* [Lawnchair] Bottom sheet blur will only trigger when your device supported blur*
-* [Lawnchair/Lazy] Corner radii of lazy component now matched radius of non-lazy*
-* [Lawnchair/Debug] Cleanup the debug menu*
-* [Lawnchair/Docs] Warn off danger using 16-dev branch*
-* [Launcher3] Crash with predictive back on some device using Android 13/14
-* [Launcher3] WindowInsets crash in Android 11
-* [Launcher3] Widgets crash on some device using Android 12
-* [Launcher3/PrivateSpace] Use custom icons of Private Space lock*
-* [Launcher3/Iconloaderlib] App badges for work profile*
-* [Lawnchair] Update spacing for dock search settings*
-* [Launcher3] Quickstep dispatcher crash on Android 13
-* [Launcher3] Crash due to missing resources for Android 8.0
-* [Lawnchair/Docs] Update screenshot to 16-dev
-
-### 🥞 Development 2
-
-Originally going to launch D2 if most of the comestic bug fixes have been resolved, but hit a 
-stability milestone instead.
-
-This release includes 15 new features, and 20 bug fixes, 
-Lawnchair settings now takes shape of initial material 3 expressive redesign, [(but by no mean finish!)][Lawnget]
-launcher should now render icons better than D1 milestone, with auto-adaptive icons feature reimplemented.
-
-This release have been tested with:
-* ☁️ Pixel 6 (Android 12.0) - Build: Ad-hoc
-* ☁️ Pixel 6a (Android 12.1) - Build: Ad-hoc
-* ☁️ Pixel 7 (Android 13) - Build: Ad-hoc
-* ☁️ Pixel 9 (Android 15, Android 16.0) - Build: Ad-hoc
-* ☁️ Pixel 9 Pro Fold (Android 14, Android 15) - Build: Ad-hoc
-* ☁️ Vivo V40 (Android 15) - Build: Ad-hoc
-* ☁️ Xiaomi MIX (Android 15) - Build: Ad-hoc
-* 📱 Nothing (3a)-series (Android 15) - Build: pE-`15102025`
-* 📱 Pixel 9 Pro XL (Android 16.0 QPR2 Beta 2) - Build: pE-`02102025`
-* 📱 BLU View 5 Pro (Android 14) - Build: pE-`02102025`
-* 📱🔥 Vivo Y21 (Android 12.0) - Build: pE-`08102025`
-
-> [!NOTE]
-> QuickSwitch compatibility have not been tested at any time during the development of Bubble Tea!
-
-[Lawnget]: https://www.google.com/teapot
-
-Compatibility list:
-
-| 🏗️ Crash   | 💫 Limited features | 🥞 Fully supported |
-|-------------|---------------------|--------------------|
-| Android 8.1 | Android 12.0        | Android 12.1       |
-| Android 9   |                     | Android 13         |
-| Android 10  |                     | Android 14         |
-| Android 11  |                     | Android 15         |
-|             |                     | Android 16         |
+| 🏗️ Crash    | 💫 Limited features | 🥞 Fully supported |
+|--------------|---------------------|--------------------|
+| Android 8.1  | Android 12.1        | Android 13         |
+| Android 9    |                     | Android 14         |
+| Android 10   |                     | Android 15         |
+| Android 11   |                     | Android 16         |
+| Android 12.0 |                     |                    |
 
 #### Features
 
@@ -194,13 +26,9 @@ Compatibility list:
 * Make Launcher3 colour more accurate to upstream Android 16
 * ProvideComposeSheetHandler now have expressive blur
 * Lawnchair Settings now uses Material 3 Expressive
-* Animate keyboard on/off state on app drawer search (Try enabling automatically show keyboard in app drawer settings and swipe up and down or directly tap “Apps list” in popup menu) -> (Backport not possible)
+* Animate keyboard on/off state on app drawer search (Try enabling automatically show keyboard in app drawer settings and swipe up and down or directly tap “Apps list” in popup menu) -> (Backported to Lawnchair 15)
 * Add LeakCanary check to all debug variant of the application
 * [DEBUG] Launcher3 feature status diagnostic check in debug menu
-* [Documentation] Add more visibility into both app certificate and SLSA verification for app authenticity check [VERIFICATION.md](VERIFICATION.md)
-* [Documentation] Initial drafting of Improve documentation v6 (pave-path)
-* [Launcher] Widget animations during resize
-* [Iconloaderlib] Enable second hand for the clock app
 
 #### Fixes
 
@@ -221,24 +49,16 @@ Compatibility list:
 * Assume flags `enableMovingContentIntoPrivateSpace` is false when ClassNotFoundException on Android 16 devices
 * Rare NoSuchMethodError crash on SurfaceControl setEarlyWakeupStart and setEarlyWakeupEnd
 * Properly align built-in smartspace in workspace
-* Use WM Proxy from Lawnchair instead of System, fix Android 8.1/9/10/11/12.0/12.1 regarding SE, NSME like SystemBarUtils -> (dWkyIGw9), (reworked CllOXHJv)
-  * LawnchairWindowManagerProxy have been migrated to Dagger
-  * SystemWindowManagerProxy have been left unused
-* [Lawnchair/Iconloaderlib] Update CustomAdaptiveIconDrawable to latest AOSP 13
-* [Iconloaderlib] Reset most of the changes to favour more AOSP 16_r02 code then Lawnchair (need rewrite)
-  * fix icon loaded in monochrome and always monochrome when it is not supposed to
-  * fix notification dots being twice the size with notification count
-* [Lawnchair/Iconloaderlib] Reimplement Lawnchair Iconloaderlib (adaptive icons, monochrome, regular icon)
 
 #### Known Bugs
 * Preview can't show device wallpaper -> (lIxkAYGg)
 * IDP Preview doesn't refresh on settings change -> workaround is to hit apply and re-open the preview -> (ZbLX3438)
-* Workspace theme doesn't refresh until restart -> (ZbLX3438) -> Fixed as part of (31lLEflf, 1MevNrzp)
-* Lawnchair Colour can't handle restart causing default colour to be used instead -> Fixed? -> Properly fixed as part of (31lLEflf, 1MevNrzp)
+* Workspace theme doesn't refresh until restart -> (ZbLX3438)
+* Lawnchair Colour can't handle restart causing default colour to be used instead -> Fixed?
 * (Investigating) Work profile switch on widget selector *may* have reverted to Lawnchair 15 style
 * Full lists: https://trello.com/b/8IdvO81K/pe-lawnchair
 
-### Development 1
+### 🥞 Development 1
 
 First development milestone! Basic launcher functionality should be stable enough.
 

@@ -18,7 +18,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.Process
-import com.android.systemui.dagger.qualifiers.Application
 import com.android.systemui.dagger.qualifiers.Main
 import com.android.systemui.dagger.qualifiers.UiBackground
 import com.android.systemui.unfold.config.ResourceUnfoldTransitionConfig
@@ -26,7 +25,6 @@ import com.android.systemui.unfold.config.UnfoldTransitionConfig
 import com.android.systemui.unfold.dagger.UnfoldBg
 import com.android.systemui.unfold.dagger.UnfoldMain
 import com.android.systemui.unfold.dagger.UnfoldSingleThreadBg
-import com.android.systemui.unfold.dagger.UnfoldTracking
 import com.android.systemui.unfold.updates.FoldProvider
 import com.android.systemui.unfold.util.CurrentActivityTypeProvider
 import dagger.Binds
@@ -35,10 +33,7 @@ import dagger.Provides
 import java.util.concurrent.Executor
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.android.asCoroutineDispatcher
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.plus
 
 /**
  * Dagger module with system-only dependencies for the unfold animation. The code that is used to
@@ -50,20 +45,25 @@ import kotlinx.coroutines.plus
 abstract class SystemUnfoldSharedModule {
 
     @Binds
-    abstract fun activityTypeProvider(
-        executor: ActivityManagerActivityTypeProvider
-    ): CurrentActivityTypeProvider
+    abstract fun activityTypeProvider(executor: ActivityManagerActivityTypeProvider):
+            CurrentActivityTypeProvider
 
-    @Binds abstract fun config(config: ResourceUnfoldTransitionConfig): UnfoldTransitionConfig
+    @Binds
+    abstract fun config(config: ResourceUnfoldTransitionConfig): UnfoldTransitionConfig
 
-    @Binds abstract fun foldState(provider: DeviceStateManagerFoldProvider): FoldProvider
+    @Binds
+    abstract fun foldState(provider: DeviceStateManagerFoldProvider): FoldProvider
 
     @Binds
     abstract fun deviceStateRepository(provider: DeviceStateRepositoryImpl): DeviceStateRepository
 
-    @Binds @UnfoldMain abstract fun mainExecutor(@Main executor: Executor): Executor
+    @Binds
+    @UnfoldMain
+    abstract fun mainExecutor(@Main executor: Executor): Executor
 
-    @Binds @UnfoldMain abstract fun mainHandler(@Main handler: Handler): Handler
+    @Binds
+    @UnfoldMain
+    abstract fun mainHandler(@Main handler: Handler): Handler
 
     @Binds
     @UnfoldSingleThreadBg
@@ -91,19 +91,6 @@ abstract class SystemUnfoldSharedModule {
             return HandlerThread("UnfoldBg", Process.THREAD_PRIORITY_FOREGROUND)
                 .apply { start() }
                 .looper
-        }
-
-        @Provides
-        @UnfoldTracking
-        @Singleton
-        fun unfoldTrackingContext(
-            @UnfoldSingleThreadBg singleThreadBgExecutor: Executor,
-            @Application applicationScope: CoroutineScope,
-        ): CoroutineScope {
-            // tracking depends on being executed on a single thread so when changing it, ensure all
-            // consumers are not accessing shared state
-            val backgroundDispatcher = singleThreadBgExecutor.asCoroutineDispatcher()
-            return applicationScope + backgroundDispatcher
         }
     }
 }

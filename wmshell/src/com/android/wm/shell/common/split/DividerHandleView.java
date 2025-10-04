@@ -32,7 +32,7 @@ import android.util.Property;
 import android.view.View;
 
 import com.android.wm.shell.R;
-import com.android.wm.shell.shared.animation.Interpolators;
+import com.android.wm.shell.animation.Interpolators;
 
 /**
  * View for the handle in the docked stack divider.
@@ -103,24 +103,7 @@ public class DividerHandleView extends View {
         mHoveringHeight = mHeight > mWidth ? ((int) (mHeight * 1.5f)) : mHeight;
     }
 
-    /**
-     * Sets the color for the divider handle view.
-     * Optionally invalidates the view to trigger a redraw if the change should be
-     * reflected immediately.
-     *
-     * @param color The ARGB color to set for the divider handle view.
-     * @param invalidateView True if the view should be invalidated
-     *                       to redraw with the new color, false otherwise.
-     */
-    public void setColor(int color, boolean invalidateView) {
-        mPaint.setColor(color);
-        if (invalidateView) {
-            invalidate();
-        }
-    }
-
-    /** sets whether it's a left/right or top/bottom split */
-    public void setIsLeftRightSplit(boolean isLeftRightSplit) {
+    void setIsLeftRightSplit(boolean isLeftRightSplit) {
         mIsLeftRightSplit = isLeftRightSplit;
         updateDimens();
     }

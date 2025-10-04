@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import android.content.Context;
 
@@ -28,14 +27,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
-import com.android.launcher3.logging.StatsLogManager;
-import com.android.launcher3.util.VibratorWrapper;
 import com.android.quickstep.DeviceConfigWrapper;
 import com.android.quickstep.NavHandle;
-import com.android.quickstep.TopTaskTracker;
-import com.android.quickstep.util.ContextualSearchHapticManager;
-import com.android.quickstep.util.ContextualSearchInvoker;
-import com.android.quickstep.util.ContextualSearchStateManager;
 import com.android.quickstep.util.TestExtensions;
 
 import org.junit.Before;
@@ -50,24 +43,12 @@ public class NavHandleLongPressHandlerTest {
 
     private NavHandleLongPressHandler mLongPressHandler;
     @Mock private NavHandle mNavHandle;
-    @Mock VibratorWrapper mVibratorWrapper;
-    @Mock ContextualSearchHapticManager mContextualSearchHapticManager;
-    @Mock TopTaskTracker mTopTaskTracker;
-    @Mock StatsLogManager.StatsLogManagerFactory mStatsLogManagerFactory;
-    @Mock StatsLogManager mStatsLogManager;
-    @Mock ContextualSearchStateManager mContextualSearchStateManager;
-    @Mock ContextualSearchInvoker mContextualSearchInvoker;
-
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        Context context = InstrumentationRegistry.getInstrumentation()
-                .getTargetContext().getApplicationContext();
-        when(mStatsLogManagerFactory.create(context)).thenReturn(mStatsLogManager);
-        mLongPressHandler = new NavHandleLongPressHandler(context, mVibratorWrapper,
-                mContextualSearchHapticManager, mTopTaskTracker, mStatsLogManagerFactory,
-                mContextualSearchStateManager, mContextualSearchInvoker);
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        mLongPressHandler = new NavHandleLongPressHandler(context);
     }
 
     @Test

@@ -16,12 +16,10 @@
 
 package com.android.wm.shell.dagger;
 
-import android.app.IActivityTaskManager;
 import android.content.Context;
 import android.os.Handler;
 
 import com.android.launcher3.icons.IconProvider;
-import com.android.wm.shell.RootDisplayAreaOrganizer;
 import com.android.wm.shell.RootTaskDisplayAreaOrganizer;
 import com.android.wm.shell.ShellTaskOrganizer;
 import com.android.wm.shell.common.DisplayController;
@@ -32,12 +30,10 @@ import com.android.wm.shell.common.MultiInstanceHelper;
 import com.android.wm.shell.common.ShellExecutor;
 import com.android.wm.shell.common.SyncTransactionQueue;
 import com.android.wm.shell.common.SystemWindows;
-import com.android.wm.shell.common.split.SplitState;
+import com.android.wm.shell.common.TransactionPool;
 import com.android.wm.shell.dagger.pip.TvPipModule;
 import com.android.wm.shell.recents.RecentTasksController;
-import com.android.wm.shell.shared.TransactionPool;
 import com.android.wm.shell.shared.annotations.ShellMainThread;
-import com.android.wm.shell.shared.desktopmode.DesktopState;
 import com.android.wm.shell.splitscreen.SplitScreenController;
 import com.android.wm.shell.splitscreen.tv.TvSplitScreenController;
 import com.android.wm.shell.startingsurface.StartingWindowTypeAlgorithm;
@@ -46,8 +42,6 @@ import com.android.wm.shell.sysui.ShellCommandHandler;
 import com.android.wm.shell.sysui.ShellController;
 import com.android.wm.shell.sysui.ShellInit;
 import com.android.wm.shell.transition.Transitions;
-
-import com.google.android.msdl.domain.MSDLPlayer;
 
 import dagger.Module;
 import dagger.Provides;
@@ -95,19 +89,13 @@ public class TvWMShellModule {
             Optional<RecentTasksController> recentTasks,
             LaunchAdjacentController launchAdjacentController,
             MultiInstanceHelper multiInstanceHelper,
-            SplitState splitState,
             @ShellMainThread ShellExecutor mainExecutor,
-            @ShellMainThread Handler mainHandler,
-            SystemWindows systemWindows,
-            RootDisplayAreaOrganizer rootDisplayAreaOrganizer,
-            DesktopState desktopState,
-            IActivityTaskManager activityTaskManager,
-            MSDLPlayer msdlPlayer) {
+            Handler mainHandler,
+            SystemWindows systemWindows) {
         return new TvSplitScreenController(context, shellInit, shellCommandHandler, shellController,
                 shellTaskOrganizer, syncQueue, rootTDAOrganizer, displayController,
                 displayImeController, displayInsetsController, transitions, transactionPool,
                 iconProvider, recentTasks, launchAdjacentController, multiInstanceHelper,
-                splitState, mainExecutor, mainHandler, systemWindows, rootDisplayAreaOrganizer,
-                desktopState, activityTaskManager, msdlPlayer);
+                mainExecutor, mainHandler, systemWindows);
     }
 }

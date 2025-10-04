@@ -21,57 +21,72 @@ import android.view.View
 import com.android.launcher3.DropTarget
 import com.android.launcher3.dragndrop.DragOptions
 import com.android.launcher3.model.data.ItemInfo
-import com.android.wm.shell.shared.bubbles.DragZoneFactory
-import com.android.wm.shell.shared.bubbles.DropTargetManager
+import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 
 /**
  * Implementation of the {@link DropTarget} that handles drag and drop events over the bubble bar
  * locations.
  */
 class BubbleBarLocationDropTarget(
-    private val bubbleBarDropTargetController: BubbleBarDropTargetController,
-    dragZoneFactory: DragZoneFactory,
-    private val dropTargetManager: DropTargetManager,
-    private val isLeftDropTarget: Boolean,
+    private val bubbleBarLocation: BubbleBarLocation,
+    private val bubbleBarDragListener: BubbleBarDragListener,
 ) : DropTarget {
 
-    interface BubbleBarDropTargetController {
+    /** Controller that takes care of the bubble bar drag events inside launcher process. */
+    interface BubbleBarDragListener {
 
-        /** Return whether the item info can be dropped on the bubble bar drop target. */
-        fun acceptDrop(itemInfo: ItemInfo): Boolean
+        /** Called when the drag event is over the bubble bar drop zone. */
+        fun onLauncherItemDraggedOverBubbleBarDragZone(location: BubbleBarLocation)
 
-        /** Called after dragged item info drop on the bubble bar drop target. */
-        fun onDrop(itemInfo: ItemInfo, isLeftDropTarget: Boolean)
+        /** Called when the drag event leaves the bubble bar drop zone. */
+        fun onLauncherItemDraggedOutsideBubbleBarDropZone()
+
+        /** Called when the drop event happens over the bubble bar drop zone. */
+        fun onLauncherItemDroppedOverBubbleBarDragZone(
+            location: BubbleBarLocation,
+            itemInfo: ItemInfo,
+        )
+
+        /** Gets the hit [rect][android.graphics.Rect] of the bubble bar location. */
+        fun getBubbleBarLocationHitRect(bubbleBarLocation: BubbleBarLocation, outRect: Rect)
+
+        /** Provides the view that will accept the drop. */
+        fun getDropView(): View
     }
 
-    private val dropRect = dragZoneFactory.getBubbleBarDropRect(isLeftDropTarget)
+    private var isShowingDropTarget = false
 
     override fun isDropEnabled(): Boolean = true
 
     override fun onDrop(dragObject: DropTarget.DragObject, options: DragOptions) {
-        bubbleBarDropTargetController.onDrop(dragObject.dragInfo, isLeftDropTarget)
+        val itemInfo = dragObject.dragInfo ?: return
+        bubbleBarDragListener.onLauncherItemDroppedOverBubbleBarDragZone(
+            bubbleBarLocation,
+            itemInfo,
+        )
     }
 
-    override fun onDragEnter(dragObject: DropTarget.DragObject) {
-        dropTargetManager.onDragUpdated(dragObject.x, dragObject.y)
-    }
+    override fun onDragEnter(dragObject: DropTarget.DragObject) {}
 
     override fun onDragOver(dragObject: DropTarget.DragObject) {
-        dropTargetManager.onDragUpdated(dragObject.x, dragObject.y)
+        if (isShowingDropTarget) return
+        isShowingDropTarget = true
+        bubbleBarDragListener.onLauncherItemDraggedOverBubbleBarDragZone(bubbleBarLocation)
     }
 
     override fun onDragExit(dragObject: DropTarget.DragObject) {
-        dropTargetManager.onDragUpdated(dragObject.x, dragObject.y)
+        if (!isShowingDropTarget) return
+        isShowingDropTarget = false
+        bubbleBarDragListener.onLauncherItemDraggedOutsideBubbleBarDropZone()
     }
 
-    override fun acceptDrop(dragObject: DropTarget.DragObject): Boolean =
-        bubbleBarDropTargetController.acceptDrop(dragObject.dragInfo)
+    override fun acceptDrop(dragObject: DropTarget.DragObject): Boolean = true
 
     override fun prepareAccessibilityDrop() {}
 
     override fun getHitRectRelativeToDragLayer(outRect: Rect) {
-        outRect.set(dropRect)
+        bubbleBarDragListener.getBubbleBarLocationHitRect(bubbleBarLocation, outRect)
     }
 
-    override fun getDropView(): View? = null
+    override fun getDropView(): View = bubbleBarDragListener.getDropView()
 }

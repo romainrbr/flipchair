@@ -15,6 +15,7 @@
  */
 package com.android.launcher3.dragging;
 
+import static com.android.launcher3.testing.shared.TestProtocol.ICON_MISSING;
 import static com.android.launcher3.util.TestConstants.AppNames.DUMMY_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.GMAIL_APP_NAME;
 import static com.android.launcher3.util.TestConstants.AppNames.MAPS_APP_NAME;
@@ -25,16 +26,17 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.graphics.Point;
 import android.platform.test.annotations.PlatinumTest;
-import android.view.View;
+import android.platform.test.rule.ScreenRecordRule;
+import android.util.Log;
 
 import com.android.launcher3.Launcher;
 import com.android.launcher3.tapl.HomeAllApps;
 import com.android.launcher3.tapl.HomeAppIcon;
 import com.android.launcher3.tapl.Workspace;
+import com.android.launcher3.ui.AbstractLauncherUiTest;
+import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 import com.android.launcher3.util.TestUtil;
 import com.android.launcher3.util.Wait;
-import com.android.launcher3.util.ui.AbstractLauncherUiTest;
-import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
 
 import org.junit.Test;
 
@@ -45,7 +47,7 @@ import java.util.Arrays;
  * Test runs in Out of process (Oop) and In process (Ipc)
  * Test the behaviour of uninstalling and removing apps both from AllApps, Workspace and Hotseat.
  */
-public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher, View> {
+public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher> {
 
     /**
      * Deletes app both built-in and user-installed from the Workspace and makes sure it's no longer
@@ -106,6 +108,7 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher, Vi
     @Test
     @PortraitLandscape
     @PlatinumTest(focusArea = "launcher")
+    @ScreenRecordRule.ScreenRecord // b/386231522
     public void testUninstallFromAllApps() throws Exception {
         // Ensure no existing app icons on the workspace cause scroll to all apps interruptions
         mLauncher.clearLauncherData();
@@ -132,6 +135,7 @@ public class TaplUninstallRemoveTest extends AbstractLauncherUiTest<Launcher, Vi
         for (Point p : gridPositions) {
             sb.append(p).append(", ");
         }
+        Log.d(ICON_MISSING, "allGridPositions: " + sb);
         try {
             installDummyAppAndWaitForUIUpdate();
 

@@ -42,7 +42,6 @@ public class ScreenshotUtils {
                     .setSourceCrop(crop)
                     .setCaptureSecureLayers(true)
                     .setAllowProtected(true)
-                    .setHintForSeamlessTransition(true)
                     .build()));
     }
 
@@ -79,9 +78,6 @@ public class ScreenshotUtils {
             mTransaction.setColorSpace(mScreenshot, buffer.getColorSpace());
             mTransaction.reparent(mScreenshot, mParentSurfaceControl);
             mTransaction.setLayer(mScreenshot, mLayer);
-            if (buffer.containsHdrLayers()) {
-                mTransaction.setDimmingEnabled(mScreenshot, false);
-            }
             mTransaction.show(mScreenshot);
             mTransaction.apply();
         }

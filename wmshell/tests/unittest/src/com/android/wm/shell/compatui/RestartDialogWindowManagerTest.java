@@ -16,12 +16,9 @@
 
 package com.android.wm.shell.compatui;
 
-import static com.android.window.flags2.Flags.FLAG_APP_COMPAT_UI_FRAMEWORK;
-
 import android.app.ActivityManager;
 import android.app.TaskInfo;
 import android.content.res.Configuration;
-import android.platform.test.annotations.RequiresFlagsDisabled;
 import android.testing.AndroidTestingRunner;
 import android.util.Pair;
 
@@ -79,7 +76,6 @@ public class RestartDialogWindowManagerTest extends ShellTestCase {
     }
 
     @Test
-    @RequiresFlagsDisabled(FLAG_APP_COMPAT_UI_FRAMEWORK)
     public void testWhenDockedStateHasChanged_needsToBeRecreated() {
         ActivityManager.RunningTaskInfo newTaskInfo = new ActivityManager.RunningTaskInfo();
         newTaskInfo.configuration.uiMode =
@@ -90,7 +86,6 @@ public class RestartDialogWindowManagerTest extends ShellTestCase {
     }
 
     @Test
-    @RequiresFlagsDisabled(FLAG_APP_COMPAT_UI_FRAMEWORK)
     public void testWhenDarkLightThemeHasChanged_needsToBeRecreated() {
         ActivityManager.RunningTaskInfo newTaskInfo = new ActivityManager.RunningTaskInfo();
         mTaskInfo.configuration.uiMode =

@@ -23,8 +23,10 @@ import androidx.test.uiautomator.Until
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.tapl.LaunchedAppState
 import com.android.launcher3.tapl.OverviewTask
+import com.android.launcher3.ui.AbstractLauncherUiTest
+import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape
+import com.android.launcher3.uioverrides.QuickstepLauncher
 import com.android.launcher3.util.TestUtil
-import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape
 import com.google.common.truth.Truth.assertWithMessage
 import org.junit.Before
 import org.junit.Test
@@ -32,10 +34,13 @@ import org.junit.Test
 /** Test Desktop windowing in Overview. */
 @AllowedDevices(allowed = [DeviceProduct.CF_TABLET, DeviceProduct.TANGORPRO])
 @IgnoreLimit(ignoreLimit = BuildConfig.IS_STUDIO_BUILD)
-class TaplTestsOverviewDesktop : AbstractQuickStepTest() {
+class TaplTestsOverviewDesktop : AbstractLauncherUiTest<QuickstepLauncher?>() {
     @Before
     fun setup() {
-        clearAllRecentTasks()
+        val overview = mLauncher.goHome().switchToOverview()
+        if (overview.hasTasks()) {
+            overview.dismissAllTasks()
+        }
         startTestAppsWithCheck()
         mLauncher.goHome()
     }

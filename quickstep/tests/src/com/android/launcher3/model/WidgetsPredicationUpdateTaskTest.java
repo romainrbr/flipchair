@@ -48,22 +48,18 @@ import android.platform.test.annotations.DisableFlags;
 import android.platform.test.flag.junit.SetFlagsRule;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import com.android.launcher3.Flags;
-import com.android.launcher3.LauncherAppState;
-import com.android.launcher3.LauncherModel;
-import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.model.data.PredictedContainerInfo;
+import com.android.launcher3.model.BgDataModel.FixedContainerItems;
+import com.android.launcher3.model.QuickstepModelDelegate.PredictorState;
 import com.android.launcher3.util.LauncherLayoutBuilder;
-import com.android.launcher3.util.ModelTestExtensions;
-import com.android.launcher3.util.SandboxApplication;
-import com.android.launcher3.util.rule.LayoutProviderRule;
+import com.android.launcher3.util.LauncherModelHelper;
 import com.android.launcher3.widget.LauncherAppWidgetProviderInfo;
 import com.android.launcher3.widget.PendingAddWidgetInfo;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,7 +69,6 @@ import org.mockito.junit.MockitoRule;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @SmallTest
@@ -86,10 +81,6 @@ public final class WidgetsPredicationUpdateTaskTest {
     @Rule
     public final SetFlagsRule mSetFlagsRule = new SetFlagsRule();
 
-    @Rule public SandboxApplication mContext = new SandboxApplication().withModelDependency();
-    @Rule public LayoutProviderRule mLayoutProvider = new LayoutProviderRule(mContext);
-
-
     private AppWidgetProviderInfo mApp1Provider1;
     private AppWidgetProviderInfo mApp1Provider2;
     private AppWidgetProviderInfo mApp2Provider1;
@@ -100,6 +91,7 @@ public final class WidgetsPredicationUpdateTaskTest {
     private List<AppWidgetProviderInfo> allWidgets;
 
     private FakeBgDataModelCallback mCallback = new FakeBgDataModelCallback();
+    private LauncherModelHelper mModelHelper;
     private UserHandle mUserHandle;
     private LauncherApps mLauncherApps;
 
@@ -107,6 +99,7 @@ public final class WidgetsPredicationUpdateTaskTest {
     @Before
     public void setup() throws Exception {
         mSetFlagsRule.enableFlags(Flags.FLAG_ENABLE_CATEGORIZED_WIDGET_SUGGESTIONS);
+        mModelHelper = new LauncherModelHelper();
 
         mUserHandle = myUserHandle();
         mApp1Provider1 = createAppWidgetProviderInfo(
@@ -130,7 +123,7 @@ public final class WidgetsPredicationUpdateTaskTest {
         allWidgets = Arrays.asList(mApp1Provider1, mApp1Provider2, mApp2Provider1,
                 mApp4Provider1, mApp4Provider2, mApp5Provider1, mApp6PinOnlyProvider1);
 
-        mLauncherApps = mContext.spyService(LauncherApps.class);
+        mLauncherApps = mModelHelper.sandboxContext.spyService(LauncherApps.class);
         doAnswer(i -> {
             String pkg = i.getArgument(0);
             ApplicationInfo applicationInfo = new ApplicationInfo();
@@ -142,7 +135,7 @@ public final class WidgetsPredicationUpdateTaskTest {
             return applicationInfo;
         }).when(mLauncherApps).getApplicationInfo(anyString(), anyInt(), any());
 
-        AppWidgetManager manager = mContext.spyService(AppWidgetManager.class);
+        AppWidgetManager manager = mModelHelper.sandboxContext.spyService(AppWidgetManager.class);
         doReturn(allWidgets).when(manager).getInstalledProviders();
         doReturn(allWidgets).when(manager).getInstalledProvidersForProfile(eq(myUserHandle()));
         doAnswer(i -> {
@@ -155,9 +148,14 @@ public final class WidgetsPredicationUpdateTaskTest {
         LauncherLayoutBuilder builder = new LauncherLayoutBuilder()
                 .atWorkspace(0, 1, 2).putWidget("app4", "provider1", 1, 1)
                 .atWorkspace(0, 1, 3).putWidget("app5", "provider1", 1, 1);
-        mLayoutProvider.setupDefaultLayoutProvider(builder);
-        MAIN_EXECUTOR.submit(() -> getModel().addCallbacks(mCallback)).get();
-        ModelTestExtensions.INSTANCE.loadModelSync(getModel());
+        mModelHelper.setupDefaultLayoutProvider(builder);
+        MAIN_EXECUTOR.submit(() -> mModelHelper.getModel().addCallbacks(mCallback)).get();
+        mModelHelper.loadModelSync();
+    }
+
+    @After
+    public void tearDown() {
+        mModelHelper.destroy();
     }
 
     @Test
@@ -177,7 +175,7 @@ public final class WidgetsPredicationUpdateTaskTest {
             AppTarget app5 = new AppTarget(new AppTargetId("app5"), "app5", "provider1",
                     mUserHandle);
             mCallback.mRecommendedWidgets = null;
-            getModel().enqueueModelUpdateTask(
+            mModelHelper.getModel().enqueueModelUpdateTask(
                     newWidgetsPredicationTask(List.of(app5, app3, app2, app4, app1)));
             runOnExecutorSync(MAIN_EXECUTOR, () -> { });
 
@@ -187,8 +185,7 @@ public final class WidgetsPredicationUpdateTaskTest {
             // 2. app3 doesn't have a widget.
             // 3. only 1 widget is picked from app1 because we only want to promote one widget
             // per app.
-            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets
-                    .getContents()
+            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets.items
                     .stream()
                     .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
                     .collect(Collectors.toList());
@@ -219,13 +216,12 @@ public final class WidgetsPredicationUpdateTaskTest {
                     mUserHandle);
 
             mCallback.mRecommendedWidgets = null;
-            getModel().enqueueModelUpdateTask(
+            mModelHelper.getModel().enqueueModelUpdateTask(
                     newWidgetsPredicationTask(List.of(widget5, widget3, widget4, widget1)));
             runOnExecutorSync(MAIN_EXECUTOR, () -> { });
 
             // Only widgets suggested by prediction system are returned.
-            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets
-                    .getContents()
+            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets.items
                     .stream()
                     .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
                     .collect(Collectors.toList());
@@ -245,13 +241,12 @@ public final class WidgetsPredicationUpdateTaskTest {
                     mUserHandle);
 
             mCallback.mRecommendedWidgets = null;
-            getModel().enqueueModelUpdateTask(
+            mModelHelper.getModel().enqueueModelUpdateTask(
                     newWidgetsPredicationTask(List.of(widget1, widget6)));
             runOnExecutorSync(MAIN_EXECUTOR, () -> { });
 
             // Only widget 1 (and no widget 6 as its meant to be hidden from picker).
-            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets
-                    .getContents()
+            List<PendingAddWidgetInfo> recommendedWidgets = mCallback.mRecommendedWidgets.items
                     .stream()
                     .map(itemInfo -> (PendingAddWidgetInfo) itemInfo)
                     .collect(Collectors.toList());
@@ -273,22 +268,13 @@ public final class WidgetsPredicationUpdateTaskTest {
                 appTargets);
     }
 
-    private LauncherModel getModel() {
-        return LauncherAppState.getInstance(mContext).getModel();
-    }
-
     private final class FakeBgDataModelCallback implements BgDataModel.Callbacks {
 
-        private PredictedContainerInfo mRecommendedWidgets = null;
+        private FixedContainerItems mRecommendedWidgets = null;
 
         @Override
-        public void bindItemsUpdated(@NonNull Set<ItemInfo> updates) {
-            for (ItemInfo update : updates) {
-                if (update.id == CONTAINER_WIDGETS_PREDICTION
-                        && update instanceof PredictedContainerInfo pci) {
-                    mRecommendedWidgets = pci;
-                }
-            }
+        public void bindExtraContainerItems(FixedContainerItems item) {
+            mRecommendedWidgets = item;
         }
     }
 }

@@ -35,7 +35,6 @@ import androidx.test.uiautomator.BySelector;
 import androidx.test.uiautomator.Direction;
 import androidx.test.uiautomator.UiObject2;
 
-import com.android.launcher3.tapl.Taskbar.TaskbarLocation;
 import com.android.launcher3.testing.shared.TestProtocol;
 
 import java.util.Collection;
@@ -152,10 +151,6 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
 
     /**
      * Dismissed all tasks by scrolling to Clear-all button and pressing it.
-     * <p>
-     * NOTE: Fails if there are already no recent tasks. If a test needs to start with an empty task
-     * list, check {@link #hasTasks} before calling this since the previous test may have already
-     * cleared the task list.
      */
     public void dismissAllTasks() {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
@@ -167,9 +162,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             final Runnable clickClearAll = () -> mLauncher.clickLauncherObject(
                     mLauncher.waitForObjectInContainer(verifyActiveContainer(),
                             clearAllSelector));
-            // When the recents window is enabled, there is no RecentsActivity to send
-            // LAUNCHER_ACTIVITY_STOPPED_MESSAGE in the 3P launcher case.
-            if (mLauncher.is3PLauncher() && !mLauncher.isRecentsWindowEnabled()) {
+            if (mLauncher.is3PLauncher()) {
                 mLauncher.executeAndWaitForLauncherStop(
                         clickClearAll,
                         "clicking 'Clear All'");
@@ -256,7 +249,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
      */
     public void touchTaskbarBottomCorner(boolean tapRight) {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck()) {
-            Taskbar taskbar = new Taskbar(mLauncher, TaskbarLocation.OVERVIEW);
+            Taskbar taskbar = new Taskbar(mLauncher);
             if (mLauncher.isTransientTaskbar()) {
                 mLauncher.runToState(
                         () -> taskbar.touchBottomCorner(tapRight),
@@ -437,18 +430,7 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
                 "want to get the taskbar")) {
             mLauncher.waitForSystemLauncherObject(TASKBAR_RES_ID);
 
-            return new Taskbar(mLauncher, TaskbarLocation.OVERVIEW);
-        }
-    }
-
-    /**
-     * Returns the bubble bar.
-     * The bubble bar must already be visible when calling this method.
-     */
-    public BubbleBar getBubbleBar() {
-        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
-                "want to get the bubble bar")) {
-            return new BubbleBar(mLauncher);
+            return new Taskbar(mLauncher);
         }
     }
 
@@ -477,11 +459,6 @@ public class BaseOverview extends LauncherInstrumentation.VisibleContainer {
             testLogD(TAG, "Not expecting an actions bar: device is phone and task is split");
             // Overview actions aren't visible for split screen tasks, except for save app pair
             // button on tablets.
-            return false;
-        }
-        if (task.isDesktop() && !isTablet) {
-            testLogD(TAG, "Not expecting an actions bar: device is phone and task is desktop");
-            // Overview actions aren't visible for desktop tasks.
             return false;
         }
         testLogD(TAG, "Expecting an actions bar");

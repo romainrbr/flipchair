@@ -39,7 +39,6 @@ import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.popup.PopupContainerWithArrow;
 import com.android.launcher3.popup.PopupDataProvider;
 import com.android.launcher3.popup.SystemShortcut;
-import com.android.launcher3.util.ApiWrapper;
 import com.android.launcher3.util.ShortcutUtil;
 import com.android.launcher3.util.TouchController;
 import com.android.launcher3.views.BaseDragLayer;
@@ -65,23 +64,8 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
 
     @Override
     public void recreateControllers() {
-        super.recreateControllers();
-        TouchController statusBarController =
-            ApiWrapper.INSTANCE.get(getContext())
-                .createStatusBarTouchController(mContainer, () -> true);
-
-        if (statusBarController != null) {
-            mControllers = new TouchController[]{
-                new CloseAllAppsTouchController(),
-                mContainer.getDragController(),
-                statusBarController
-            };
-        } else {
-            mControllers = new TouchController[]{
-                new CloseAllAppsTouchController(),
-                mContainer.getDragController()
-            };
-        }
+        mControllers = new TouchController[]{new CloseAllAppsTouchController(),
+                mContainer.getDragController()};
     }
 
     /**
@@ -139,13 +123,11 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
                         grid.cellLayoutPaddingPx.top + grid.cellLayoutPaddingPx.bottom;
 
                 int maxWidth =
-                        grid.getAllAppsProfile().getCellWidthPx() * grid.numShownAllAppsColumns
-                                + horizontalPadding;
+                        grid.allAppsCellWidthPx * grid.numShownAllAppsColumns + horizontalPadding;
                 int appsWidth = Math.min(width - getPaddingLeft() - getPaddingRight(), maxWidth);
 
                 int maxHeight =
-                        grid.getAllAppsProfile().getCellHeightPx() * grid.numShownAllAppsColumns
-                                + verticalPadding;
+                        grid.allAppsCellHeightPx * grid.numShownAllAppsColumns + verticalPadding;
                 int appsHeight = Math.min(height - getPaddingTop() - getPaddingBottom(), maxHeight);
 
                 mAppsView.measure(
@@ -231,8 +213,7 @@ public class SecondaryDragLayer extends BaseDragLayer<SecondaryDisplayLauncher> 
 
         DragOptions options = new DragOptions();
         DeviceProfile grid = mContainer.getDeviceProfile();
-        options.intrinsicIconScaleFactor = (float) grid.getAllAppsProfile().getIconSizePx()
-                / grid.iconSizePx;
+        options.intrinsicIconScaleFactor = (float) grid.allAppsIconSizePx / grid.iconSizePx;
         options.preDragCondition = container.createPreDragCondition(false);
         if (options.preDragCondition == null) {
             options.preDragCondition = new DragOptions.PreDragCondition() {

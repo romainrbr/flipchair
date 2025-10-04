@@ -26,7 +26,6 @@ import android.graphics.Matrix
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
-import android.os.Handler
 import android.os.RemoteException
 import android.util.TimeUtils
 import android.view.Choreographer
@@ -39,12 +38,9 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.Interpolator
 import android.view.animation.Transformation
 import android.window.BackEvent
-import android.window.BackEvent.EDGE_LEFT
-import android.window.BackEvent.EDGE_RIGHT
 import android.window.BackMotionEvent
 import android.window.BackNavigationInfo
 import android.window.BackProgressAnimator
-import android.window.DesktopExperienceFlags
 import android.window.IOnBackInvokedCallback
 import com.android.internal.dynamicanimation.animation.FloatValueHolder
 import com.android.internal.dynamicanimation.animation.SpringAnimation
@@ -52,13 +48,11 @@ import com.android.internal.dynamicanimation.animation.SpringForce
 import com.android.internal.jank.Cuj
 import com.android.internal.policy.ScreenDecorationsUtils
 import com.android.internal.policy.SystemBarUtils
-import com.android.internal.protolog.ProtoLog
-import com.android.window.flags2.Flags.predictiveBackTimestampApi
+import com.android.internal.protolog.common.ProtoLog
 import com.android.wm.shell.R
 import com.android.wm.shell.RootTaskDisplayAreaOrganizer
+import com.android.wm.shell.animation.Interpolators
 import com.android.wm.shell.protolog.ShellProtoLogGroup
-import com.android.wm.shell.shared.animation.Interpolators
-import com.android.wm.shell.shared.annotations.ShellMainThread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -67,8 +61,7 @@ abstract class CrossActivityBackAnimation(
     private val context: Context,
     private val background: BackAnimationBackground,
     private val rootTaskDisplayAreaOrganizer: RootTaskDisplayAreaOrganizer,
-    protected val transaction: SurfaceControl.Transaction,
-    @ShellMainThread handler: Handler,
+    protected val transaction: SurfaceControl.Transaction
 ) : ShellBackAnimation() {
 
     protected val startClosingRect = RectF()
@@ -87,13 +80,7 @@ abstract class CrossActivityBackAnimation(
     private var statusbarHeight = SystemBarUtils.getStatusBarHeight(context)
 
     private val backAnimationRunner =
-        BackAnimationRunner(
-            Callback(),
-            Runner(),
-            context,
-            Cuj.CUJ_PREDICTIVE_BACK_CROSS_ACTIVITY,
-            handler,
-        )
+        BackAnimationRunner(Callback(), Runner(), context, Cuj.CUJ_PREDICTIVE_BACK_CROSS_ACTIVITY)
     private val initialTouchPos = PointF()
     private val transformMatrix = Matrix()
     private val tmpFloat9 = FloatArray(9)
@@ -122,9 +109,7 @@ abstract class CrossActivityBackAnimation(
     private val postCommitFlingSpring = SpringForce(SPRING_SCALE)
             .setStiffness(SpringForce.STIFFNESS_LOW)
             .setDampingRatio(SpringForce.DAMPING_RATIO_LOW_BOUNCY)
-    private var swipeEdge = EDGE_LEFT
     protected var gestureProgress = 0f
-    private val velocityTracker = ProgressVelocityTracker()
 
     /** Background color to be used during the animation, also see [getBackgroundColor] */
     protected var customizedBackgroundColor = 0
@@ -181,12 +166,11 @@ abstract class CrossActivityBackAnimation(
             )
             return
         }
-        swipeEdge = backMotionEvent.swipeEdge
         triggerBack = backMotionEvent.triggerBack
         initialTouchPos.set(backMotionEvent.touchX, backMotionEvent.touchY)
 
         transaction.setAnimationTransaction()
-        isLetterboxed = closingTarget!!.taskInfo.appCompatTaskInfo.isTopActivityLetterboxed
+        isLetterboxed = closingTarget!!.taskInfo.appCompatTaskInfo.topActivityBoundsLetterboxed
         enteringHasSameLetterbox =
             isLetterboxed && closingTarget!!.localBounds.equals(enteringTarget!!.localBounds)
 
@@ -205,14 +189,10 @@ abstract class CrossActivityBackAnimation(
         preparePreCommitEnteringRectMovement()
 
         background.ensureBackground(
-                closingTarget!!.windowConfiguration.bounds,
-                getBackgroundColor(),
-                transaction,
-                statusbarHeight,
-                if (closingTarget!!.windowConfiguration.tasksAreFloating())
-                    closingTarget!!.localBounds else null,
-                cornerRadius,
-                closingTarget!!.taskInfo.getDisplayId()
+            closingTarget!!.windowConfiguration.bounds,
+            getBackgroundColor(),
+            transaction,
+            statusbarHeight
         )
         ensureScrimLayer()
         if (isLetterboxed && enteringHasSameLetterbox) {
@@ -249,9 +229,6 @@ abstract class CrossActivityBackAnimation(
         )
         applyTransaction()
         background.customizeStatusBarAppearance(currentClosingRect.top.toInt())
-        if (predictiveBackTimestampApi()) {
-            velocityTracker.addPosition(backEvent.frameTimeMillis, progress)
-        }
     }
 
     private fun getYOffset(centeredRect: RectF, touchY: Float): Float {
@@ -283,19 +260,10 @@ abstract class CrossActivityBackAnimation(
 
         // kick off spring animation with the current velocity from the pre-commit phase, this
         // affects the scaling of the closing and/or opening activity during post-commit
-
-        var startVelocity = if (predictiveBackTimestampApi()) {
-            // pronounce fling animation more for gestures
-            val velocityFactor = if (swipeEdge == EDGE_LEFT || swipeEdge == EDGE_RIGHT) 2f else 1f
-            velocity * SPRING_SCALE * (1f - MAX_SCALE) * velocityFactor
-        } else {
-            velocity * SPRING_SCALE
-        }
-        if (gestureProgress < 0.1f) {
-            startVelocity = startVelocity.coerceAtLeast(DEFAULT_FLING_VELOCITY)
-        }
+        val startVelocity =
+            if (gestureProgress < 0.1f) -DEFAULT_FLING_VELOCITY else -velocity * SPRING_SCALE
         val flingAnimation = SpringAnimation(postCommitFlingScale, SPRING_SCALE)
-            .setStartVelocity(-startVelocity.coerceIn(0f, MAX_FLING_VELOCITY))
+            .setStartVelocity(startVelocity.coerceIn(-MAX_FLING_VELOCITY, 0f))
             .setStartValue(SPRING_SCALE)
             .setSpring(postCommitFlingSpring)
         flingAnimation.start()
@@ -358,7 +326,6 @@ abstract class CrossActivityBackAnimation(
         lastPostCommitFlingScale = SPRING_SCALE
         gestureProgress = 0f
         triggerBack = false
-        velocityTracker.resetTracking()
     }
 
     protected fun applyTransform(
@@ -411,12 +378,7 @@ abstract class CrossActivityBackAnimation(
                 .setOpaque(false)
                 .setHidden(false)
 
-        if (DesktopExperienceFlags.ENABLE_MULTIDISPLAY_TRACKPAD_BACK_GESTURE.isTrue()) {
-            rootTaskDisplayAreaOrganizer.attachToDisplayArea(
-                closingTarget!!.taskInfo.getDisplayId(), scrimBuilder)
-        } else {
-            rootTaskDisplayAreaOrganizer.attachToDisplayArea(Display.DEFAULT_DISPLAY, scrimBuilder)
-        }
+        rootTaskDisplayAreaOrganizer.attachToDisplayArea(Display.DEFAULT_DISPLAY, scrimBuilder)
         scrimLayer = scrimBuilder.build()
         val colorComponents = floatArrayOf(0f, 0f, 0f)
         maxScrimAlpha = if (isDarkTheme) MAX_SCRIM_ALPHA_DARK else MAX_SCRIM_ALPHA_LIGHT
@@ -480,13 +442,7 @@ abstract class CrossActivityBackAnimation(
                 .setOpaque(true)
                 .setHidden(false)
 
-        if (DesktopExperienceFlags.ENABLE_MULTIDISPLAY_TRACKPAD_BACK_GESTURE.isTrue()) {
-            rootTaskDisplayAreaOrganizer.attachToDisplayArea(
-                closingTarget!!.taskInfo.getDisplayId(), letterboxBuilder)
-        } else {
-            rootTaskDisplayAreaOrganizer.attachToDisplayArea(
-                Display.DEFAULT_DISPLAY, letterboxBuilder)
-        }
+        rootTaskDisplayAreaOrganizer.attachToDisplayArea(Display.DEFAULT_DISPLAY, letterboxBuilder)
         val layer = letterboxBuilder.build()
         val colorComponents =
             floatArrayOf(
@@ -552,11 +508,7 @@ abstract class CrossActivityBackAnimation(
         override fun onBackInvoked() {
             triggerBack = true
             progressAnimator.reset()
-            if (predictiveBackTimestampApi()) {
-                onGestureCommitted(velocityTracker.calculateVelocity())
-            } else {
-                onGestureCommitted(progressAnimator.velocity)
-            }
+            onGestureCommitted(progressAnimator.velocity)
         }
     }
 

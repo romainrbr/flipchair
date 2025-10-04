@@ -41,10 +41,6 @@ data class LogMessageImpl(
     override var bool4: Boolean,
 ) : LogMessage {
 
-    fun clear() {
-        reset(DEFAULT_TAG, LogLevel.DEBUG, 0, DEFAULT_PRINTER)
-    }
-
     fun reset(
         tag: String,
         level: LogLevel,
@@ -90,7 +86,7 @@ data class LogMessageImpl(
                 false,
                 false,
                 false,
-                false,
+                false
             )
         }
     }

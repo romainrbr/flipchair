@@ -1,5 +1,5 @@
 package com.android.window.flags2;
-
+// TODO(b/303773055): Remove the annotation after access issue is resolved.
 /** @hide */
 public interface FeatureFlags {
 
@@ -9,6 +9,11 @@ public interface FeatureFlags {
     boolean actionModeEdgeToEdge();
 
 
+
+    boolean activityEmbeddingAnimationCustomizationFlag();
+
+
+
     boolean activityEmbeddingDelayTaskFragmentFinishForActivityLaunch();
 
 
@@ -16,7 +21,9 @@ public interface FeatureFlags {
     boolean activityEmbeddingInteractiveDividerFlag();
 
 
+
     boolean activityEmbeddingMetrics();
+
 
 
     boolean activityEmbeddingSupportForConnectedDisplays();
@@ -27,6 +34,10 @@ public interface FeatureFlags {
 
 
 
+    boolean allowHideScmButton();
+
+
+
     boolean allowsScreenSizeDecoupledFromStatusBarAndCutout();
 
 
@@ -34,14 +45,13 @@ public interface FeatureFlags {
     boolean alwaysDrawMagnificationFullscreenBorder();
 
 
-    boolean alwaysSeqIdLayout();
-
-
 
     boolean alwaysUpdateWallpaperPermission();
 
 
+
     boolean aodTransition();
+
 
 
     boolean appCompatAsyncRelayout();
@@ -51,16 +61,17 @@ public interface FeatureFlags {
     boolean appCompatPropertiesApi();
 
 
+
     boolean appCompatRefactoring();
 
-
-    boolean appCompatRefactoringRoundedCorners();
 
 
     boolean appCompatUiFramework();
 
 
+
     boolean appHandleNoRelayoutOnExclusionChange();
+
 
 
     boolean applyLifecycleOnPipChange();
@@ -74,6 +85,7 @@ public interface FeatureFlags {
     boolean backupAndRestoreForUserAspectRatioSettings();
 
 
+
     boolean balAdditionalLogging();
 
 
@@ -81,17 +93,28 @@ public interface FeatureFlags {
     boolean balAdditionalStartModes();
 
 
+
     boolean balClearAllowlistDuration();
-
-
-    boolean balCoverIntentSender();
 
 
 
     boolean balDontBringExistingBackgroundTaskStackToFg();
 
 
+
+    boolean balImproveRealCallerVisibilityCheck();
+
+
+
+    boolean balImprovedMetrics();
+
+
+
     boolean balReduceGracePeriod();
+
+
+
+    boolean balRequireOptInByPendingIntentCreator();
 
 
 
@@ -100,6 +123,7 @@ public interface FeatureFlags {
 
 
     boolean balSendIntentWithOptions();
+
 
 
     boolean balShowToastsBlocked();
@@ -117,27 +141,60 @@ public interface FeatureFlags {
     boolean betterSupportNonMatchParentActivity();
 
 
+
+    boolean cacheWindowStyle();
+
+
+
     boolean cameraCompatForFreeform();
 
 
+
     boolean cameraCompatFullscreenPickSameTaskActivity();
+
+
+
+    boolean checkDisabledSnapshotsInTaskPersister();
+
+
+
+    boolean cleanupDispatchPendingTransactionsRemoteException();
+
+
+
+    boolean clearSystemVibrator();
+
 
 
     boolean closeToSquareConfigIncludesStatusBar();
 
 
 
+    boolean condenseConfigurationChangeForSimpleMode();
+
+
+
+    boolean configurableFontScaleDefault();
+
+
+
     boolean coverDisplayOptIn();
 
 
-    boolean currentAnimatorScaleUsesSharedMemory();
+
+    boolean delayNotificationToMagnificationWhenRecentsWindowToFrontTransition();
 
 
-    boolean defaultDeskWithoutWarmupMigration();
+
+    boolean delegateBackGestureToShell();
 
 
 
     boolean delegateUnhandledDrags();
+
+
+
+    boolean deleteCaptureDisplay();
 
 
 
@@ -157,36 +214,39 @@ public interface FeatureFlags {
 
 
 
-    boolean dispatchFirstKeyguardLockedState();
+    boolean doNotCheckIntersectionWhenNonMagnifiableWindowTransitions();
+
+
+
+    boolean earlyLaunchHint();
+
+
+
+    boolean edgeToEdgeByDefault();
 
 
 
     boolean enableAccessibleCustomHeaders();
 
 
+
     boolean enableActivityEmbeddingSupportForConnectedDisplays();
-
-
-    boolean enableAppHandlePositionReporting();
 
 
 
     boolean enableAppHeaderWithTaskDensity();
 
 
-    boolean enableBlockNonDesktopDisplayWindowDragBugfix();
-
 
     boolean enableBorderSettings();
 
 
-    boolean enableBoxShadowSettings();
+
+    boolean enableBufferTransformHintFromDisplay();
+
 
 
     boolean enableBugFixesForSecondaryDisplay();
-
-
-    boolean enableCameraCompatCheckDeviceRotationBugfix();
 
 
 
@@ -197,10 +257,13 @@ public interface FeatureFlags {
     boolean enableCameraCompatForDesktopWindowingOptOut();
 
 
+
     boolean enableCameraCompatForDesktopWindowingOptOutApi();
 
 
+
     boolean enableCameraCompatTrackTaskAndAppBugfix();
+
 
 
     boolean enableCaptionCompatInsetConversion();
@@ -218,20 +281,21 @@ public interface FeatureFlags {
     boolean enableCascadingWindows();
 
 
-    boolean enableCloseLidInteraction();
-
-
 
     boolean enableCompatUiVisibilityStatus();
+
 
 
     boolean enableCompatuiSysuiLauncher();
 
 
+
     boolean enableConnectedDisplaysDnd();
 
 
+
     boolean enableConnectedDisplaysPip();
+
 
 
     boolean enableConnectedDisplaysWindowDrag();
@@ -241,8 +305,6 @@ public interface FeatureFlags {
     boolean enableDesktopAppHandleAnimation();
 
 
-    boolean enableDesktopAppHeaderStateChangeAnnouncements();
-
 
     boolean enableDesktopAppLaunchAlttabTransitions();
 
@@ -250,8 +312,6 @@ public interface FeatureFlags {
 
     boolean enableDesktopAppLaunchAlttabTransitionsBugfix();
 
-
-    boolean enableDesktopAppLaunchBugfix();
 
 
     boolean enableDesktopAppLaunchTransitions();
@@ -261,22 +321,13 @@ public interface FeatureFlags {
     boolean enableDesktopAppLaunchTransitionsBugfix();
 
 
+
     boolean enableDesktopCloseShortcutBugfix();
+
 
 
     boolean enableDesktopCloseTaskAnimationInDtcBugfix();
 
-
-    boolean enableDesktopFirstBasedDefaultToDesktopBugfix();
-
-
-    boolean enableDesktopFirstBasedDragToMaximize();
-
-
-    boolean enableDesktopFirstFullscreenRefocusBugfix();
-
-
-    boolean enableDesktopFirstListener();
 
 
     boolean enableDesktopImeBugfix();
@@ -290,6 +341,7 @@ public interface FeatureFlags {
     boolean enableDesktopIndicatorInSeparateThreadBugfix();
 
 
+
     boolean enableDesktopModeThroughDevOption();
 
 
@@ -301,21 +353,17 @@ public interface FeatureFlags {
     boolean enableDesktopRecentsTransitionsCornersBugfix();
 
 
-    boolean enableDesktopSplitscreenTransitionBugfix();
+
+    boolean enableDesktopSwipeBackMinimizeAnimationBugfix();
 
 
 
     boolean enableDesktopSystemDialogsTransitions();
 
 
-    boolean enableDesktopTabTearingLaunchAnimation();
-
-
 
     boolean enableDesktopTabTearingMinimizeAnimationBugfix();
 
-
-    boolean enableDesktopTaskLimitSeparateTransition();
 
 
     boolean enableDesktopTaskbarOnFreeformDisplays();
@@ -329,6 +377,7 @@ public interface FeatureFlags {
     boolean enableDesktopWallpaperActivityForSystemUser();
 
 
+
     boolean enableDesktopWindowingAppHandleEducation();
 
 
@@ -338,6 +387,7 @@ public interface FeatureFlags {
 
 
     boolean enableDesktopWindowingAppToWebEducation();
+
 
 
     boolean enableDesktopWindowingAppToWebEducationIntegration();
@@ -351,11 +401,13 @@ public interface FeatureFlags {
     boolean enableDesktopWindowingEnterTransitionBugfix();
 
 
+
     boolean enableDesktopWindowingEnterTransitions();
 
 
 
     boolean enableDesktopWindowingExitByMinimizeTransitionBugfix();
+
 
 
     boolean enableDesktopWindowingExitTransitions();
@@ -389,10 +441,8 @@ public interface FeatureFlags {
     boolean enableDesktopWindowingPersistence();
 
 
+
     boolean enableDesktopWindowingPip();
-
-
-    boolean enableDesktopWindowingPipInOverviewBugfix();
 
 
 
@@ -415,11 +465,13 @@ public interface FeatureFlags {
     boolean enableDesktopWindowingTaskbarRunningApps();
 
 
+
     boolean enableDesktopWindowingTransitions();
 
 
 
     boolean enableDesktopWindowingWallpaperActivity();
+
 
 
     boolean enableDeviceStateAutoRotateSettingLogging();
@@ -429,16 +481,17 @@ public interface FeatureFlags {
     boolean enableDeviceStateAutoRotateSettingRefactor();
 
 
-    boolean enableDisplayCompatMode();
-
 
     boolean enableDisplayDisconnectInteraction();
+
 
 
     boolean enableDisplayFocusInShellTransitions();
 
 
+
     boolean enableDisplayReconnectInteraction();
+
 
 
     boolean enableDisplayWindowingModeSwitching();
@@ -452,32 +505,16 @@ public interface FeatureFlags {
     boolean enableDragToDesktopIncomingTransitionsBugfix();
 
 
+
     boolean enableDragToMaximize();
 
-
-    boolean enableDraggingPipAcrossDisplays();
 
 
     boolean enableDynamicRadiusComputationBugfix();
 
 
-    boolean enableEmptyDeskOnMinimize();
-
-
-    boolean enableExperimentalBubblesController();
-
-
-    boolean enableFreeformBoxShadows();
-
-
-    boolean enableFreeformDisplayLaunchParams();
-
-
 
     boolean enableFullScreenWindowOnRemovingSplitScreenStageBugfix();
-
-
-    boolean enableFullscreenWindowControls();
 
 
 
@@ -488,24 +525,12 @@ public interface FeatureFlags {
     boolean enableHandleInputFix();
 
 
-    boolean enableHandlersDebuggingMode();
-
-
 
     boolean enableHoldToDragAppHandle();
 
 
-    boolean enableIndependentBackInProjected();
-
-
-    boolean enableInorderTransitionCallbacksForDesktop();
-
-
 
     boolean enableInputLayerTransitionFix();
-
-
-    boolean enableKeyGestureHandlerForSysui();
 
 
 
@@ -517,43 +542,32 @@ public interface FeatureFlags {
 
 
 
-    boolean enableModalsFullscreenWithPlatformSignature();
-
-
     boolean enableMoveToNextDisplayShortcut();
+
 
 
     boolean enableMultiDisplaySplit();
 
 
+
     boolean enableMultidisplayTrackpadBackGesture();
+
 
 
     boolean enableMultipleDesktopsBackend();
 
-
-    boolean enableMultipleDesktopsDefaultActivationInDesktopFirstDisplays();
 
 
     boolean enableMultipleDesktopsFrontend();
 
 
 
-    boolean enableNoWindowDecorationForDesks();
-
-
     boolean enableNonDefaultDisplaySplit();
-
-
-
-    boolean enableOmitAccelerometerRotationRestore();
 
 
 
     boolean enableOpaqueBackgroundForTransparentWindows();
 
-
-    boolean enableOverflowButtonForTaskbarPinnedItems();
 
 
     boolean enablePerDisplayDesktopWallpaperActivity();
@@ -563,13 +577,13 @@ public interface FeatureFlags {
     boolean enablePerDisplayPackageContextCacheInStatusbarNotif();
 
 
+
     boolean enablePersistingDisplaySizeForConnectedDisplays();
 
 
-    boolean enablePinningAppWithContextMenu();
-
 
     boolean enablePresentationForConnectedDisplays();
+
 
 
     boolean enableProjectedDisplayDesktopMode();
@@ -579,18 +593,13 @@ public interface FeatureFlags {
     boolean enableQuickswitchDesktopSplitBugfix();
 
 
-    boolean enableRejectHomeTransition();
-
-
 
     boolean enableRequestFullscreenBugfix();
 
 
-    boolean enableRequestFullscreenRefactor();
-
-
 
     boolean enableResizingMetrics();
+
 
 
     boolean enableRestartMenuForConnectedDisplays();
@@ -600,11 +609,9 @@ public interface FeatureFlags {
     boolean enableRestoreToPreviousSizeFromDesktopImmersive();
 
 
-    boolean enableSeeThroughTaskFragments();
-
-
 
     boolean enableShellInitialBoundsRegressionBugFix();
+
 
 
     boolean enableSizeCompatModeImprovementsForConnectedDisplays();
@@ -612,12 +619,6 @@ public interface FeatureFlags {
 
 
     boolean enableStartLaunchTransitionFromTaskbarBugfix();
-
-
-    boolean enableSysDecorsCallbacksViaWm();
-
-
-    boolean enableTallAppHeaders();
 
 
 
@@ -628,14 +629,12 @@ public interface FeatureFlags {
     boolean enableTaskStackObserverInShell();
 
 
+
     boolean enableTaskbarConnectedDisplays();
 
 
 
     boolean enableTaskbarOverflow();
-
-
-    boolean enableTaskbarRecentTasksThrottleBugfix();
 
 
 
@@ -646,6 +645,7 @@ public interface FeatureFlags {
     boolean enableThemedAppHeaders();
 
 
+
     boolean enableTileResizing();
 
 
@@ -653,25 +653,12 @@ public interface FeatureFlags {
     boolean enableTopVisibleRootTaskPerUserTracking();
 
 
-    boolean enableTransitionOnActivitySetRequestedOrientation();
-
-
 
     boolean enableVisualIndicatorInTransitionBugfix();
 
 
 
-    boolean enableWindowContextOverrideType();
-
-
-
     boolean enableWindowContextResourcesUpdateOnConfigChange();
-
-
-    boolean enableWindowDecorationRefactor();
-
-
-    boolean enableWindowRepositioningApi();
 
 
 
@@ -686,8 +673,6 @@ public interface FeatureFlags {
     boolean enableWindowingScaledResizing();
 
 
-    boolean enableWindowingTaskStackOrderBugfix();
-
 
     boolean enableWindowingTransitionHandlersObservers();
 
@@ -696,7 +681,17 @@ public interface FeatureFlags {
     boolean enforceEdgeToEdge();
 
 
+
     boolean ensureKeyguardDoesTransitionStarting();
+
+
+
+    boolean ensureWallpaperInTransitions();
+
+
+
+    boolean ensureWallpaperInWearTransitions();
+
 
 
     boolean enterDesktopByDefaultOnFreeformDisplays();
@@ -706,49 +701,33 @@ public interface FeatureFlags {
     boolean excludeCaptionFromAppBounds();
 
 
-    boolean excludeDeskRootsFromDesktopTasks();
 
-
-    boolean excludeNonMainWindowFromSnapshot();
+    boolean excludeDrawingAppThemeSnapshotFromLock();
 
 
 
     boolean excludeTaskFromRecents();
 
 
-    boolean extendingPersistenceSnapshotQueueDepth();
-
-
-    boolean fallbackToFocusedDisplay();
-
 
     boolean fifoPriorityForMajorUiProcesses();
-
-
-    boolean fixFullscreenInMultiWindow();
 
 
 
     boolean fixHideOverlayApi();
 
 
-    boolean fixLayoutRestoredTask();
+
+    boolean fixLayoutExistingTask();
 
 
-    boolean fixMovingUnfocusedTask();
 
+    boolean fixViewRootCallTrace();
 
-    boolean fixSetAdjacentTaskFragmentsWithParams();
-
-
-    boolean fixShowWhenLockedSyncTimeout();
 
 
     boolean forceCloseTopTransparentFullscreenTask();
 
-
-
-    boolean forceShowSystemBarForBubble();
 
 
     boolean formFactorBasedDesktopFirstSwitch();
@@ -758,11 +737,9 @@ public interface FeatureFlags {
     boolean getDimmerOnClosing();
 
 
-    boolean grantManageKeyGesturesToRecents();
-
-
 
     boolean ignoreAspectRatioRestrictionsForResizeableFreeformActivities();
+
 
 
     boolean ignoreCornerRadiusAndShadows();
@@ -781,14 +758,20 @@ public interface FeatureFlags {
 
 
 
-    boolean interceptMotionFromMoveToCancel();
-
-
-
     boolean jankApi();
 
 
+
+    boolean keepAppWindowHideWhileLocked();
+
+
+
     boolean keyboardShortcutsToSwitchDesks();
+
+
+
+    boolean keyguardGoingAwayTimeout();
+
 
 
     boolean letterboxBackgroundWallpaper();
@@ -798,6 +781,7 @@ public interface FeatureFlags {
     boolean movableCutoutConfiguration();
 
 
+
     boolean moveToExternalDisplayShortcut();
 
 
@@ -805,18 +789,29 @@ public interface FeatureFlags {
     boolean multiCrop();
 
 
+
     boolean navBarTransparentByDefault();
 
 
 
-    boolean nestedTasksWithIndependentBoundsBugfix();
+    boolean nestedTasksWithIndependentBounds();
+
+
+
+    boolean noConsecutiveVisibilityEvents();
+
+
+
+    boolean noDuplicateSurfaceDestroyedEvents();
+
+
+
+    boolean noVisibilityEventOnDisplayStateChange();
 
 
 
     boolean offloadColorExtraction();
 
-
-    boolean parallelCdTransitionsDuringRecents();
 
 
     boolean portWindowSizeAnimation();
@@ -846,17 +841,33 @@ public interface FeatureFlags {
     boolean predictiveBackTimestampApi();
 
 
-    boolean preserveRecentsTaskConfigurationOnRelaunch();
+
+    boolean processPriorityPolicyForMultiWindowMode();
 
 
 
     boolean rearDisplayDisableForceDesktopSystemDecorations();
 
 
+
+    boolean recordTaskSnapshotsBeforeShutdown();
+
+
+
     boolean reduceChangedExclusionRectsMsgs();
 
 
+
+    boolean reduceKeyguardTransitions();
+
+
+
     boolean reduceTaskSnapshotMemoryUsage();
+
+
+
+    boolean reduceUnnecessaryMeasure();
+
 
 
     boolean relativeInsets();
@@ -867,10 +878,15 @@ public interface FeatureFlags {
 
 
 
-    boolean releaseSurfaceOnTransitionFinish();
+    boolean releaseUserAspectRatioWm();
+
 
 
     boolean removeActivityStarterDreamCallback();
+
+
+
+    boolean removeDeferHidingClient();
 
 
 
@@ -878,39 +894,16 @@ public interface FeatureFlags {
 
 
 
-    boolean removeStartingInTransition();
-
-
-
-    boolean reparentToDefaultWithDisplayRemoval();
-
-
-
     boolean reparentWindowTokenApi();
 
 
-    boolean respectFullscreenActivityOptionInDesktopLaunchParams();
 
-
-
-    boolean respectHierarchySurfaceVisibility();
-
-
-    boolean respectLeafTaskBounds();
+    boolean respectNonTopVisibleFixedOrientation();
 
 
 
     boolean respectOrientationChangeForUnresizeable();
 
-
-
-    boolean restoreUserAspectRatioSettingsUsingService();
-
-
-    boolean restrictFreeformHiddenSystemBarsToFillingTasks();
-
-
-    boolean rootTaskForBubble();
 
 
     boolean safeRegionLetterboxing();
@@ -924,27 +917,25 @@ public interface FeatureFlags {
     boolean schedulingForNotificationShade();
 
 
+
     boolean scrambleSnapshotFileName();
-
-
-    boolean screenBrightnessDimOnEmulator();
 
 
 
     boolean screenRecordingCallbacks();
 
 
+
     boolean scrollingFromLetterbox();
-
-
-    boolean scvhSurfaceControlLifetimeFix();
 
 
 
     boolean sdkDesiredPresentTime();
 
 
+
     boolean setScPropertiesInClient();
+
 
 
     boolean showAppHandleLargeScreens();
@@ -958,6 +949,7 @@ public interface FeatureFlags {
     boolean showDesktopWindowingDevOption();
 
 
+
     boolean showHomeBehindDesktop();
 
 
@@ -965,15 +957,12 @@ public interface FeatureFlags {
     boolean skipCompatUiEducationInDesktopMode();
 
 
-    boolean skipDeactivationOfDeskWithNothingInFront();
-
-
 
     boolean skipDecorViewRelayoutWhenClosingBugfix();
 
 
 
-    boolean splashScreenViewSyncTransaction();
+    boolean supportWidgetIntentsOnConnectedDisplay();
 
 
 
@@ -1001,16 +990,23 @@ public interface FeatureFlags {
 
 
 
+    boolean taskFragmentSystemOrganizerFlag();
+
+
+
     boolean touchPassThroughOptIn();
+
+
+
+    boolean trackSystemUiContextBeforeWms();
+
 
 
     boolean transitReadyTracking();
 
 
+
     boolean transitTrackerPlumbing();
-
-
-    boolean transitionHandlerCujTags();
 
 
 
@@ -1021,11 +1017,9 @@ public interface FeatureFlags {
     boolean unifyBackNavigationTransition();
 
 
-    boolean unifyShellBinders();
-
-
 
     boolean universalResizableByDefault();
+
 
 
     boolean untrustedEmbeddingAnyAppPermission();
@@ -1035,14 +1029,8 @@ public interface FeatureFlags {
     boolean untrustedEmbeddingStateSharing();
 
 
+
     boolean updateDimsWhenWindowShown();
-
-
-
-    boolean updateHostInputTransferToken();
-
-
-    boolean updateTaskMinDimensionsWithRootActivity();
 
 
 
@@ -1050,7 +1038,19 @@ public interface FeatureFlags {
 
 
 
+    boolean useRtFrameCallbackForSplashScreenTransfer();
+
+
+
     boolean useTasksDimOnly();
+
+
+
+    boolean useVisibleRequestedForProcessTracker();
+
+
+
+    boolean useWindowOriginalTouchableRegionWhenMagnificationRecomputeBounds();
 
 
 

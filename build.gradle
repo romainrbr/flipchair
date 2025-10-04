@@ -1,23 +1,23 @@
 import app.cash.licensee.SpdxId
 import com.android.build.gradle.api.AndroidBasePlugin
-import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.android.library) apply false
-    alias(libs.plugins.android.test) apply false
-    alias(libs.plugins.androidx.baselineprofile)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.parcelize)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.google.ksp)
-    alias(libs.plugins.google.protobuf)
-    alias(libs.plugins.cash.licensee)
-    alias(libs.plugins.rikka.refine)
-    alias(libs.plugins.diffplug.spotless)
+    id 'com.android.application' version "8.13.0"
+    id 'com.android.library' version "8.13.0" apply false
+    id 'com.android.test' version '8.13.0' apply false
+    id 'androidx.baselineprofile' version '1.4.1'
+    id 'org.jetbrains.kotlin.android' version "2.2.10" // Don't ever update to 2.2.20
+    id 'org.jetbrains.kotlin.plugin.compose' version "2.2.10" // Don't ever update to 2.2.20
+    id 'org.jetbrains.kotlin.plugin.parcelize' version "2.2.10" // Don't ever update to 2.2.20
+    id 'org.jetbrains.kotlin.plugin.serialization' version "2.2.10" // Don't ever update to 2.2.20
+    id "com.google.devtools.ksp" version "2.2.10-2.0.2" // Don't ever update to 2.2.20
+    id 'com.google.protobuf' version "0.9.5"
+    id 'app.cash.licensee' version "1.13.0"
+    id 'dev.rikka.tools.refine' version "4.4.0"
+    id 'com.diffplug.spotless' version '7.2.1'
+    id 'com.google.dagger.hilt.android' version '2.57.1'
 }
 
 // LC-Build-TODO: addFrameworkJar() doesn't work, what???
@@ -33,11 +33,7 @@ allprojects {
     plugins.withType(AndroidBasePlugin).configureEach {
         android {
             buildToolsVersion "36.1.0"
-            compileSdk {
-                version = release(36) {
-                    minorApiLevel = 1
-                }
-            }
+            compileSdk 36
             defaultConfig {
                 minSdk 26
                 targetSdk 36
@@ -48,8 +44,8 @@ allprojects {
                 checkReleaseBuilds false
             }
             compileOptions {
-                sourceCompatibility = libs.versions.jdkRelease.get()
-                targetCompatibility = libs.versions.jdkRelease.get()
+                sourceCompatibility = JavaVersion.VERSION_21
+                targetCompatibility = JavaVersion.VERSION_21
             }
         }
         dependencies {
@@ -59,10 +55,11 @@ allprojects {
     }
 
     plugins.withId('com.google.protobuf') {
+        def protocVersion = '4.32.1'
         protobuf {
             // Configure the protoc executable
             protoc {
-                artifact = "com.google.protobuf:protoc:${libs.versions.protocVersion.get()}"
+                artifact = "com.google.protobuf:protoc:${protocVersion}"
             }
             generateProtoTasks {
                 all().configureEach { task ->
@@ -82,24 +79,17 @@ allprojects {
 
     plugins.withType(JavaBasePlugin).configureEach {
         java {
-            sourceCompatibility = libs.versions.jdkRelease.get()
-            targetCompatibility = libs.versions.jdkRelease.get()
+            sourceCompatibility = JavaVersion.VERSION_21
+            targetCompatibility = JavaVersion.VERSION_21
         }
     }
 
     tasks.withType(KotlinCompile).configureEach {
         compilerOptions {
-            jvmDefault = JvmDefaultMode.ENABLE
-            jvmTarget = JvmTarget.fromTarget(libs.versions.jdkRelease.get())
-        }
-    }
-
-    configurations.configureEach {
-        resolutionStrategy.eachDependency {
-            // Fix duplicate class kotlinx.android.parcel.* found in these 2 dependencies.
-            if (requested.module == libs.kotlin.androidExtensionRuntime.get().module) {
-                useTarget(libs.kotlin.parcelizeRuntime)
-            }
+            freeCompilerArgs.add(
+                "-Xjvm-default=all",
+            )
+            jvmTarget = JvmTarget.JVM_21
         }
     }
 
@@ -113,12 +103,10 @@ allprojects {
             }
             gradle.projectsEvaluated {
                 tasks.withType(JavaCompile).configureEach {
-                    // Make sure the frameworkJar is always first in the classpath.
                     classpath = files(frameworkJar, classpath)
                 }
                 tasks.withType(KotlinCompile).configureEach {
-                    // Make sure the frameworkJar is always first in the classpath.
-                    libraries.setFrom files(frameworkJar, libraries)
+                    libraries.from(files(frameworkJar))
                 }
             }
             dependencies {
@@ -155,21 +143,21 @@ final def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER") ?: ""
 final def isReleaseBuild = ciBuild && ciRef.contains("beta")
 final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
 final def version = "16"
-final def releaseName = "Development 4 Release 1"
+final def releaseName = "Development 2 Release 0"
 final def versionDisplayName = "${version}.${isReleaseBuild ? releaseName : devReleaseName}"
 final def majorVersion = versionDisplayName.split("\\.")[0]
 
-final def quickstepMinSdk = "29"
-final def quickstepMaxSdk = "36"
+def quickstepMinSdk = "29"
+def quickstepMaxSdk = "36"
 
 android {
     namespace "com.android.launcher3"
     defaultConfig {
         /*
-         * Lawnchair Launcher 16.0 Development 4 Release 1
+         * Lawnchair Launcher 16.0 Development 2 Release 1
          * see CONTRIBUTING.md#versioning-scheme
          */
-        versionCode 16_00_04_00_01
+        versionCode 16_00_01_02_01
         versionName "${versionDisplayName}"
         buildConfigField "String", "VERSION_DISPLAY_NAME", "\"${versionDisplayName}\""
         buildConfigField "String", "MAJOR_VERSION", "\"${majorVersion}\""
@@ -258,17 +246,19 @@ android {
             applicationIdSuffix ".debug"
             resValue("string", "derived_app_name", "Lawnchair (Debug)")
 
-            manifestPlaceholders.quickstepMinSdk = "0"
-            manifestPlaceholders.quickstepMaxSdk = "100000"
-            buildConfigField "int", "QUICKSTEP_MIN_SDK", "0"
-            buildConfigField "int", "QUICKSTEP_MAX_SDK", "100000"
+            quickstepMinSdk = "0"
+            quickstepMaxSdk = "100000"
+
+            manifestPlaceholders.quickstepMinSdk = quickstepMinSdk
+            manifestPlaceholders.quickstepMaxSdk = quickstepMaxSdk
+            buildConfigField "int", "QUICKSTEP_MIN_SDK", quickstepMinSdk
+            buildConfigField "int", "QUICKSTEP_MAX_SDK", quickstepMaxSdk
         }
 
         release {
             resValue("string", "derived_app_name", "Lawnchair")
             minifyEnabled true
             shrinkResources true
-            pseudoLocalesEnabled false
             proguardFiles proguardFilesFromAosp + "proguard.pro"
         }
     }
@@ -319,7 +309,7 @@ android {
     sourceSets {
         main {
             res.srcDirs = ['res']
-            java.srcDirs = ['src', 'src_plugins', 'compose/facade/core', 'compose/facade/enabled', 'compose/features'] // Lawnchair-TODO: Don't include Compose Disabled, but there's has to be another way of making this NOT long
+            java.srcDirs = ['src', 'src_plugins']
             manifest.srcFile 'AndroidManifest-common.xml'
             proto {
                 srcDirs = ['protos/', 'quickstep/protos_overrides/']
@@ -369,7 +359,9 @@ android {
 
 composeCompiler {
     stabilityConfigurationFiles.addAll(
-        layout.projectDirectory.file("compose_compiler_config.conf"),
+        [
+            layout.projectDirectory.file("compose_compiler_config.conf"),
+        ]
     )
     reportsDestination = layout.buildDirectory.dir("compose_build_reports")
 }
@@ -382,15 +374,13 @@ dependencies {
     implementation projects.animationlib
     implementation projects.msdllib
     implementation projects.contextualeducationlib
-    implementation projects.viewcapturelib
-    implementation projects.displaylib
-    implementation projects.mechanics
 
     // Recents lib dependency
     withQuickstepCompileOnly projects.hiddenApi
     withQuickstepImplementation projects.shared
-    withQuickstepImplementation projects.animation
+    withQuickstepImplementation projects.anim
     withQuickstepImplementation projects.unfold
+    withQuickstepImplementation projects.viewcapture
     withQuickstepImplementation projects.log
     withQuickstepCompileOnly projects.plugin
     withQuickstepImplementation projects.plugincore
@@ -408,100 +398,83 @@ dependencies {
     withQuickstepImplementation projects.compatLib.compatLibVBaklava
     withQuickstepImplementation projects.wmshell
     withQuickstepImplementation projects.flags
-    withQuickstepImplementation projects.dagger
-    withQuickstepImplementation projects.concurrent
-//    withQuickstepImplementation projects.compose
-    withQuickstepImplementation projects.modules.widgetpicker
-    implementation libs.androidx.dynamicanimation
-
     implementation fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'SystemUI-statsd-16.jar')
     implementation fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'WindowManager-Shell-16.jar')
     withQuickstepCompileOnly fileTree(dir: FRAMEWORK_PREBUILTS_DIR, include: 'framework-16.jar')
     baselineProfile projects.baselineProfile
 
     coreLibraryDesugaring libs.android.desugarJdkLibs
-
-    implementation libs.androidx.profileinstaller
-    baselineProfile projects.baselineProfile
-
-    implementation libs.androidx.recyclerview
-    implementation libs.androidx.preference.ktx
-
     implementation libs.javax.inject
     implementation libs.kotlinx.coroutines.android
     implementation libs.kotlinx.serialization.json
-    implementation libs.chickenhook.restrictionbypass
-    implementation libs.rikka.refine.runtime
 
     implementation libs.androidx.activity.compose
     implementation libs.androidx.constraintlayout
     implementation libs.androidx.datastore.preferences
+    implementation libs.androidx.dynamicanimation
+    implementation libs.androidx.lifecycle.viewmodel.compose
+    implementation libs.androidx.navigation.compose
+    implementation libs.androidx.palette.ktx
+    implementation libs.androidx.preference.ktx
+    implementation libs.androidx.profileinstaller
+    implementation libs.androidx.recyclerview
+    implementation libs.androidx.slice.core
+    implementation libs.androidx.window
+    implementation libs.bundles.graphics
 
     implementation platform(libs.compose.bom)
     implementation libs.compose.ui
     implementation libs.compose.ui.util
     implementation libs.compose.ui.graphics
-    implementation libs.bundles.graphics
     debugImplementation libs.compose.ui.tooling
     implementation libs.compose.ui.tooling.preview
     implementation libs.compose.ui.google.fonts
     implementation libs.compose.foundation
-    implementation libs.compose.material.icons
     implementation libs.compose.material
+    implementation libs.compose.material.icons
     implementation libs.compose.runtime.livedata
     implementation libs.compose.material3
     implementation libs.compose.material3.windowSizeClass
-    implementation libs.androidx.activity.compose
-    implementation libs.androidx.lifecycle.viewmodel.compose
-    implementation libs.androidx.navigation.compose
-    implementation libs.androidx.constraintlayout
-    implementation libs.androidx.palette.ktx
-    implementation libs.androidx.slice.core
-    implementation libs.bundles.accompanist
-    implementation libs.google.material
-    implementation libs.material.motion.compose
-    implementation libs.kdrag0n.colorkt
-    implementation libs.coil.compose
-    implementation libs.xdrop.fuzzywuzzy
 
-    implementation libs.bundles.opto
-    implementation libs.androidx.datastore.preferences
-
-    implementation libs.bundles.retrofit
+    ksp libs.dagger.compiler
+    implementation libs.dagger.hilt.android
+    ksp libs.dagger.hilt.compiler
 
     implementation libs.bundles.room
     ksp libs.room.compiler
 
-    implementation libs.libsu.service
+    implementation libs.bundles.retrofit
 
-    // Persian Date
-    implementation libs.persian.date
+    implementation libs.bundles.opto
 
+    implementation libs.bundles.accompanist
+
+    implementation libs.google.material
+    implementation libs.material.motion.compose
     implementation libs.airbnb.lottie
-
-    // Compose drag and drop library
+    implementation libs.coil.compose
+    implementation libs.hoko.blur
     implementation libs.reorderable
+
+    implementation libs.chickenhook.restrictionbypass
+    implementation libs.rikka.refine.runtime
+    implementation libs.libsu.service
+    implementation libs.persian.date
+    implementation libs.kdrag0n.colorkt
+    implementation libs.xdrop.fuzzywuzzy
 
     // Smartspacer
     implementation(libs.smartspacer.sdk) {
         exclude group: "com.github.skydoves", module: "balloon"
     }
 
-    implementation libs.hoko.blur
-
-    implementation libs.androidx.window
-
-    ksp libs.dagger.compiler
-    implementation libs.dagger.hilt.android
-    ksp libs.dagger.hilt.compiler
-
-    implementation libs.google.guava
-
     debugImplementation libs.leakcanary.android
 }
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.generateKotlin", "true")
+    arg("room.incremental", "true")
     arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
 }
 
@@ -528,12 +501,11 @@ licensee {
     allow(SpdxId.Apache_20)
     allow(SpdxId.BSD_3_Clause)
     allow(SpdxId.GPL_20_or_later)
-    allowDependency(libs.libsu.core)
-    allowDependency(libs.libsu.service)
+    allowDependency("com.github.topjohnwu.libsu", "core", "6.0.0")
+    allowDependency("com.github.topjohnwu.libsu", "service", "6.0.0")
     allowUrl("https://github.com/patrykmichalik/opto/blob/master/LICENSE")
     allowUrl("https://github.com/RikkaApps/HiddenApiRefinePlugin/blob/main/LICENSE")
     allowUrl("https://opensource.org/licenses/mit-license.php")
 
     bundleAndroidAsset = true
-    androidAssetReportPath = 'licenses.json'
 }

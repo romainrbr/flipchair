@@ -26,17 +26,17 @@ import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.LauncherSettings;
-import com.android.launcher3.model.data.ItemInfo;
+import com.android.launcher3.model.data.WorkspaceItemInfo;
 import com.android.launcher3.shortcuts.ShortcutKey;
 import com.android.launcher3.shortcuts.ShortcutRequest;
 import com.android.launcher3.shortcuts.ShortcutRequest.QueryResult;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.util.ItemInfoMatcher;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Task to handle changing of lock state of the user
@@ -74,11 +74,11 @@ public class UserLockStateChangedTask implements ModelUpdateTask {
         }
 
         // Update the workspace to reflect the changes to updated shortcuts residing on it.
-        List<ItemInfo> updatedItemInfos;
+        ArrayList<WorkspaceItemInfo> updatedWorkspaceItemInfos = new ArrayList<>();
         HashSet<ShortcutKey> removedKeys = new HashSet<>();
 
         synchronized (dataModel) {
-            updatedItemInfos = dataModel.updateAndCollectWorkspaceItemInfos(mUser, si -> {
+            dataModel.forAllWorkspaceItemInfos(mUser, si -> {
                 if (si.itemType == LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT) {
                     if (mIsUserUnlocked) {
                         ShortcutKey key = ShortcutKey.fromItemInfo(si);
@@ -87,7 +87,7 @@ public class UserLockStateChangedTask implements ModelUpdateTask {
                         // (probably due to clear data), delete the workspace item as well
                         if (shortcut == null) {
                             removedKeys.add(key);
-                            return false;
+                            return;
                         }
                         si.runtimeStatusFlags &= ~FLAG_DISABLED_LOCKED_USER;
                         si.updateFromDeepShortcutInfo(shortcut, context);
@@ -95,12 +95,11 @@ public class UserLockStateChangedTask implements ModelUpdateTask {
                     } else {
                         si.runtimeStatusFlags |= FLAG_DISABLED_LOCKED_USER;
                     }
-                    return true;
+                    updatedWorkspaceItemInfos.add(si);
                 }
-                return false;
             });
         }
-        taskController.bindUpdatedWorkspaceItems(updatedItemInfos);
+        taskController.bindUpdatedWorkspaceItems(updatedWorkspaceItemInfos);
         if (!removedKeys.isEmpty()) {
             taskController.deleteAndBindComponentsRemoved(
                     ItemInfoMatcher.ofShortcutKeys(removedKeys),

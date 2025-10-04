@@ -20,7 +20,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.view.Display.DEFAULT_DISPLAY
 import android.view.Surface
 import com.android.quickstep.recents.data.FakeTasksRepository
 import com.android.systemui.shared.recents.model.Task
@@ -35,8 +34,7 @@ import org.mockito.kotlin.whenever
 class RecentsViewModelTest {
     private val tasksRepository = FakeTasksRepository()
     private val recentsViewData = RecentsViewData()
-    private val systemUnderTest =
-        RecentsViewModel(tasksRepository, recentsViewData, DEFAULT_DISPLAY)
+    private val systemUnderTest = RecentsViewModel(tasksRepository, recentsViewData)
 
     private val tasks = (0..5).map(::createTaskWithId)
 
@@ -99,7 +97,7 @@ class RecentsViewModelTest {
         )
         // setVisibleTasks forces FakeTasksRepository to update the flows returned by
         // getThumbnailById
-        tasksRepository.setVisibleTasks(DEFAULT_DISPLAY, setOf(1, 2))
+        tasksRepository.setVisibleTasks(setOf(1, 2))
 
         // Then wait for thumbnailData should complete, and the previous getThumbnailById flow
         // should return updated values

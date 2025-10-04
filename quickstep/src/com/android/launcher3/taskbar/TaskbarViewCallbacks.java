@@ -132,7 +132,7 @@ public class TaskbarViewCallbacks {
      * Notifies launcher to update icon alignment.
      */
     public void notifyIconLayoutBoundsChanged() {
-        mControllers.taskbarViewController.notifyIconLayoutBoundsChanged();
+        mControllers.uiController.onIconLayoutBoundsChanged();
     }
 
     /**
@@ -203,7 +203,7 @@ public class TaskbarViewCallbacks {
                             mTaskbarView.getTaskbarOverflowView().getIsActive());
         }
         mControllers.keyboardQuickSwitchController.toggleQuickSwitchViewForTaskbar(
-                mControllers.taskbarViewController.getShownTaskIds(),
+                mControllers.taskbarViewController.getTaskIdsForPinnedApps(),
                 this::onKeyboardQuickSwitchViewClosed);
     }
 

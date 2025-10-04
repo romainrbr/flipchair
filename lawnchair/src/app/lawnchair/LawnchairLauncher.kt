@@ -136,15 +136,6 @@ class LawnchairLauncher : QuickstepLauncher() {
         }
         override fun onStateTransitionComplete(finalState: LauncherState) {}
     }
-    private val clearSearchStateListener = object : StateManager.StateListener<LauncherState> {
-        override fun onStateTransitionComplete(finalState: LauncherState) {
-            if (finalState == LauncherState.NORMAL && mAppsView != null && mAppsView.isSearching) {
-                mAppsView?.post {
-                    mAppsView.reset(false, true)
-                }
-            }
-        }
-    }
 
     private lateinit var colorScheme: ColorScheme
     private var hasBackGesture = false
@@ -160,7 +151,6 @@ class LawnchairLauncher : QuickstepLauncher() {
         preferenceManager2.enableFeed.get().distinctUntilChanged().onEach { enable ->
             defaultOverlay.setEnableFeed(enable)
         }.launchIn(scope = lifecycleScope)
-        launcher.stateManager.addStateListener(clearSearchStateListener)
 
         if (prefs.autoLaunchRoot.get()) {
             lifecycleScope.launch {
@@ -251,8 +241,8 @@ class LawnchairLauncher : QuickstepLauncher() {
         out.add(SearchBarStateHandler(this))
     }
 
-    override fun getSupportedShortcuts(container: Int): Stream<SystemShortcut.Factory<*>> = Stream.concat(
-        super.getSupportedShortcuts(container),
+    override fun getSupportedShortcuts(): Stream<SystemShortcut.Factory<*>> = Stream.concat(
+        super.getSupportedShortcuts(),
         Stream.concat(
             Stream.of(LawnchairShortcut.UNINSTALL, LawnchairShortcut.CUSTOMIZE),
             if (LawnchairApp.isRecentsEnabled) Stream.of(LawnchairShortcut.PAUSE_APPS) else Stream.empty(),
@@ -282,20 +272,20 @@ class LawnchairLauncher : QuickstepLauncher() {
         }
     }
 
-    fun bindItems(items: List<ItemInfo>, forceAnimateIcons: Boolean) {
+    override fun bindItems(items: List<ItemInfo>, forceAnimateIcons: Boolean) {
         val inflatedItems = items.map { i ->
             Pair.create(
                 i,
                 itemInflater?.inflateItem(
                     i,
-                    null,
+                    modelWriter,
                 ),
             )
         }.toList()
         bindInflatedItems(inflatedItems, if (forceAnimateIcons) AnimatorSet() else null)
     }
 
-    override fun handleGestureContract(intent: Intent) {
+    override fun handleGestureContract(intent: Intent?) {
         if (!LawnchairApp.isRecentsEnabled) {
             val gnc = GestureNavContract.fromIntent(intent)
             if (gnc != null) {

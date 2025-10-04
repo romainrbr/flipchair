@@ -21,7 +21,7 @@ import com.android.quickstep.TaskIconCache.TaskCacheEntry
 import com.android.quickstep.task.thumbnail.data.TaskIconDataSource
 import com.android.systemui.shared.recents.model.Task
 import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.yield
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
@@ -34,8 +34,7 @@ class FakeTaskIconDataSource : TaskIconDataSource {
     /** Retrieves and sets an icon on [task] from [taskIdToDrawable]. */
     override suspend fun getIcon(task: Task): TaskCacheEntry {
         while (task.key.id in completionPrevented) {
-            // yield doesn't work here with an UnconfinedTestDispatcher
-            delay(1L)
+            yield()
         }
         return TaskCacheEntry(
             taskIdToDrawable.getValue(task.key.id),

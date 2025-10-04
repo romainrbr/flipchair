@@ -17,13 +17,9 @@ package com.android.wm.shell.windowdecor
 
 import android.app.ActivityManager
 import android.app.WindowConfiguration
-import android.content.Context
-import android.content.res.Resources
 import android.graphics.Point
 import android.graphics.Rect
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.testing.AndroidTestingRunner
 import android.view.Display
 import android.view.Surface.ROTATION_0
@@ -35,13 +31,10 @@ import android.view.WindowManager.TRANSIT_CHANGE
 import android.window.TransitionInfo
 import android.window.WindowContainerToken
 import androidx.test.filters.SmallTest
-import androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread
-import com.android.internal.jank.InteractionJankMonitor
 import com.android.wm.shell.ShellTaskOrganizer
 import com.android.wm.shell.ShellTestCase
 import com.android.wm.shell.common.DisplayController
 import com.android.wm.shell.common.DisplayLayout
-import com.android.wm.shell.shared.desktopmode.FakeDesktopState
 import com.android.wm.shell.transition.Transitions
 import com.android.wm.shell.transition.Transitions.TransitionFinishCallback
 import com.android.wm.shell.windowdecor.DragPositioningCallback.CTRL_TYPE_BOTTOM
@@ -80,7 +73,7 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     @Mock
     private lateinit var mockDesktopWindowDecoration: DesktopModeWindowDecoration
     @Mock
-    private lateinit var mockDragEventListener: DragPositioningCallbackUtility.DragEventListener
+    private lateinit var mockDragStartListener: DragPositioningCallbackUtility.DragStartListener
 
     @Mock
     private lateinit var taskToken: WindowContainerToken
@@ -105,14 +98,6 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     private lateinit var mockFinishCallback: TransitionFinishCallback
     @Mock
     private lateinit var mockTransitions: Transitions
-    @Mock
-    private lateinit var mockContext: Context
-    @Mock
-    private lateinit var mockResources: Resources
-    @Mock
-    private lateinit var mockInteractionJankMonitor: InteractionJankMonitor
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private val desktopState = FakeDesktopState()
 
     private lateinit var taskPositioner: VeiledResizeTaskPositioner
 
@@ -120,9 +105,6 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     fun setUp() {
         MockitoAnnotations.initMocks(this)
 
-        mockDesktopWindowDecoration.mDisplay = mockDisplay
-        mockDesktopWindowDecoration.mDecorWindowContext = mockContext
-        whenever(mockContext.getResources()).thenReturn(mockResources)
         whenever(taskToken.asBinder()).thenReturn(taskBinder)
         whenever(mockDisplayController.getDisplayLayout(DISPLAY_ID)).thenReturn(mockDisplayLayout)
         whenever(mockDisplayLayout.densityDpi()).thenReturn(DENSITY_DPI)
@@ -147,7 +129,6 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
             displayId = DISPLAY_ID
             configuration.windowConfiguration.setBounds(STARTING_BOUNDS)
             configuration.windowConfiguration.displayRotation = ROTATION_90
-            isResizeable = true
         }
         `when`(mockDesktopWindowDecoration.calculateValidDragArea()).thenReturn(VALID_DRAG_AREA)
         mockDesktopWindowDecoration.mDisplay = mockDisplay
@@ -158,30 +139,25 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
                         mockShellTaskOrganizer,
                         mockDesktopWindowDecoration,
                         mockDisplayController,
+                        mockDragStartListener,
                         mockTransactionFactory,
-                        mockTransitions,
-                        mockInteractionJankMonitor,
-                        mainHandler,
-                        desktopState,
+                        mockTransitions
                 )
     }
 
     @Test
-    fun testDragResize_noMove_doesNotShowResizeVeil() = runOnUiThread {
+    fun testDragResize_noMove_doesNotShowResizeVeil() {
         taskPositioner.onDragPositioningStart(
             CTRL_TYPE_TOP or CTRL_TYPE_RIGHT,
-            DISPLAY_ID,
             STARTING_BOUNDS.left.toFloat(),
             STARTING_BOUNDS.top.toFloat()
         )
         verify(mockDesktopWindowDecoration, never()).showResizeVeil(STARTING_BOUNDS)
 
         taskPositioner.onDragPositioningEnd(
-            DISPLAY_ID,
             STARTING_BOUNDS.left.toFloat(),
             STARTING_BOUNDS.top.toFloat()
         )
-
         verify(mockTransitions, never()).startTransition(eq(TRANSIT_CHANGE), argThat { wct ->
             return@argThat wct.changes.any { (token, change) ->
                 token == taskBinder &&
@@ -192,16 +168,14 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testDragResize_movesTask_doesNotShowResizeVeil() = runOnUiThread {
+    fun testDragResize_movesTask_doesNotShowResizeVeil() {
         taskPositioner.onDragPositioningStart(
             CTRL_TYPE_UNDEFINED,
-            DISPLAY_ID,
             STARTING_BOUNDS.left.toFloat(),
             STARTING_BOUNDS.top.toFloat()
         )
 
         taskPositioner.onDragPositioningMove(
-            DISPLAY_ID,
             STARTING_BOUNDS.left.toFloat() + 60,
             STARTING_BOUNDS.top.toFloat() + 100
         )
@@ -213,8 +187,7 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
         verify(mockTransaction).setPosition(any(), eq(rectAfterMove.left.toFloat()),
                 eq(rectAfterMove.top.toFloat()))
 
-        val endBounds = taskPositioner.onDragPositioningEnd(
-            DISPLAY_ID,
+        taskPositioner.onDragPositioningEnd(
             STARTING_BOUNDS.left.toFloat() + 70,
             STARTING_BOUNDS.top.toFloat() + 20
         )
@@ -226,20 +199,23 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
 
         verify(mockDesktopWindowDecoration, never()).showResizeVeil(any())
         verify(mockDesktopWindowDecoration, never()).hideResizeVeil()
-        Assert.assertEquals(rectAfterEnd, endBounds)
+        verify(mockTransitions).startTransition(eq(TRANSIT_CHANGE), argThat { wct ->
+            return@argThat wct.changes.any { (token, change) ->
+                token == taskBinder &&
+                        (change.windowSetMask and WindowConfiguration.WINDOW_CONFIG_BOUNDS) != 0 &&
+                        change.configuration.windowConfiguration.bounds == rectAfterEnd }},
+                eq(taskPositioner))
     }
 
     @Test
-    fun testDragResize_resize_boundsUpdateOnEnd() = runOnUiThread {
+    fun testDragResize_resize_boundsUpdateOnEnd() {
         taskPositioner.onDragPositioningStart(
             CTRL_TYPE_RIGHT or CTRL_TYPE_TOP,
-            DISPLAY_ID,
             STARTING_BOUNDS.right.toFloat(),
             STARTING_BOUNDS.top.toFloat()
         )
 
         taskPositioner.onDragPositioningMove(
-            DISPLAY_ID,
             STARTING_BOUNDS.right.toFloat() + 10,
             STARTING_BOUNDS.top.toFloat() + 10
         )
@@ -257,7 +233,6 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
         })
 
         taskPositioner.onDragPositioningEnd(
-            DISPLAY_ID,
             STARTING_BOUNDS.right.toFloat() + 20,
             STARTING_BOUNDS.top.toFloat() + 20
         )
@@ -274,22 +249,19 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testDragResize_noEffectiveMove_skipsTransactionOnEnd() = runOnUiThread {
+    fun testDragResize_noEffectiveMove_skipsTransactionOnEnd() {
         taskPositioner.onDragPositioningStart(
-            DISPLAY_ID,
             CTRL_TYPE_TOP or CTRL_TYPE_RIGHT,
             STARTING_BOUNDS.left.toFloat(),
             STARTING_BOUNDS.top.toFloat()
         )
 
         taskPositioner.onDragPositioningMove(
-            DISPLAY_ID,
             STARTING_BOUNDS.left.toFloat(),
             STARTING_BOUNDS.top.toFloat()
         )
 
         taskPositioner.onDragPositioningEnd(
-            DISPLAY_ID,
             STARTING_BOUNDS.left.toFloat() + 10,
             STARTING_BOUNDS.top.toFloat() + 10
         )
@@ -309,11 +281,11 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
         })
     }
 
+
     @Test
-    fun testDragResize_drag_setBoundsNotRunIfDragEndsInDisallowedEndArea() = runOnUiThread {
+    fun testDragResize_drag_setBoundsNotRunIfDragEndsInDisallowedEndArea() {
         taskPositioner.onDragPositioningStart(
                 CTRL_TYPE_UNDEFINED, // drag
-                DISPLAY_ID,
                 STARTING_BOUNDS.left.toFloat(),
                 STARTING_BOUNDS.top.toFloat()
         )
@@ -321,12 +293,11 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
         val newX = STARTING_BOUNDS.left.toFloat() + 5
         val newY = DISALLOWED_AREA_FOR_END_BOUNDS_HEIGHT.toFloat() - 1
         taskPositioner.onDragPositioningMove(
-                DISPLAY_ID,
                 newX,
                 newY
         )
 
-        taskPositioner.onDragPositioningEnd(DISPLAY_ID, newX, newY)
+        taskPositioner.onDragPositioningEnd(newX, newY)
 
         verify(mockShellTaskOrganizer, never()).applyTransaction(argThat { wct ->
             return@argThat wct.changes.any { (token, change) ->
@@ -337,11 +308,10 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testDragResize_resize_resizingTaskReorderedToTopWhenNotFocused() = runOnUiThread {
-        mockDesktopWindowDecoration.mHasGlobalFocus = false
+    fun testDragResize_resize_resizingTaskReorderedToTopWhenNotFocused() {
+        mockDesktopWindowDecoration.mTaskInfo.isFocused = false
         taskPositioner.onDragPositioningStart(
                 CTRL_TYPE_RIGHT, // Resize right
-                DISPLAY_ID,
                 STARTING_BOUNDS.left.toFloat(),
                 STARTING_BOUNDS.top.toFloat()
         )
@@ -354,11 +324,10 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testDragResize_resize_resizingTaskNotReorderedToTopWhenFocused() = runOnUiThread {
-        mockDesktopWindowDecoration.mHasGlobalFocus = true
+    fun testDragResize_resize_resizingTaskNotReorderedToTopWhenFocused() {
+        mockDesktopWindowDecoration.mTaskInfo.isFocused = true
         taskPositioner.onDragPositioningStart(
                 CTRL_TYPE_RIGHT, // Resize right
-                DISPLAY_ID,
                 STARTING_BOUNDS.left.toFloat(),
                 STARTING_BOUNDS.top.toFloat()
         )
@@ -371,11 +340,10 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testDragResize_drag_draggedTaskNotReorderedToTop() = runOnUiThread {
-        mockDesktopWindowDecoration.mHasGlobalFocus = false
+    fun testDragResize_drag_draggedTaskNotReorderedToTop() {
+        mockDesktopWindowDecoration.mTaskInfo.isFocused = false
         taskPositioner.onDragPositioningStart(
                 CTRL_TYPE_UNDEFINED, // drag
-                DISPLAY_ID,
                 STARTING_BOUNDS.left.toFloat(),
                 STARTING_BOUNDS.top.toFloat()
         )
@@ -389,14 +357,13 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testDragResize_drag_updatesStableBoundsOnRotate() = runOnUiThread {
+    fun testDragResize_drag_updatesStableBoundsOnRotate() {
         // Test landscape stable bounds
         performDrag(STARTING_BOUNDS.right.toFloat(), STARTING_BOUNDS.bottom.toFloat(),
             STARTING_BOUNDS.right.toFloat() + 2000, STARTING_BOUNDS.bottom.toFloat() + 2000,
             CTRL_TYPE_RIGHT or CTRL_TYPE_BOTTOM)
         val rectAfterDrag = Rect(STARTING_BOUNDS)
         rectAfterDrag.right += 2000
-        rectAfterDrag.bottom = STABLE_BOUNDS_LANDSCAPE.bottom
         // First drag; we should fetch stable bounds.
         verify(mockDisplayLayout, times(1)).getStableBounds(any())
         verify(mockTransitions).startTransition(eq(TRANSIT_CHANGE), argThat { wct ->
@@ -421,8 +388,8 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
         performDrag(STARTING_BOUNDS.right.toFloat(), STARTING_BOUNDS.bottom.toFloat(),
             STARTING_BOUNDS.right.toFloat() + 2000, STARTING_BOUNDS.bottom.toFloat() + 2000,
             CTRL_TYPE_RIGHT or CTRL_TYPE_BOTTOM)
-        rectAfterDrag.right = STABLE_BOUNDS_PORTRAIT.right
-        rectAfterDrag.bottom = STARTING_BOUNDS.bottom + 2000
+        rectAfterDrag.right -= 2000
+        rectAfterDrag.bottom += 2000
 
         verify(mockTransitions).startTransition(eq(TRANSIT_CHANGE), argThat { wct ->
             return@argThat wct.changes.any { (token, change) ->
@@ -435,29 +402,24 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testIsResizingOrAnimatingResizeSet() = runOnUiThread {
-        taskPositioner.addDragEventListener(mockDragEventListener)
+    fun testIsResizingOrAnimatingResizeSet() {
         Assert.assertFalse(taskPositioner.isResizingOrAnimating)
 
         taskPositioner.onDragPositioningStart(
                 CTRL_TYPE_TOP or CTRL_TYPE_RIGHT,
-                DISPLAY_ID,
                 STARTING_BOUNDS.left.toFloat(),
                 STARTING_BOUNDS.top.toFloat()
         )
 
         taskPositioner.onDragPositioningMove(
-                DISPLAY_ID,
                 STARTING_BOUNDS.left.toFloat() - 20,
                 STARTING_BOUNDS.top.toFloat() - 20
         )
 
         // isResizingOrAnimating should be set to true after move during a resize
         Assert.assertTrue(taskPositioner.isResizingOrAnimating)
-        verify(mockDragEventListener, times(1)).onDragMove(eq(TASK_ID))
 
         taskPositioner.onDragPositioningEnd(
-                DISPLAY_ID,
                 STARTING_BOUNDS.left.toFloat(),
                 STARTING_BOUNDS.top.toFloat()
         )
@@ -467,7 +429,7 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testIsResizingOrAnimatingResizeResetAfterStartAnimation() = runOnUiThread {
+    fun testIsResizingOrAnimatingResizeResetAfterStartAnimation() {
         performDrag(
                 STARTING_BOUNDS.left.toFloat(), STARTING_BOUNDS.top.toFloat(),
                 STARTING_BOUNDS.left.toFloat() - 20, STARTING_BOUNDS.top.toFloat() - 20,
@@ -481,7 +443,7 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     }
 
     @Test
-    fun testStartAnimation_useEndRelOffset() = runOnUiThread {
+    fun testStartAnimation_useEndRelOffset() {
         val changeMock = mock(TransitionInfo.Change::class.java)
         val startTransaction = mock(Transaction::class.java)
         val finishTransaction = mock(Transaction::class.java)
@@ -523,18 +485,15 @@ class VeiledResizeTaskPositionerTest : ShellTestCase() {
     ) {
         taskPositioner.onDragPositioningStart(
             ctrlType,
-            DISPLAY_ID,
             startX,
             startY
         )
         taskPositioner.onDragPositioningMove(
-            DISPLAY_ID,
             endX,
             endY
         )
 
         taskPositioner.onDragPositioningEnd(
-            DISPLAY_ID,
             endX,
             endY
         )

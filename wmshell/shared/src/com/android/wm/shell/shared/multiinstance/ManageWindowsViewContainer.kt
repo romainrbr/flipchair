@@ -35,7 +35,6 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.widget.LinearLayout
 import android.window.TaskSnapshot
 import com.android.wm.shell.R
-//import com.android.wm.shell.shared.R
 
 /**
  * View for the All Windows menu option, used by both Desktop Windowing and Taskbar.

@@ -17,14 +17,13 @@ package com.android.launcher3.uioverrides.states;
 
 import static com.android.app.animation.Interpolators.DECELERATE_2;
 import static com.android.launcher3.Flags.enableDesktopExplodedView;
+import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_OVERVIEW;
 
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.SystemProperties;
-
-import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Launcher;
@@ -33,11 +32,11 @@ import com.android.launcher3.R;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
-import com.android.launcher3.views.ScrimColors;
 import com.android.quickstep.util.BaseDepthController;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
+import com.android.systemui.shared.system.BlurUtils;
 
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.theme.color.tokens.ColorTokens;
@@ -88,7 +87,7 @@ public class OverviewState extends LauncherState {
         recentsView.getTaskSize(sTempRect);
         float scale;
         DeviceProfile deviceProfile = launcher.getDeviceProfile();
-        if (deviceProfile.getDeviceProperties().isTwoPanels()) {
+        if (deviceProfile.isTwoPanels) {
             // In two panel layout, width does not include both panels or space between them, so
             // use height instead. We do not use height for handheld, as cell layout can be
             // shorter than a task and we want the workspace to scale down to task size.
@@ -123,9 +122,9 @@ public class OverviewState extends LauncherState {
         int elements = CLEAR_ALL_BUTTON | OVERVIEW_ACTIONS | ADD_DESK_BUTTON;
         DeviceProfile dp = launcher.getDeviceProfile();
         boolean showFloatingSearch;
-        if (dp.getDeviceProperties().isPhone()) {
+        if (dp.isPhone) {
             // Only show search in phone overview in portrait mode.
-            showFloatingSearch = !dp.getDeviceProperties().isLandscape();
+            showFloatingSearch = !dp.isLandscape;
         } else {
             // Only show search in tablet overview if taskbar is not visible.
             showFloatingSearch = !dp.isTaskbarPresent || isTaskbarStashed(launcher);
@@ -157,7 +156,7 @@ public class OverviewState extends LauncherState {
     @Override
     public boolean shouldFloatingSearchBarUsePillWhenUnfocused(Launcher launcher) {
         DeviceProfile dp = launcher.getDeviceProfile();
-        return dp.getDeviceProperties().isPhone() && !dp.getDeviceProperties().isLandscape();
+        return dp.isPhone && !dp.isLandscape;
     }
 
     @Override
@@ -166,19 +165,22 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public ScrimColors getWorkspaceScrimColor(Launcher launcher) {
+    public int getWorkspaceScrimColor(Launcher launcher) {
         // Lawnchair-TODO-Colour: LawnchairUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColorOverBlur
         // Lawnchair-TODO-Colour: LawnchairUtilsKt.getAllAppsScrimColor(launcher) + allAppsScrimColor
-        return new ScrimColors(
-                /* backgroundColor */ Themes.getAttrColor(launcher, R.attr.overviewScrimColor),
-                /* foregroundColor */ ColorUtils.compositeColors(
-                Themes.getAttrColor(launcher, R.attr.overviewScrimForegroundPrimary),
-                Themes.getAttrColor(launcher, R.attr.overviewScrimForegroundSecondary)));
+        return enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
+                ? Themes.getAttrColor(launcher, R.attr.overviewScrimColorOverBlur)
+                : Themes.getAttrColor(launcher, R.attr.overviewScrimColor);
     }
 
     @Override
     public boolean displayOverviewTasksAsGrid(DeviceProfile deviceProfile) {
-        return deviceProfile.getDeviceProperties().isTablet();
+        return deviceProfile.isTablet;
+    }
+
+    @Override
+    public boolean detachDesktopCarousel() {
+        return false;
     }
 
     @Override
@@ -228,7 +230,7 @@ public class OverviewState extends LauncherState {
     public void onBackInvoked(Launcher launcher) {
         RecentsView recentsView = launcher.getOverviewPanel();
         TaskView taskView = recentsView.getRunningTaskView();
-        if (taskView != null && !taskView.isBeingDismissed()) {
+        if (taskView != null) {
             if (recentsView.isTaskViewFullyVisible(taskView)) {
                 taskView.launchWithAnimation();
             } else {

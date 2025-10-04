@@ -23,6 +23,7 @@ import static com.android.wm.shell.onehanded.OneHandedState.STATE_ACTIVE;
 import static com.android.wm.shell.onehanded.OneHandedState.STATE_ENTERING;
 import static com.android.wm.shell.onehanded.OneHandedState.STATE_EXITING;
 import static com.android.wm.shell.onehanded.OneHandedState.STATE_NONE;
+import static com.android.wm.shell.sysui.ShellSharedConstants.KEY_EXTRA_SHELL_ONE_HANDED;
 
 import android.annotation.BinderThread;
 import android.content.ComponentName;
@@ -54,7 +55,6 @@ import com.android.wm.shell.common.ShellExecutor;
 import com.android.wm.shell.common.TaskStackListenerCallback;
 import com.android.wm.shell.common.TaskStackListenerImpl;
 import com.android.wm.shell.shared.annotations.ExternalThread;
-import com.android.wm.shell.shared.annotations.ShellMainThread;
 import com.android.wm.shell.sysui.ConfigurationChangeListener;
 import com.android.wm.shell.sysui.KeyguardChangeListener;
 import com.android.wm.shell.sysui.ShellCommandHandler;
@@ -203,7 +203,7 @@ public class OneHandedController implements RemoteCallable<OneHandedController>,
             DisplayController displayController, DisplayLayout displayLayout,
             TaskStackListenerImpl taskStackListener,
             InteractionJankMonitor jankMonitor, UiEventLogger uiEventLogger,
-            ShellExecutor mainExecutor, @ShellMainThread Handler mainHandler) {
+            ShellExecutor mainExecutor, Handler mainHandler) {
         OneHandedSettingsUtil settingsUtil = new OneHandedSettingsUtil();
         OneHandedAccessibilityUtil accessibilityUtil = new OneHandedAccessibilityUtil(context);
         OneHandedTimeoutHandler timeoutHandler = new OneHandedTimeoutHandler(mainExecutor);
@@ -217,7 +217,7 @@ public class OneHandedController implements RemoteCallable<OneHandedController>,
                 mainExecutor);
         OneHandedDisplayAreaOrganizer organizer = new OneHandedDisplayAreaOrganizer(
                 context, displayLayout, settingsUtil, animationController, tutorialHandler,
-                jankMonitor, mainExecutor, mainHandler);
+                jankMonitor, mainExecutor);
         OneHandedUiEventLogger oneHandedUiEventsLogger = new OneHandedUiEventLogger(uiEventLogger);
         return new OneHandedController(context, shellInit, shellCommandHandler, shellController,
                 displayController, organizer, touchHandler, tutorialHandler, settingsUtil,
@@ -297,7 +297,7 @@ public class OneHandedController implements RemoteCallable<OneHandedController>,
         mShellController.addConfigurationChangeListener(this);
         mShellController.addKeyguardChangeListener(this);
         mShellController.addUserChangeListener(this);
-        mShellController.addExternalInterface(IOneHanded.DESCRIPTOR,
+        mShellController.addExternalInterface(KEY_EXTRA_SHELL_ONE_HANDED,
                 this::createExternalInterface, this);
     }
 

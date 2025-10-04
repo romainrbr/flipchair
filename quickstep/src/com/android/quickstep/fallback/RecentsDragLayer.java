@@ -16,7 +16,6 @@
 package com.android.quickstep.fallback;
 
 import static com.android.launcher3.Flags.enableExpressiveDismissTaskMotion;
-import static com.android.quickstep.fallback.RecentsState.MODAL_TASK;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -46,7 +45,7 @@ public class RecentsDragLayer<T extends Context & RecentsViewContainer
 
                 @Override
                 public boolean isRecentsModal() {
-                    return mContainer.isInState(MODAL_TASK);
+                    return false;
                 }
             };
 
@@ -56,7 +55,6 @@ public class RecentsDragLayer<T extends Context & RecentsViewContainer
 
     @Override
     public void recreateControllers() {
-        super.recreateControllers();
         mControllers = enableExpressiveDismissTaskMotion()
                 ? new TouchController[]{
                         new TaskViewLaunchTouchController<>(mContainer,

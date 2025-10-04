@@ -728,7 +728,7 @@ constructor(
     }
 
     private fun expandBubbleBar() {
-        bubbleBarView.animateExpanded(true)
+        bubbleBarView.isExpanded = true
         onExpanded.run()
     }
 

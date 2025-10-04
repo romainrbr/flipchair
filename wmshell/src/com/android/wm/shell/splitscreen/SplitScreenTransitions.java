@@ -21,13 +21,12 @@ import static android.view.WindowManager.TRANSIT_CLOSE;
 import static android.view.WindowManager.TRANSIT_OPEN;
 import static android.view.WindowManager.TRANSIT_TO_BACK;
 
-import static com.android.wm.shell.Flags.enableFlexibleSplit;
+import static com.android.wm.shell.animation.Interpolators.ALPHA_IN;
+import static com.android.wm.shell.animation.Interpolators.ALPHA_OUT;
+import static com.android.wm.shell.common.split.SplitScreenConstants.FADE_DURATION;
+import static com.android.wm.shell.common.split.SplitScreenConstants.FLAG_IS_DIVIDER_BAR;
 import static com.android.wm.shell.protolog.ShellProtoLogGroup.WM_SHELL_SPLIT_SCREEN;
 import static com.android.wm.shell.protolog.ShellProtoLogGroup.WM_SHELL_TRANSITIONS;
-import static com.android.wm.shell.shared.animation.Interpolators.ALPHA_IN;
-import static com.android.wm.shell.shared.animation.Interpolators.ALPHA_OUT;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.FADE_DURATION;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.FLAG_IS_DIVIDER_BAR;
 import static com.android.wm.shell.splitscreen.SplitScreen.stageTypeToString;
 import static com.android.wm.shell.splitscreen.SplitScreenController.EXIT_REASON_DRAG_DIVIDER;
 import static com.android.wm.shell.splitscreen.SplitScreenController.exitReasonToString;
@@ -47,19 +46,15 @@ import android.window.TransitionInfo;
 import android.window.WindowContainerToken;
 import android.window.WindowContainerTransaction;
 
-import com.android.internal.protolog.ProtoLog;
+import com.android.internal.protolog.common.ProtoLog;
+import com.android.wm.shell.common.TransactionPool;
 import com.android.wm.shell.common.split.SplitDecorManager;
 import com.android.wm.shell.protolog.ShellProtoLogGroup;
-import com.android.wm.shell.shared.TransactionPool;
 import com.android.wm.shell.shared.TransitionUtil;
-import com.android.wm.shell.shared.split.SplitScreenConstants;
 import com.android.wm.shell.transition.OneShotRemoteHandler;
 import com.android.wm.shell.transition.Transitions;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executor;
 
 /** Manages transition animations for split-screen. */
@@ -150,7 +145,7 @@ class SplitScreenTransitions {
 
             final int rootIdx = TransitionUtil.rootIndexFor(change, info);
             if (mode == TRANSIT_CHANGE) {
-                if (change.getParent() != null && change.getTaskInfo() != null) {
+                if (change.getParent() != null) {
                     // This is probably reparented, so we want the parent to be immediately visible
                     final TransitionInfo.Change parentChange = info.getChange(change.getParent());
                     t.show(parentChange.getLeash());
@@ -273,21 +268,22 @@ class SplitScreenTransitions {
             @NonNull SurfaceControl.Transaction startTransaction,
             @NonNull SurfaceControl.Transaction finishTransaction,
             @NonNull Transitions.TransitionFinishCallback finishCallback,
-            @NonNull Map<WindowContainerToken, SplitDecorManager> rootDecorMap) {
+            @NonNull WindowContainerToken mainRoot, @NonNull WindowContainerToken sideRoot,
+            @NonNull SplitDecorManager mainDecor, @NonNull SplitDecorManager sideDecor) {
         ProtoLog.d(WM_SHELL_SPLIT_SCREEN, "playResizeAnimation: transition=%d", info.getDebugId());
         initTransition(transition, finishTransaction, finishCallback);
 
-        Set<WindowContainerToken> rootDecorKeys = rootDecorMap.keySet();
         for (int i = info.getChanges().size() - 1; i >= 0; --i) {
             final TransitionInfo.Change change = info.getChanges().get(i);
-            if (rootDecorKeys.contains(change.getContainer())) {
+            if (mainRoot.equals(change.getContainer()) || sideRoot.equals(change.getContainer())) {
                 final SurfaceControl leash = change.getLeash();
                 startTransaction.setPosition(leash, change.getEndAbsBounds().left,
                         change.getEndAbsBounds().top);
                 startTransaction.setWindowCrop(leash, change.getEndAbsBounds().width(),
                         change.getEndAbsBounds().height());
 
-                SplitDecorManager decor = rootDecorMap.get(change.getContainer());
+                SplitDecorManager decor = mainRoot.equals(change.getContainer())
+                        ? mainDecor : sideDecor;
 
                 // This is to ensure onFinished be called after all animations ended.
                 ValueAnimator va = new ValueAnimator();
@@ -363,8 +359,7 @@ class SplitScreenTransitions {
             WindowContainerTransaction wct,
             @Nullable RemoteTransition remoteTransition,
             Transitions.TransitionHandler handler,
-            int extraTransitType, boolean resizeAnim,
-            @SplitScreenConstants.PersistentSnapPosition int snapPosition) {
+            int extraTransitType, boolean resizeAnim) {
         if (mPendingEnter != null) {
             ProtoLog.v(WM_SHELL_TRANSITIONS, "  splitTransition "
                     + " skip to start enter split transition since it already exist. ");
@@ -375,20 +370,19 @@ class SplitScreenTransitions {
                     .onSplitAnimationInvoked(true /*animationRunning*/));
         }
         final IBinder transition = mTransitions.startTransition(transitType, wct, handler);
-        setEnterTransition(transition, remoteTransition, extraTransitType, resizeAnim,
-                snapPosition);
+        setEnterTransition(transition, remoteTransition, extraTransitType, resizeAnim);
         return transition;
     }
 
     /** Sets a transition to enter split. */
     void setEnterTransition(@NonNull IBinder transition,
             @Nullable RemoteTransition remoteTransition,
-            int extraTransitType, boolean resizeAnim,
-            int snapPosition) {
+            int extraTransitType, boolean resizeAnim) {
         mPendingEnter = new EnterSession(
-                transition, remoteTransition, extraTransitType, resizeAnim, snapPosition);
+                transition, remoteTransition, extraTransitType, resizeAnim);
 
-        ProtoLog.v(WM_SHELL_TRANSITIONS, "  splitTransition deduced Enter split screen");
+        ProtoLog.v(WM_SHELL_TRANSITIONS, "  splitTransition "
+                + " deduced Enter split screen");
         ProtoLog.d(WM_SHELL_SPLIT_SCREEN, "setEnterTransition: transitType=%d resize=%b",
                 extraTransitType, resizeAnim);
     }
@@ -439,22 +433,15 @@ class SplitScreenTransitions {
             Transitions.TransitionHandler handler,
             @Nullable TransitionConsumedCallback consumedCallback,
             @Nullable TransitionFinishedCallback finishCallback,
-            @Nullable SplitDecorManager mainDecor, @Nullable SplitDecorManager sideDecor,
-            @Nullable List<SplitDecorManager> decorManagers) {
+            @NonNull SplitDecorManager mainDecor, @NonNull SplitDecorManager sideDecor) {
         ProtoLog.v(ShellProtoLogGroup.WM_SHELL_TRANSITIONS,
                 "  splitTransition deduced Resize split screen.");
         ProtoLog.d(WM_SHELL_SPLIT_SCREEN, "setResizeTransition: hasPendingResize=%b",
                 mPendingResize != null);
         if (mPendingResize != null) {
+            mainDecor.cancelRunningAnimations();
+            sideDecor.cancelRunningAnimations();
             mPendingResize.cancel(null);
-            if (enableFlexibleSplit()) {
-                for (SplitDecorManager stage : decorManagers) {
-                    stage.cancelRunningAnimations();
-                }
-            } else {
-                mainDecor.cancelRunningAnimations();
-                sideDecor.cancelRunningAnimations();
-            }
             mAnimations.clear();
             onFinish(null /* wct */);
         }
@@ -464,14 +451,12 @@ class SplitScreenTransitions {
         return transition;
     }
 
-    void mergeAnimation(IBinder transition, TransitionInfo info,
-            SurfaceControl.Transaction startT, SurfaceControl.Transaction finishT,
+    void mergeAnimation(IBinder transition, TransitionInfo info, SurfaceControl.Transaction t,
             IBinder mergeTarget, Transitions.TransitionFinishCallback finishCallback) {
         if (mergeTarget != mAnimatingTransition) return;
 
         if (mActiveRemoteHandler != null) {
-            mActiveRemoteHandler.mergeAnimation(transition, info, startT,
-                    finishT, mergeTarget, finishCallback);
+            mActiveRemoteHandler.mergeAnimation(transition, info, t, mergeTarget, finishCallback);
         } else {
             for (int i = mAnimations.size() - 1; i >= 0; --i) {
                 final Animator anim = mAnimations.get(i);
@@ -501,7 +486,7 @@ class SplitScreenTransitions {
 
             mPendingEnter.onConsumed(aborted);
             mPendingEnter = null;
-            mStageCoordinator.notifySplitAnimationStatus(false /*animationRunning*/);
+            mStageCoordinator.notifySplitAnimationFinished();
             ProtoLog.d(WM_SHELL_SPLIT_SCREEN, "onTransitionConsumed for enter transition");
         } else if (isPendingDismiss(transition)) {
             mPendingDismiss.onConsumed(aborted);
@@ -519,9 +504,7 @@ class SplitScreenTransitions {
             ProtoLog.d(WM_SHELL_SPLIT_SCREEN, "onTransitionConsumed for passThrough transition");
         }
 
-        if (mActiveRemoteHandler != null) {
-            mActiveRemoteHandler.onTransitionConsumed(transition, aborted, finishT);
-        }
+        // TODO: handle transition consumed for active remote handler
     }
 
     void onFinish(WindowContainerTransaction wct) {
@@ -678,18 +661,13 @@ class SplitScreenTransitions {
     /** Bundled information of enter transition. */
     class EnterSession extends TransitSession {
         final boolean mResizeAnim;
-        /** The starting snap position we'll enter into with this transition. */
-        final @SplitScreenConstants.PersistentSnapPosition int mEnteringPosition;
-        final boolean mRequireRootsInTransition;
 
         EnterSession(IBinder transition,
                 @Nullable RemoteTransition remoteTransition,
-                int extraTransitType, boolean resizeAnim, int snapPosition) {
+                int extraTransitType, boolean resizeAnim) {
             super(transition, null /* consumedCallback */, null /* finishedCallback */,
                     remoteTransition, extraTransitType);
             this.mResizeAnim = resizeAnim;
-            this.mEnteringPosition = snapPosition;
-            this.mRequireRootsInTransition = remoteTransition != null;
         }
     }
 

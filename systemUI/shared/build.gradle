@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.google.ksp)
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
 }
 
 // LC-Build-TODO: addFrameworkJar() doesn't work, what???
@@ -30,10 +30,9 @@ android {
             res.srcDirs = ['res']
         }
     }
-}
-
-ksp {
-    arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
+    ksp {
+        arg("dagger.hilt.disableModulesHaveInstallInCheck", "true")
+    }
 }
 
 addFrameworkJar('framework-16.jar')
@@ -48,7 +47,6 @@ dependencies {
     compileOnly projects.wmshell
     compileOnly projects.animationlib
     compileOnly projects.utils
-    compileOnly projects.log
 
     implementation libs.dagger.hilt.android
     ksp libs.dagger.hilt.compiler

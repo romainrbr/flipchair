@@ -276,8 +276,8 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
             IconView(context).apply {
                 layoutParams =
                     FrameLayout.LayoutParams(
-                        taskContainer.iconView.asView().width,
-                        taskContainer.iconView.asView().height
+                        taskContainer.iconView.width,
+                        taskContainer.iconView.height
                     )
                 x = mTempRect.left.toFloat() - insets.left
                 y = mTempRect.top.toFloat() - insets.top

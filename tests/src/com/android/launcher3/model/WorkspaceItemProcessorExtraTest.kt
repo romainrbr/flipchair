@@ -16,6 +16,7 @@
 
 package com.android.launcher3.model
 
+import android.appwidget.AppWidgetProviderInfo
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -43,6 +44,7 @@ import com.android.launcher3.model.data.LauncherAppWidgetInfo.FLAG_UI_NOT_READY
 import com.android.launcher3.model.data.WorkspaceItemInfo
 import com.android.launcher3.pm.UserCache
 import com.android.launcher3.shortcuts.ShortcutKey
+import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.PackageManagerHelper
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.UserIconInfo
@@ -87,6 +89,8 @@ class WorkspaceItemProcessorExtraTest {
     private var mKeyToPinnedShortcutsMap: MutableMap<ShortcutKey, ShortcutInfo> = mutableMapOf()
     private var mInstallingPkgs: HashMap<PackageUserKey, PackageInstaller.SessionInfo> = hashMapOf()
     private var mAllDeepShortcuts: MutableList<CacheableShortcutInfo> = mutableListOf()
+    private var mWidgetProvidersMap: MutableMap<ComponentKey, AppWidgetProviderInfo?> =
+        mutableMapOf()
     private var mPendingPackages: MutableSet<PackageUserKey> = mutableSetOf()
 
     private lateinit var itemProcessorUnderTest: WorkspaceItemProcessor
@@ -137,6 +141,7 @@ class WorkspaceItemProcessorExtraTest {
         mKeyToPinnedShortcutsMap = mutableMapOf()
         mInstallingPkgs = hashMapOf()
         mAllDeepShortcuts = mutableListOf()
+        mWidgetProvidersMap = mutableMapOf()
         mIconRequestInfos = mutableListOf()
         mPendingPackages = mutableSetOf()
     }
@@ -181,7 +186,8 @@ class WorkspaceItemProcessorExtraTest {
         mInstallingPkgs[packageUserKey] = PackageInstaller.SessionInfo()
 
         // When
-        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
+        itemProcessorUnderTest =
+            createWorkspaceItemProcessorUnderTest(widgetProvidersMap = mWidgetProvidersMap)
         itemProcessorUnderTest.processItem()
 
         // Then
@@ -200,7 +206,8 @@ class WorkspaceItemProcessorExtraTest {
             )
             .commit()
         val widgetInfoCaptor = ArgumentCaptor.forClass(LauncherAppWidgetInfo::class.java)
-        verify(mockCursor).checkAndAddItem(widgetInfoCaptor.capture(), any(), anyOrNull())
+        verify(mockCursor)
+            .checkAndAddItem(widgetInfoCaptor.capture(), eq(mockBgDataModel), anyOrNull())
         val actualWidgetInfo = widgetInfoCaptor.value
         with(actualWidgetInfo) {
             assertThat(providerName).isEqualTo(expectedWidgetInfo.providerName)
@@ -244,7 +251,8 @@ class WorkspaceItemProcessorExtraTest {
             mock<WidgetInflater>().apply {
                 whenever(inflateAppWidget(any())).thenReturn(inflationResult)
             }
-        itemProcessorUnderTest = createWorkspaceItemProcessorUnderTest()
+        itemProcessorUnderTest =
+            createWorkspaceItemProcessorUnderTest(widgetProvidersMap = mWidgetProvidersMap)
 
         // When
         itemProcessorUnderTest.processItem()
@@ -261,6 +269,8 @@ class WorkspaceItemProcessorExtraTest {
         launcherApps: LauncherApps = mockLauncherApps,
         shortcutKeyToPinnedShortcuts: Map<ShortcutKey, ShortcutInfo> = mKeyToPinnedShortcutsMap,
         context: Context = mockContext,
+        bgDataModel: BgDataModel = mockBgDataModel,
+        widgetProvidersMap: MutableMap<ComponentKey, AppWidgetProviderInfo?> = mWidgetProvidersMap,
         widgetInflater: WidgetInflater = mockWidgetInflater,
         pmHelper: PackageManagerHelper = mockPmHelper,
         iconRequestInfos: MutableList<IconRequestInfo<WorkspaceItemInfo>> = mIconRequestInfos,
@@ -277,6 +287,8 @@ class WorkspaceItemProcessorExtraTest {
             userCache = userCache,
             userManagerState = userManagerState,
             launcherApps = launcherApps,
+            bgDataModel = bgDataModel,
+            widgetProvidersMap = widgetProvidersMap,
             widgetInflater = widgetInflater,
             pmHelper = pmHelper,
             unlockedUsers = unlockedUsers,

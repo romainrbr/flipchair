@@ -122,6 +122,11 @@ sealed class SmartSpaceHostView(context: Context) :
     }
 }
 
-enum class NexusLauncherEnum(override val id: Int) : EventEnum {
+enum class NexusLauncherEnum(private val mId: Int) : EventEnum {
     SMARTSPACE_TAP_OR_LONGPRESS(520),
+    ;
+
+    override fun getId(): Int {
+        return mId
+    }
 }

@@ -81,13 +81,11 @@ constructor(
         val animators = mutableListOf<Animator>()
         val animatorFinishedCallback: (Animator) -> Unit = { animator ->
             animators -= animator
-            if (animators.isEmpty()) {
-                RemoteRunnable.executeSafely(finishedCallback)
-            }
+            if (animators.isEmpty()) finishedCallback.run()
         }
         animators += animatorHelper.createAnimators(info, animatorFinishedCallback)
         if (animators.isEmpty()) {
-            RemoteRunnable.executeSafely(finishedCallback)
+            finishedCallback.run()
             return
         }
         animators.forEach { it.start() }

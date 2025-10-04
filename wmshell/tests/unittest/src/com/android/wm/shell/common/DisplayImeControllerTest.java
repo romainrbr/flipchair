@@ -21,21 +21,19 @@ import static android.view.InsetsSource.ID_IME;
 import static android.view.Surface.ROTATION_0;
 import static android.view.WindowInsets.Type.ime;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import android.graphics.Insets;
 import android.graphics.Point;
-import android.os.Looper;
-import android.view.IWindowManager;
 import android.view.InsetsSource;
 import android.view.InsetsSourceControl;
 import android.view.InsetsState;
@@ -45,7 +43,6 @@ import android.view.inputmethod.ImeTracker;
 import androidx.test.filters.SmallTest;
 
 import com.android.wm.shell.ShellTestCase;
-import com.android.wm.shell.shared.TransactionPool;
 import com.android.wm.shell.sysui.ShellInit;
 
 import org.junit.Before;
@@ -63,13 +60,11 @@ import java.util.concurrent.Executor;
  */
 @SmallTest
 public class DisplayImeControllerTest extends ShellTestCase {
+
     @Mock
     private SurfaceControl.Transaction mT;
     @Mock
     private ShellInit mShellInit;
-    @Mock
-    private IWindowManager mWm;
-    private DisplayImeController mDisplayImeController;
     private DisplayImeController.PerDisplay mPerDisplay;
     private Executor mExecutor;
 
@@ -77,8 +72,7 @@ public class DisplayImeControllerTest extends ShellTestCase {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mExecutor = spy(Runnable::run);
-        mDisplayImeController = new DisplayImeController(mWm, mShellInit, null, null,
-                new TransactionPool() {
+        mPerDisplay = new DisplayImeController(null, mShellInit, null, null, new TransactionPool() {
             @Override
             public SurfaceControl.Transaction acquire() {
                 return mT;
@@ -89,10 +83,8 @@ public class DisplayImeControllerTest extends ShellTestCase {
             }
         }, mExecutor) {
             @Override
-            void removeImeSurface(int displayId) {
-            }
-        };
-        mPerDisplay = mDisplayImeController.new PerDisplay(DEFAULT_DISPLAY, ROTATION_0);
+            void removeImeSurface() { }
+        }.new PerDisplay(DEFAULT_DISPLAY, ROTATION_0);
     }
 
     @Test
@@ -102,50 +94,52 @@ public class DisplayImeControllerTest extends ShellTestCase {
 
     @Test
     public void insetsControlChanged_schedulesNoWorkOnExecutor() {
-        Looper.prepare();
         mPerDisplay.insetsControlChanged(insetsStateWithIme(false), insetsSourceControl());
-        verifyNoMoreInteractions(mExecutor);
+        verifyZeroInteractions(mExecutor);
     }
 
     @Test
     public void insetsChanged_schedulesNoWorkOnExecutor() {
-        Looper.prepare();
         mPerDisplay.insetsChanged(insetsStateWithIme(false));
-        verifyNoMoreInteractions(mExecutor);
+        verifyZeroInteractions(mExecutor);
     }
 
     @Test
     public void showInsets_schedulesNoWorkOnExecutor() {
-        mPerDisplay.showInsets(ime(), ImeTracker.Token.empty());
-        verifyNoMoreInteractions(mExecutor);
+        mPerDisplay.showInsets(ime(), true /* fromIme */, ImeTracker.Token.empty());
+        verifyZeroInteractions(mExecutor);
     }
 
     @Test
     public void hideInsets_schedulesNoWorkOnExecutor() {
-        mPerDisplay.hideInsets(ime(), ImeTracker.Token.empty());
-        verifyNoMoreInteractions(mExecutor);
+        mPerDisplay.hideInsets(ime(), true /* fromIme */, ImeTracker.Token.empty());
+        verifyZeroInteractions(mExecutor);
+    }
+
+    @Test
+    public void reappliesVisibilityToChangedLeash() {
+        verifyZeroInteractions(mT);
+        mPerDisplay.mImeShowing = true;
+
+        mPerDisplay.insetsControlChanged(insetsStateWithIme(false), insetsSourceControl());
+
+        assertFalse(mPerDisplay.mImeShowing);
+        verify(mT).hide(any());
+
+        mPerDisplay.mImeShowing = true;
+        mPerDisplay.insetsControlChanged(insetsStateWithIme(true), insetsSourceControl());
+
+        assertTrue(mPerDisplay.mImeShowing);
+        verify(mT).show(any());
     }
 
     @Test
     public void insetsControlChanged_updateImeSourceControl() {
-        Looper.prepare();
         mPerDisplay.insetsControlChanged(insetsStateWithIme(false), insetsSourceControl());
         assertNotNull(mPerDisplay.mImeSourceControl);
 
         mPerDisplay.insetsControlChanged(new InsetsState(), new InsetsSourceControl[]{});
         assertNull(mPerDisplay.mImeSourceControl);
-    }
-
-    @Test
-    public void setImeInputTargetRequestedVisibility_invokeOnImeRequested() {
-        var mockPp = mock(DisplayImeController.ImePositionProcessor.class);
-        mDisplayImeController.addPositionProcessor(mockPp);
-
-        mPerDisplay.setImeInputTargetRequestedVisibility(true, null /* statsToken */);
-        verify(mockPp).onImeRequested(anyInt(), eq(true));
-
-        mPerDisplay.setImeInputTargetRequestedVisibility(false, null /* statsToken */);
-        verify(mockPp).onImeRequested(anyInt(), eq(false));
     }
 
     private InsetsSourceControl[] insetsSourceControl() {

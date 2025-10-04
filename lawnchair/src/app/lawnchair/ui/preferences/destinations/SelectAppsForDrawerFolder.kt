@@ -122,6 +122,7 @@ fun SelectAppsForDrawerFolder(
                     preferenceGroupItems(
                         count = 20,
                         isFirstChild = true,
+                        dividerStartIndent = 40.dp,
                     ) {
                         AppItemPlaceholder {
                             Spacer(Modifier.width(24.dp))
@@ -133,6 +134,7 @@ fun SelectAppsForDrawerFolder(
                     preferenceGroupItems(
                         filteredApps,
                         isFirstChild = true,
+                        dividerStartIndent = 40.dp,
                     ) { _, app ->
                         key(app.toString()) {
                             AppItem(

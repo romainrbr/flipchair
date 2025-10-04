@@ -21,21 +21,15 @@ import android.hardware.display.DisplayManager
 import android.util.Log
 import android.util.SparseArray
 import android.view.Display
-import android.window.DesktopExperienceFlags
 import androidx.core.util.valueIterator
-import com.android.app.displaylib.DisplayDecorationListener
-import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
 import com.android.quickstep.DisplayModel.DisplayResource
+import com.android.quickstep.SystemDecorationChangeObserver.Companion.INSTANCE
+import com.android.quickstep.SystemDecorationChangeObserver.DisplayDecorationListener
 import java.io.PrintWriter
-import kotlinx.coroutines.CoroutineDispatcher
 
 /** data model for managing resources with lifecycles that match that of the connected display */
-abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
-    val context: Context,
-    private val systemDecorationChangeObserver: SystemDecorationChangeObserver,
-    private val displaysWithDecorationsRepositoryCompat: DisplaysWithDecorationsRepositoryCompat,
-    private val dispatcher: CoroutineDispatcher,
-) : DisplayDecorationListener {
+abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(val context: Context) :
+    DisplayDecorationListener {
 
     companion object {
         private const val TAG = "DisplayModel"
@@ -43,10 +37,8 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     }
 
     private val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-    private val displayResourceArray = SparseArray<RESOURCE_TYPE>()
-    private val useDisplayDecorationListener: Boolean =
-        DesktopExperienceFlags.ENABLE_SYS_DECORS_CALLBACKS_VIA_WM.isTrue() &&
-            DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue()
+    private var systemDecorationChangeObserver: SystemDecorationChangeObserver? = null
+    protected val displayResourceArray = SparseArray<RESOURCE_TYPE>()
 
     override fun onDisplayAddSystemDecorations(displayId: Int) {
         if (DEBUG) Log.d(TAG, "onDisplayAdded: displayId=$displayId")
@@ -66,25 +58,16 @@ abstract class DisplayModel<RESOURCE_TYPE : DisplayResource>(
     protected abstract fun createDisplayResource(display: Display): RESOURCE_TYPE
 
     protected fun initializeDisplays() {
-        if (useDisplayDecorationListener) {
-            displaysWithDecorationsRepositoryCompat.registerDisplayDecorationListener(
-                this,
-                dispatcher,
-            )
-        } else {
-            systemDecorationChangeObserver.registerDisplayDecorationListener(this)
-        }
+        systemDecorationChangeObserver = INSTANCE[context]
+        systemDecorationChangeObserver?.registerDisplayDecorationListener(this)
         displayManager.displays
             .filter { getDisplayResource(it.displayId) == null }
             .forEach { storeDisplayResource(it.displayId) }
     }
 
     fun destroy() {
-        if (useDisplayDecorationListener) {
-            displaysWithDecorationsRepositoryCompat.unregisterDisplayDecorationListener(this)
-        } else {
-            systemDecorationChangeObserver.unregisterDisplayDecorationListener(this)
-        }
+        systemDecorationChangeObserver?.unregisterDisplayDecorationListener(this)
+        systemDecorationChangeObserver = null
         displayResourceArray.valueIterator().forEach { displayResource ->
             displayResource.cleanup()
         }

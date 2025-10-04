@@ -122,12 +122,9 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             out.add(mActions.get(DEEP_SHORTCUTS));
         }
 
-        // Get all visible / non-visible drop targets so we can provide them as quick actions for
-        // users of accessibility services.
         for (ButtonDropTarget target : mContext.getDropTargetBar().getDropTargets()) {
-            int dropTargetAction = target.getSupportedAccessibilityAction(item, host);
-            if (dropTargetAction != INVALID) {
-                out.add(mActions.get(dropTargetAction));
+            if (target.supportsAccessibilityDrop(item, host)) {
+                out.add(mActions.get(target.getAccessibilityAction()));
             }
         }
 
@@ -232,9 +229,9 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
             }
         } else {
             for (ButtonDropTarget dropTarget : mContext.getDropTargetBar().getDropTargets()) {
-                int dropTargetAction = dropTarget.getSupportedAccessibilityAction(item, host);
-                if (action == dropTargetAction) {
-                    dropTarget.onAccessibilityDrop(host, item, action);
+                if (dropTarget.supportsAccessibilityDrop(item, host)
+                        && action == dropTarget.getAccessibilityAction()) {
+                    dropTarget.onAccessibilityDrop(host, item);
                     return true;
                 }
             }
@@ -493,7 +490,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
 
     private void bindItem(ItemInfo item, boolean focusForAccessibility,
             @Nullable Consumer<Boolean> finishCallback) {
-        View view = mContext.getItemInflater().inflateItem(item);
+        View view = mContext.getItemInflater().inflateItem(item, mContext.getModelWriter());
         if (view == null) {
             if (finishCallback != null) {
                 finishCallback.accept(false /*success*/);
@@ -536,7 +533,7 @@ public class LauncherAccessibilityDelegate extends BaseAccessibilityDelegate<Lau
         // Bind the item in next frame so that if a new workspace page was created,
         // it will get laid out.
         new Handler().post(() -> {
-            mContext.inflateAndBindItemWithAnimation(item);
+            mContext.bindItems(Collections.singletonList(item), true);
             announceConfirmation(R.string.item_moved);
         });
         return true;

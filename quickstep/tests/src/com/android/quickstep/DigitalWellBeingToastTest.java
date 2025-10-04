@@ -15,33 +15,24 @@
  */
 package com.android.quickstep;
 
-import static androidx.test.platform.app.InstrumentationRegistry.getInstrumentation;
-
-import static com.android.launcher3.util.TestUtil.resolveSystemAppInfo;
+import static androidx.test.InstrumentationRegistry.getInstrumentation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.PendingIntent;
 import android.app.usage.UsageStatsManager;
 import android.content.Intent;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.launcher3.Launcher;
-import com.android.launcher3.LauncherState;
-import com.android.launcher3.uioverrides.QuickstepLauncher;
-import com.android.launcher3.util.BaseLauncherActivityTest;
-import com.android.launcher3.util.rule.ScreenRecordRule;
 import com.android.quickstep.views.DigitalWellBeingToast;
 import com.android.quickstep.views.RecentsView;
-import com.android.quickstep.views.TaskContainer;
 import com.android.quickstep.views.TaskView;
 
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -49,50 +40,41 @@ import java.time.Duration;
 
 @LargeTest
 @RunWith(AndroidJUnit4.class)
-public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<QuickstepLauncher> {
-
-    @Rule
-    public ScreenRecordRule mScreenRecordRule = new ScreenRecordRule();
-
-
-    public final String calculatorPackage =
-            resolveSystemAppInfo(Intent.CATEGORY_APP_CALCULATOR).packageName;
+public class TaplDigitalWellBeingToastTest extends AbstractQuickStepTest {
+    private static final String CALCULATOR_PACKAGE =
+            resolveSystemApp(Intent.CATEGORY_APP_CALCULATOR);
 
     @Test
-    public void testToast() {
-        startAppFast(calculatorPackage);
+    public void testToast() throws Exception {
+        startAppFast(CALCULATOR_PACKAGE);
 
         final UsageStatsManager usageStatsManager =
-                targetContext().getSystemService(UsageStatsManager.class);
+                mTargetContext.getSystemService(UsageStatsManager.class);
         final int observerId = 0;
 
         try {
-            final String[] packages = new String[]{calculatorPackage};
+            final String[] packages = new String[]{CALCULATOR_PACKAGE};
 
             // Set time limit for app.
             runWithShellPermission(() ->
                     usageStatsManager.registerAppUsageLimitObserver(observerId, packages,
                             Duration.ofSeconds(600), Duration.ofSeconds(300),
-                            PendingIntent.getActivity(targetContext(), -1, new Intent()
-                                            .setPackage(targetContext().getPackageName()),
+                            PendingIntent.getActivity(mTargetContext, -1, new Intent()
+                                            .setPackage(mTargetContext.getPackageName()),
                                     PendingIntent.FLAG_MUTABLE)));
 
-            // b/324261526 when removing BaseLauncherActivityTest we should be able to tell test
-            // by test test if they should start the activity from the start or wait, and that
-            // should get rid of this.
-            getLauncherActivity().close();
-            loadLauncherSync();
+            mLauncher.goHome();
             final DigitalWellBeingToast toast = getToast();
 
-            waitForLauncherCondition("Toast is not visible", launcher -> toast.getHasLimit());
-            assertEquals("Toast text: ", "5 minutes left today", toast.getBannerText());
+            waitForLauncherCondition("Toast is not visible", launcher -> toast.hasLimit());
+            assertEquals("Toast text: ", "5 minutes left today", toast.getText());
 
             // Unset time limit for app.
             runWithShellPermission(
                     () -> usageStatsManager.unregisterAppUsageLimitObserver(observerId));
 
-            getLauncherActivity().goToState(LauncherState.NORMAL);
-            assertFalse("Toast is visible", getToast().getHasLimit());
+            mLauncher.goHome();
+            assertFalse("Toast is visible", getToast().hasLimit());
         } finally {
             runWithShellPermission(
                     () -> usageStatsManager.unregisterAppUsageLimitObserver(observerId));
@@ -100,23 +82,19 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
     }
 
     private DigitalWellBeingToast getToast() {
-        getLauncherActivity().goToState(LauncherState.OVERVIEW);
-        final TaskView task = getLauncherActivity().getOnceNotNull(
-                "No latest task",
-                launcher -> getLatestTask(launcher)
-        );
+        mLauncher.getWorkspace().switchToOverview();
+        final TaskView task = getOnceNotNull("No latest task", launcher -> getLatestTask(launcher));
 
-        return getLauncherActivity().getFromLauncher(launcher -> {
-            TaskContainer taskContainer = task.getFirstTaskContainer();
-            assertNotNull(taskContainer);
-            assertTrue("Latest task is not Calculator", calculatorPackage.equals(
+        return getFromLauncher(launcher -> {
+            TaskView.TaskContainer taskContainer = task.getTaskContainers().get(0);
+            assertTrue("Latest task is not Calculator", CALCULATOR_PACKAGE.equals(
                     taskContainer.getTask().getTopComponent().getPackageName()));
             return taskContainer.getDigitalWellBeingToast();
         });
     }
 
     private TaskView getLatestTask(Launcher launcher) {
-        return launcher.<RecentsView>getOverviewPanel().getFirstTaskView();
+        return launcher.<RecentsView>getOverviewPanel().getTaskViewAt(0);
     }
 
     private void runWithShellPermission(Runnable action) {
@@ -126,5 +104,6 @@ public class DigitalWellBeingToastTest extends BaseLauncherActivityTest<Quickste
         } finally {
             getInstrumentation().getUiAutomation().dropShellPermissionIdentity();
         }
+
     }
 }

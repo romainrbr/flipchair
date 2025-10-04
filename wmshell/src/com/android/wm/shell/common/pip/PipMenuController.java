@@ -18,6 +18,7 @@ package com.android.wm.shell.common.pip;
 
 import static android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
 import static android.view.WindowManager.LayoutParams.FLAG_SLIPPERY;
+import static android.view.WindowManager.LayoutParams.FLAG_SPLIT_TOUCH;
 import static android.view.WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
 import static android.view.WindowManager.LayoutParams.PRIVATE_FLAG_TRUSTED_OVERLAY;
 import static android.view.WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -110,7 +111,7 @@ public interface PipMenuController {
             int width, int height) {
         final WindowManager.LayoutParams lp = new WindowManager.LayoutParams(width, height,
                 TYPE_APPLICATION_OVERLAY,
-                FLAG_WATCH_OUTSIDE_TOUCH | FLAG_SLIPPERY | FLAG_NOT_TOUCHABLE,
+                FLAG_WATCH_OUTSIDE_TOUCH | FLAG_SPLIT_TOUCH | FLAG_SLIPPERY | FLAG_NOT_TOUCHABLE,
                 PixelFormat.TRANSLUCENT);
         lp.privateFlags |= PRIVATE_FLAG_TRUSTED_OVERLAY;
         lp.setTitle(title);

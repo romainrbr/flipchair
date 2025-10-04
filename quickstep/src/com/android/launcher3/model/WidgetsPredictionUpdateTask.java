@@ -31,8 +31,9 @@ import androidx.annotation.NonNull;
 
 import com.android.launcher3.LauncherModel.ModelUpdateTask;
 import com.android.launcher3.R;
+import com.android.launcher3.model.BgDataModel.FixedContainerItems;
+import com.android.launcher3.model.QuickstepModelDelegate.PredictorState;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.model.data.PredictedContainerInfo;
 import com.android.launcher3.util.ComponentKey;
 import com.android.launcher3.widget.PendingAddWidgetInfo;
 import com.android.launcher3.widget.picker.WidgetRecommendationCategoryProvider;
@@ -133,11 +134,11 @@ public final class WidgetsPredictionUpdateTask implements ModelUpdateTask {
                 .map(it -> new PendingAddWidgetInfo(it.widgetInfo, CONTAINER_WIDGETS_PREDICTION,
                         categoryProvider.getWidgetRecommendationCategory(context, it)))
                 .collect(Collectors.toList());
-        PredictedContainerInfo pci =
-                new PredictedContainerInfo(mPredictorState.containerId, items);
+        FixedContainerItems fixedContainerItems =
+                new FixedContainerItems(mPredictorState.containerId, items);
 
-        dataModel.updateAndDispatchItem(pci /* item */, null /* owner */);
-        taskController.bindUpdatedWorkspaceItems(Collections.singleton(pci));
+        dataModel.extraItems.put(mPredictorState.containerId, fixedContainerItems);
+        taskController.bindExtraContainerItems(fixedContainerItems);
 
         // Don't store widgets prediction to disk because it is not used frequently.
     }

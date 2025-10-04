@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import android.platform.test.annotations.PlatinumTest;
-import android.view.View;
 
 import com.android.launcher3.Launcher;
 import com.android.launcher3.popup.ArrowPopup;
@@ -29,8 +28,8 @@ import com.android.launcher3.tapl.AllApps;
 import com.android.launcher3.tapl.AppIconMenu;
 import com.android.launcher3.tapl.AppIconMenuItem;
 import com.android.launcher3.tapl.HomeAllApps;
-import com.android.launcher3.util.ui.AbstractLauncherUiTest;
-import com.android.launcher3.util.ui.PortraitLandscapeRunner.PortraitLandscape;
+import com.android.launcher3.ui.AbstractLauncherUiTest;
+import com.android.launcher3.ui.PortraitLandscapeRunner.PortraitLandscape;
 
 import org.junit.Test;
 
@@ -39,7 +38,7 @@ import org.junit.Test;
  * Tests the AppIconMenu (the menu that appears when you long press an app icon) and also make sure
  * we can launch a shortcut from it.
  */
-public class TaplAppIconMenuTest extends AbstractLauncherUiTest<Launcher, View> {
+public class TaplAppIconMenuTest extends AbstractLauncherUiTest<Launcher> {
 
     private boolean isOptionsPopupVisible(Launcher launcher) {
         final ArrowPopup<?> popup = launcher.getOptionsPopup();

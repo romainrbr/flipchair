@@ -16,8 +16,8 @@ plugins {
     id 'com.google.protobuf' version "0.9.5"
     id 'app.cash.licensee' version "1.13.0"
     id 'dev.rikka.tools.refine' version "4.4.0"
-    id 'com.diffplug.spotless' version '7.2.1'
-    id 'com.google.dagger.hilt.android' version '2.57.2'
+    id 'com.diffplug.spotless' version '7.2.1' // Please don't try to upgrade this
+    id 'com.google.dagger.hilt.android' version '2.57.1' // Please don't try to upgrade this
 }
 
 // LC-Build-TODO: addFrameworkJar() doesn't work, what???
@@ -512,4 +512,5 @@ licensee {
     allowUrl("https://opensource.org/licenses/mit-license.php")
 
     bundleAndroidAsset = true
+//    androidAssetReportPath = 'licenses.json'
 }

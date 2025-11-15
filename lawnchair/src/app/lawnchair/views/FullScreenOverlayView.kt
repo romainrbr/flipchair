@@ -209,13 +209,11 @@ fun Activity.showFullScreenOverlay(
                 overlayView.animateOut(durationOut, onOverlayReady)
             }
         }
-
         FullScreenOverlayMode.SUCK_IN -> {
             overlayView.suckAnimation(durationOut) {
                 onOverlayReady()
             }
         }
-
         FullScreenOverlayMode.NONE -> {
             targetRootView?.removeView(overlayView)
             onOverlayReady()

@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.android.launcher3.R
 import java.io.File
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun UpdateSection(
     updateState: UpdateState,
@@ -29,11 +32,9 @@ fun UpdateSection(
     ) {
         when (updateState) {
             UpdateState.Hidden -> { /* Render nothing */ }
-
             UpdateState.Checking -> {
                 CircularProgressIndicator(modifier = Modifier.padding(top = 8.dp))
             }
-
             UpdateState.UpToDate -> {
                 Text(
                     text = stringResource(R.string.pro_updated),
@@ -42,15 +43,14 @@ fun UpdateSection(
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
-
             is UpdateState.Available -> {
                 Button(
                     onClick = onViewChanges,
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(R.string.download_update))
                 }
             }
-
             is UpdateState.Downloading -> {
                 LinearProgressIndicator(
                     progress = { updateState.progress },
@@ -63,17 +63,16 @@ fun UpdateSection(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-
             is UpdateState.Downloaded -> {
                 Button(
                     onClick = {
                         onInstall(updateState.file)
                     },
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(text = stringResource(R.string.install_update))
                 }
             }
-
             UpdateState.Failed -> {
                 Text(
                     text = stringResource(R.string.update_check_failed),

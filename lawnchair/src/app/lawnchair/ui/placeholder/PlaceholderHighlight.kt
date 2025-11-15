@@ -150,7 +150,6 @@ private data class Shimmer(
                 fraction = progress / progressForMaxAlpha,
             )
         }
-
         // From ProgressForOpaqueAlpha..1f we animate from 1..0
         else -> {
             lerp(

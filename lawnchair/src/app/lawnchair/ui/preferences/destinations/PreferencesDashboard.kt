@@ -17,11 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Science
-import androidx.compose.material.icons.outlined.SettingsBackupRestore
-import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.TipsAndUpdates
 import androidx.compose.material3.DropdownMenuItem
@@ -54,6 +51,7 @@ import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ClickableIcon
 import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
+import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
@@ -87,7 +85,14 @@ fun PreferencesDashboard(
 ) {
     val context = LocalContext.current
     SyncLiveInformation()
-    val pref2 = preferenceManager2()
+    val prefs = preferenceManager()
+    val prefs2 = preferenceManager2()
+
+    val aboutDescrption = if (prefs.hideVersionInfo.get()) {
+        prefs.pseudonymVersion.get()
+    } else {
+        "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}"
+    }
 
     PreferenceLayout(
         label = stringResource(id = R.string.settings),
@@ -108,7 +113,7 @@ fun PreferencesDashboard(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        PreferenceCategoryGroup {
+        PreferenceGroup {
             PreferenceCategory(
                 label = stringResource(R.string.general_label),
                 description = stringResource(R.string.general_description),
@@ -141,7 +146,7 @@ fun PreferencesDashboard(
                 isSelected = currentRoute is Dock,
             )
 
-            val deckLayout = pref2.deckLayout.getAdapter()
+            val deckLayout = prefs2.deckLayout.getAdapter()
             if (!deckLayout.state.value) {
                 PreferenceCategory(
                     label = stringResource(R.string.app_drawer_label),
@@ -188,35 +193,12 @@ fun PreferencesDashboard(
 
             PreferenceCategory(
                 label = stringResource(R.string.about_label),
-                description = "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}",
+                description = aboutDescrption,
                 iconResource = R.drawable.ic_about,
                 onNavigate = { onNavigate(About) },
                 isSelected = currentRoute is About,
             )
         }
-    }
-}
-
-@Composable
-fun PreferenceCategoryGroup(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    val color = preferenceGroupColor()
-
-    Surface(
-        modifier = modifier.padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.large,
-        color = color,
-        tonalElevation = if (isSelectedThemeDark) 1.dp else 0.dp,
-    ) {
-        DividerColumn(
-            content = content,
-            startIndent = (-16).dp,
-            endIndent = (-16).dp,
-            color = MaterialTheme.colorScheme.surface,
-            thickness = 2.dp,
-        )
     }
 }
 

@@ -49,7 +49,6 @@ abstract class DirectionalGestureListener(ctx: Context?) : OnTouchListener {
                     }
                     true
                 }
-
                 shouldReactToSwipe(diffX, velocityX) -> {
                     if (diffX > 0) {
                         Log.d("GESTURE_DETECTION", "Swipe Right Detected")
@@ -60,7 +59,6 @@ abstract class DirectionalGestureListener(ctx: Context?) : OnTouchListener {
                     }
                     true
                 }
-
                 else -> false
             }
         }

@@ -238,7 +238,6 @@ private fun NotificationDotColorContrastWarnings(
         is ColorOption.WallpaperPrimary,
         is ColorOption.Default,
         -> true
-
         else -> false
     }
 

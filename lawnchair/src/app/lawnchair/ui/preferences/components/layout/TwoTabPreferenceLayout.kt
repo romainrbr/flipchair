@@ -88,7 +88,6 @@ fun TwoTabPreferenceLayout(
                         firstPageContent()
                     }
                 }
-
                 1 -> {
                     Column {
                         secondPageContent()

@@ -445,11 +445,9 @@ class ColorScheme(
                 degrees < 0 -> {
                     (degrees % 360) + 360
                 }
-
                 degrees >= 360 -> {
                     degrees % 360
                 }
-
                 else -> {
                     degrees
                 }

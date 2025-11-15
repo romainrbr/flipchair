@@ -79,7 +79,6 @@ class NightlyBuildsRepository(
                     is IOException -> {
                         Log.e(TAG, "Network error during update check", e)
                     }
-
                     else -> {
                         Log.e(TAG, "Failed to check for update", e)
                     }

@@ -69,7 +69,7 @@ public class SettingsActivity extends FragmentActivity
         implements OnPreferenceStartFragmentCallback, OnPreferenceStartScreenCallback {
 
     @VisibleForTesting
-    static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
+    public static final String DEVELOPER_OPTIONS_KEY = "pref_developer_options";
 
     public static final String FIXED_LANDSCAPE_MODE = "pref_fixed_landscape_mode";
 
@@ -169,7 +169,7 @@ public class SettingsActivity extends FragmentActivity
     public static class LauncherSettingsFragment extends PreferenceFragmentCompat implements
             SettingsCache.OnChangeListener {
 
-        protected boolean mDeveloperOptionsEnabled = false;
+        protected boolean mDeveloperOptionsEnabled = true;
 
         private boolean mRestartOnResume = false;
 
@@ -211,8 +211,7 @@ public class SettingsActivity extends FragmentActivity
             // If the target preference is not in the current preference screen, find the parent
             // preference screen that contains the target preference and set it as the preference
             // screen.
-            if (Flags.navigateToChildPreference()
-                    && mHighLightKey != null
+            if (mHighLightKey != null
                     && !isKeyInPreferenceGroup(mHighLightKey, screen)) {
                 final PreferenceScreen parentPreferenceScreen =
                         findParentPreference(screen, mHighLightKey);

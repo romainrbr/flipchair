@@ -19,6 +19,7 @@ package com.android.launcher3.widget;
 import static android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK;
 
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_WIDGETS_TRAY;
+import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
 import static com.android.launcher3.widget.util.WidgetSizes.getWidgetItemSizePx;
 
 import android.animation.Animator;
@@ -69,6 +70,8 @@ import java.util.function.Consumer;
 import app.lawnchair.LawnchairAppWidgetHostView;
 import app.lawnchair.font.FontManager;
 import app.lawnchair.theme.drawable.DrawableTokens;
+import app.lawnchair.preferences2.PreferenceManager2;
+import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 
 /**
  * Represents the individual cell of the widget inside the widget tray. The preview is drawn
@@ -80,6 +83,8 @@ import app.lawnchair.theme.drawable.DrawableTokens;
  * consider the appropriate scaling factor.
  */
 public class WidgetCell extends LinearLayout {
+
+    PreferenceManager2 prefs2 = PreferenceManager2.INSTANCE.get(getContext());
 
     private static final String TAG = "WidgetCell";
     private static final boolean DEBUG = false;
@@ -135,7 +140,8 @@ public class WidgetCell extends LinearLayout {
         super(context, attrs, defStyle);
 
         mActivity = ActivityContext.lookupContext(context);
-        mWidgetPreviewLoader = new DatabaseWidgetPreviewLoader(context);
+        mWidgetPreviewLoader = new DatabaseWidgetPreviewLoader(context,
+                mActivity.getDeviceProfile());
         mLongPressHelper = new CheckLongPressHelper(this);
         mLongPressHelper.setLongPressTimeoutFactor(1);
         mEnforcedCornerRadius = RoundedCornerEnforcement.computeEnforcedRadius(context);
@@ -582,7 +588,8 @@ public class WidgetCell extends LinearLayout {
                     mItem.componentName.getPackageName(),
                     mItem.user);
             mIconLoadRequest = LauncherAppState.getInstance(getContext()).getIconCache()
-                    .updateIconInBackground(this::reapplyIconInfo, tmpPackageItem);
+                    .updateIconInBackground(this::reapplyIconInfo, tmpPackageItem,
+                            DEFAULT_LOOKUP_FLAG);
         }
     }
 
@@ -608,6 +615,7 @@ public class WidgetCell extends LinearLayout {
      * @param callback Callback to be set on the button.
      */
     public void showAddButton(View.OnClickListener callback) {
+        if (PreferenceExtensionsKt.firstBlocking(prefs2.getLockHomeScreen())) return;
         if (mIsShowingAddButton) return;
         mIsShowingAddButton = true;
 

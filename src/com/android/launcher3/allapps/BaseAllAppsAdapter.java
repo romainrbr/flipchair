@@ -43,6 +43,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.R;
 import com.android.launcher3.allapps.search.SearchAdapterProvider;
+import com.android.launcher3.folder.FolderIcon;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.views.ActivityContext;
@@ -241,7 +242,7 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 icon.setOnLongClickListener(mOnIconLongClickListener);
                 // Ensure the all apps icon height matches the workspace icons in portrait mode.
                 icon.getLayoutParams().height =
-                        mActivityContext.getDeviceProfile().allAppsCellHeightPx;
+                        mActivityContext.getDeviceProfile().getAllAppsProfile().getCellHeightPx();
                 return new ViewHolder(icon);
             case VIEW_TYPE_EMPTY_SEARCH:
                 return new ViewHolder(mLayoutInflater.inflate(R.layout.all_apps_empty_search,
@@ -335,14 +336,13 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                     roundRegions |= (ROUND_BOTTOM_LEFT | ROUND_BOTTOM_RIGHT);
                 }
                 adapterItem.decorationInfo =
-                        new SectionDecorationInfo(mActivityContext, roundRegions,
-                                false /* decorateTogether */);
+                        new SectionDecorationInfo(mActivityContext, roundRegions);
                 break;
             case VIEW_TYPE_PRIVATE_SPACE_SYS_APPS_DIVIDER:
                 adapterItem = mApps.getAdapterItems().get(position);
-                adapterItem.decorationInfo = mApps.getPrivateProfileManager().getCurrentState()
-                        == STATE_DISABLED ? null : new SectionDecorationInfo(mActivityContext,
-                        ROUND_NOTHING, true /* decorateTogether */);
+                adapterItem.decorationInfo =
+                        mApps.getPrivateProfileManager().getCurrentState() == STATE_DISABLED ? null
+                                : new SectionDecorationInfo(mActivityContext, ROUND_NOTHING);
                 break;
             case VIEW_TYPE_BOTTOM_VIEW_TO_SCROLL_TO:
             case VIEW_TYPE_ALL_APPS_DIVIDER:
@@ -351,6 +351,15 @@ public abstract class BaseAllAppsAdapter<T extends Context & ActivityContext> ex
                 break;
             case VIEW_TYPE_WORK_EDU_CARD:
                 ((WorkEduCard) holder.itemView).setPosition(position);
+                break;
+            case VIEW_TYPE_FOLDER:
+                // LC: Caddy/Folder in allapps 86b2b025a4f23a068818274020f37ad6d5268363
+                FolderInfo folderInfo = mApps.getAdapterItems().get(position).folderInfo;
+                ViewGroup container = (ViewGroup) holder.itemView;
+                container.removeAllViews();
+                container.addView(
+                    FolderIcon.inflateFolderAndIcon(R.layout.all_apps_folder_icon, mActivityContext,
+                    container, folderInfo));
                 break;
             default:
                 if (mAdapterProvider.isViewSupported(holder.getItemViewType())) {

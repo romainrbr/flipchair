@@ -71,6 +71,7 @@ class PreferenceManager @Inject constructor(
     val windowCornerRadius = IntPref("pref_windowCornerRadius", 80, recreate)
     val autoLaunchRoot = BoolPref("pref_autoLaunchRoot", false)
     val wallpaperScrolling = BoolPref("pref_wallpaperScrolling", true)
+    val infiniteScrolling = BoolPref("pref_infiniteScrolling", false)
     val enableDebugMenu = BoolPref("pref_enableDebugMenu", false)
     val customAppName = object : MutableMapPref<ComponentKey, String>("pref_appNameMap", reloadGrid) {
         override fun flattenKey(key: ComponentKey) = key.toString()
@@ -105,7 +106,7 @@ class PreferenceManager @Inject constructor(
     val searchResultSettingsEntry = BoolPref("pref_searchResultSettingsEntry", false, recreate)
     val searchResulRecentSuggestion = BoolPref("pref_searchResultRecentSuggestion", false, recreate)
 
-    val allAppBulkIconLoading = BoolPref("pref_allapps_bulk_icon_loading", false, recreate)
+    val allAppBulkIconLoading = BoolPref("pref_allapps_bulk_icon_loading", true, recreate)
 
     val themedIcons = BoolPref("themed_icons", false, recreate)
     val drawerThemedIcons = BoolPref("drawer_themed_icons", false, recreate)

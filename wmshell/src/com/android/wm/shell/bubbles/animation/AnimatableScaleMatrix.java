@@ -141,10 +141,4 @@ public class AnimatableScaleMatrix extends Matrix {
         // PhysicsAnimator's animator caching).
         return obj == this;
     }
-
-    @Override
-    public int hashCode() {
-        // Make sure equals and hashCode work in a similar way. Rely on object identity for both.
-        return System.identityHashCode(this);
-    }
 }

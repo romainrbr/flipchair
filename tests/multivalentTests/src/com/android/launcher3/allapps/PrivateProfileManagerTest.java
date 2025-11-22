@@ -20,11 +20,12 @@ import static androidx.test.core.app.ApplicationProvider.getApplicationContext;
 
 import static com.android.launcher3.allapps.UserProfileManager.STATE_DISABLED;
 import static com.android.launcher3.allapps.UserProfileManager.STATE_ENABLED;
-import static com.android.launcher3.model.data.AppsListData.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED;
+import static com.android.launcher3.model.BgDataModel.Callbacks.FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED;
 import static com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -146,7 +147,7 @@ public class PrivateProfileManagerTest {
     @Test
     public void quietModeFlagPresent_privateSpaceIsResetToDisabled() {
         PrivateProfileManager privateProfileManager = spy(mPrivateProfileManager);
-        doNothing().when(privateProfileManager).addPrivateSpaceDecorator();
+        doNothing().when(privateProfileManager).addPrivateSpaceDecorator(anyInt());
         doNothing().when(privateProfileManager).executeLock();
         doReturn(mAllAppsRecyclerView).when(privateProfileManager).getMainRecyclerView();
         when(mAllAppsStore.hasModelFlag(FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED))
@@ -166,7 +167,7 @@ public class PrivateProfileManagerTest {
     @Test
     public void transitioningToUnlocked_resetCallsPostUnlock() throws Exception {
         PrivateProfileManager privateProfileManager = spy(mPrivateProfileManager);
-        doNothing().when(privateProfileManager).addPrivateSpaceDecorator();
+        doNothing().when(privateProfileManager).addPrivateSpaceDecorator(anyInt());
         doReturn(mAllAppsRecyclerView).when(privateProfileManager).getMainRecyclerView();
         when(mAllAppsStore.hasModelFlag(FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED))
                 .thenReturn(false);
@@ -183,7 +184,7 @@ public class PrivateProfileManagerTest {
     @Test
     public void transitioningToLocked_resetCallsExecuteLock() throws Exception {
         PrivateProfileManager privateProfileManager = spy(mPrivateProfileManager);
-        doNothing().when(privateProfileManager).addPrivateSpaceDecorator();
+        doNothing().when(privateProfileManager).addPrivateSpaceDecorator(anyInt());
         doNothing().when(privateProfileManager).executeLock();
         doReturn(mAllAppsRecyclerView).when(privateProfileManager).getMainRecyclerView();
         when(mAllAppsStore.hasModelFlag(FLAG_PRIVATE_PROFILE_QUIET_MODE_ENABLED))

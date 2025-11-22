@@ -15,9 +15,6 @@
  */
 package com.android.wm.shell.bubbles.bar;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ValueAnimator;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
@@ -27,10 +24,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.android.app.animation.Interpolators;
+import androidx.core.content.ContextCompat;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
+
 import com.android.wm.shell.R;
 import com.android.wm.shell.bubbles.Bubble;
-import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
+import com.android.wm.shell.shared.animation.PhysicsAnimator;
 
 import java.util.ArrayList;
 
@@ -38,26 +38,22 @@ import java.util.ArrayList;
  * Manages bubble bar expanded view menu presentation and animations
  */
 class BubbleBarMenuViewController {
-
-    private static final float WIDTH_SWAP_FRACTION = 0.4F;
-    private static final long MENU_ANIMATION_DURATION = 600;
-
+    private static final float MENU_INITIAL_SCALE = 0.5f;
     private final Context mContext;
     private final ViewGroup mRootView;
-    private final BubbleBarHandleView mHandleView;
     private @Nullable Listener mListener;
     private @Nullable Bubble mBubble;
     private @Nullable BubbleBarMenuView mMenuView;
     /** A transparent view used to intercept touches to collapse menu when presented */
     private @Nullable View mScrimView;
-    private @Nullable ValueAnimator mMenuAnimator;
+    private @Nullable PhysicsAnimator<BubbleBarMenuView> mMenuAnimator;
+    private PhysicsAnimator.SpringConfig mMenuSpringConfig;
 
-
-    BubbleBarMenuViewController(Context context, BubbleBarHandleView handleView,
-            ViewGroup rootView) {
+    BubbleBarMenuViewController(Context context, ViewGroup rootView) {
         mContext = context;
         mRootView = rootView;
-        mHandleView = handleView;
+        mMenuSpringConfig = new PhysicsAnimator.SpringConfig(
+                SpringForce.STIFFNESS_MEDIUM, SpringForce.DAMPING_RATIO_LOW_BOUNCY);
     }
 
     /** Tells if the menu is visible or being animated */
@@ -83,19 +79,20 @@ class BubbleBarMenuViewController {
         if (mMenuView == null || mScrimView == null) {
             setupMenu();
         }
-        runOnMenuIsMeasured(() -> {
-            mMenuView.setVisibility(View.VISIBLE);
-            mScrimView.setVisibility(View.VISIBLE);
+        cancelAnimations();
+        mMenuView.setVisibility(View.VISIBLE);
+        mScrimView.setVisibility(View.VISIBLE);
+        Runnable endActions = () -> {
+            mMenuView.getChildAt(0).requestAccessibilityFocus();
             if (mListener != null) {
                 mListener.onMenuVisibilityChanged(true /* isShown */);
             }
-            Runnable endActions = () -> mMenuView.getChildAt(0).requestAccessibilityFocus();
-            if (animated) {
-                animateTransition(true /* show */, endActions);
-            } else {
-                endActions.run();
-            }
-        });
+        };
+        if (animated) {
+            animateTransition(true /* show */, endActions);
+        } else {
+            endActions.run();
+        }
     }
 
     /**
@@ -104,30 +101,18 @@ class BubbleBarMenuViewController {
      */
     void hideMenu(boolean animated) {
         if (mMenuView == null || mScrimView == null) return;
-        runOnMenuIsMeasured(() -> {
-            Runnable endActions = () -> {
-                mHandleView.restoreAnimationDefaults();
-                mMenuView.setVisibility(View.GONE);
-                mScrimView.setVisibility(View.GONE);
-                mHandleView.setVisibility(View.VISIBLE);
-                if (mListener != null) {
-                    mListener.onMenuVisibilityChanged(false /* isShown */);
-                }
-            };
-            if (animated) {
-                animateTransition(false /* show */, endActions);
-            } else {
-                endActions.run();
+        cancelAnimations();
+        Runnable endActions = () -> {
+            mMenuView.setVisibility(View.GONE);
+            mScrimView.setVisibility(View.GONE);
+            if (mListener != null) {
+                mListener.onMenuVisibilityChanged(false /* isShown */);
             }
-        });
-    }
-
-    private void runOnMenuIsMeasured(Runnable action) {
-        if (mMenuView.getWidth() == 0 || mMenuView.getHeight() == 0) {
-            // the menu view is not yet measured, postpone showing the animation
-            mMenuView.post(() -> runOnMenuIsMeasured(action));
+        };
+        if (animated) {
+            animateTransition(false /* show */, endActions);
         } else {
-            action.run();
+            endActions.run();
         }
     }
 
@@ -138,58 +123,24 @@ class BubbleBarMenuViewController {
      */
     private void animateTransition(boolean show, Runnable endActions) {
         if (mMenuView == null) return;
-        float startValue = show ? 0 : 1;
-        if (mMenuAnimator != null && mMenuAnimator.isRunning()) {
-            startValue = (float) mMenuAnimator.getAnimatedValue();
-            mMenuAnimator.cancel();
-        }
-        ValueAnimator showMenuAnimation = ValueAnimator.ofFloat(startValue, show ? 1 : 0);
-        showMenuAnimation.setDuration(MENU_ANIMATION_DURATION);
-        showMenuAnimation.setInterpolator(Interpolators.EMPHASIZED);
-        showMenuAnimation.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mMenuAnimator = null;
-                endActions.run();
-            }
-        });
-        mMenuAnimator = showMenuAnimation;
-        setupAnimatorListener(showMenuAnimation);
-        showMenuAnimation.start();
+        mMenuAnimator = PhysicsAnimator.getInstance(mMenuView);
+        mMenuAnimator.setDefaultSpringConfig(mMenuSpringConfig);
+        mMenuAnimator
+                .spring(DynamicAnimation.ALPHA, show ? 1f : 0f)
+                .spring(DynamicAnimation.SCALE_Y, show ? 1f : MENU_INITIAL_SCALE)
+                .withEndActions(() -> {
+                    mMenuAnimator = null;
+                    endActions.run();
+                })
+                .start();
     }
 
-    /** Setup listener that orchestrates the animation. */
-    private void setupAnimatorListener(ValueAnimator showMenuAnimation) {
-        // Getting views properties start values
-        int widthDiff = mMenuView.getWidth() - mHandleView.getHandleWidth();
-        int handleHeight = mHandleView.getHandleHeight();
-        float targetWidth = mHandleView.getHandleWidth() + widthDiff * WIDTH_SWAP_FRACTION;
-        float targetHeight = targetWidth * mMenuView.getTitleItemHeight() / mMenuView.getWidth();
-        int menuColor = mContext.getColor(com.android.internal.R.color.materialColorSurfaceBright);
-        // Calculating deltas
-        float swapScale = targetWidth / mMenuView.getWidth();
-        float handleWidthDelta = targetWidth - mHandleView.getHandleWidth();
-        float handleHeightDelta = targetHeight - handleHeight;
-        // Setting update listener that will orchestrate the animation
-        showMenuAnimation.addUpdateListener(animator -> {
-            float animationProgress = (float) animator.getAnimatedValue();
-            boolean showHandle = animationProgress <= WIDTH_SWAP_FRACTION;
-            mHandleView.setVisibility(showHandle ? View.VISIBLE : View.GONE);
-            mMenuView.setVisibility(showHandle ? View.GONE : View.VISIBLE);
-            if (showHandle) {
-                float handleAnimationProgress = animationProgress / WIDTH_SWAP_FRACTION;
-                mHandleView.animateHandleForMenu(handleAnimationProgress, handleWidthDelta,
-                        handleHeightDelta, menuColor);
-            } else {
-                mMenuView.setTranslationY(mHandleView.getHandlePaddingTop());
-                mMenuView.setPivotY(0);
-                mMenuView.setPivotX((float) mMenuView.getWidth() / 2);
-                float menuAnimationProgress =
-                        (animationProgress - WIDTH_SWAP_FRACTION) / (1 - WIDTH_SWAP_FRACTION);
-                float currentMenuScale = swapScale + (1 - swapScale) * menuAnimationProgress;
-                mMenuView.animateFromStartScale(currentMenuScale, menuAnimationProgress);
-            }
-        });
+    /** Cancel running animations */
+    private void cancelAnimations() {
+        if (mMenuAnimator != null) {
+            mMenuAnimator.cancel();
+            mMenuAnimator = null;
+        }
     }
 
     /** Sets up and inflate menu views */
@@ -197,6 +148,9 @@ class BubbleBarMenuViewController {
         // Menu view setup
         mMenuView = (BubbleBarMenuView) LayoutInflater.from(mContext).inflate(
                 R.layout.bubble_bar_menu_view, mRootView, false);
+        mMenuView.setAlpha(0f);
+        mMenuView.setPivotY(0f);
+        mMenuView.setScaleY(MENU_INITIAL_SCALE);
         mMenuView.setOnCloseListener(() -> hideMenu(true  /* animated */));
         if (mBubble != null) {
             mMenuView.updateInfo(mBubble);
@@ -218,14 +172,12 @@ class BubbleBarMenuViewController {
     private ArrayList<BubbleBarMenuView.MenuAction> createMenuActions(Bubble bubble) {
         ArrayList<BubbleBarMenuView.MenuAction> menuActions = new ArrayList<>();
         Resources resources = mContext.getResources();
-        int tintColor = mContext.getColor(com.android.internal.R.color.materialColorOnSurface);
 
-        if (bubble.isChat()) {
+        if (bubble.isConversation()) {
             // Don't bubble conversation action
             menuActions.add(new BubbleBarMenuView.MenuAction(
                     Icon.createWithResource(mContext, R.drawable.bubble_ic_stop_bubble),
                     resources.getString(R.string.bubbles_dont_bubble_conversation),
-                    tintColor,
                     view -> {
                         hideMenu(true /* animated */);
                         if (mListener != null) {
@@ -252,7 +204,7 @@ class BubbleBarMenuViewController {
         menuActions.add(new BubbleBarMenuView.MenuAction(
                 Icon.createWithResource(resources, R.drawable.ic_remove_no_shadow),
                 resources.getString(R.string.bubble_dismiss_text),
-                tintColor,
+                ContextCompat.getColor(mContext, R.color.bubble_bar_expanded_view_menu_close),
                 view -> {
                     hideMenu(true /* animated */);
                     if (mListener != null) {
@@ -260,21 +212,6 @@ class BubbleBarMenuViewController {
                     }
                 }
         ));
-
-        if (BubbleAnythingFlagHelper.enableBubbleToFullscreen()) {
-            menuActions.add(new BubbleBarMenuView.MenuAction(
-                    Icon.createWithResource(resources,
-                            R.drawable.desktop_mode_ic_handle_menu_fullscreen),
-                    resources.getString(R.string.bubble_fullscreen_text),
-                    tintColor,
-                    view -> {
-                        hideMenu(true /* animated */);
-                        if (mListener != null) {
-                            mListener.onMoveToFullscreen(bubble);
-                        }
-                    }
-            ));
-        }
 
         return menuActions;
     }
@@ -306,10 +243,5 @@ class BubbleBarMenuViewController {
          * Dismiss bubble and remove it from the bubble stack
          */
         void onDismissBubble(Bubble bubble);
-
-        /**
-         * Move the bubble to fullscreen.
-         */
-        void onMoveToFullscreen(Bubble bubble);
     }
 }

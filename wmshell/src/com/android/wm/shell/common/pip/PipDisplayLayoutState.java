@@ -18,11 +18,8 @@ package com.android.wm.shell.common.pip;
 
 import static com.android.wm.shell.common.pip.PipUtils.dpToPx;
 
-import static java.lang.Math.max;
-
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Insets;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.Size;
@@ -31,14 +28,10 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 
 import com.android.wm.shell.R;
-import com.android.wm.shell.common.DisplayController;
 import com.android.wm.shell.common.DisplayLayout;
 import com.android.wm.shell.dagger.WMSingleton;
-import com.android.wm.shell.sysui.ShellInit;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -49,27 +42,16 @@ import javax.inject.Inject;
 public class PipDisplayLayoutState {
     private static final String TAG = PipDisplayLayoutState.class.getSimpleName();
 
-    private final Context mContext;
-    private Context mUiContext;
+    private Context mContext;
     private int mDisplayId;
     @NonNull private DisplayLayout mDisplayLayout;
-    @NonNull private final DisplayController mDisplayController;
+
     private Point mScreenEdgeInsets = null;
-    private Insets mNavigationBarsInsets = Insets.NONE;
-    private final List<DisplayIdListener> mDisplayIdListeners = new ArrayList<>();
 
     @Inject
-    public PipDisplayLayoutState(Context context, @NonNull DisplayController displayController,
-            ShellInit shellInit) {
+    public PipDisplayLayoutState(Context context) {
         mContext = context;
-        mUiContext = context;
         mDisplayLayout = new DisplayLayout();
-        mDisplayController = displayController;
-        shellInit.addInitCallback(this::onInit, this);
-    }
-
-    /** Called when Shell is done initializing. */
-    public void onInit() {
         reloadResources();
     }
 
@@ -79,7 +61,7 @@ public class PipDisplayLayoutState {
     }
 
     private void reloadResources() {
-        Resources res = mUiContext.getResources();
+        Resources res = mContext.getResources();
 
         final String screenEdgeInsetsDpString = res.getString(
                 R.string.config_defaultPictureInPictureScreenEdgeInsets);
@@ -99,23 +81,12 @@ public class PipDisplayLayoutState {
      * Returns the inset bounds the PIP window can be visible in.
      */
     public Rect getInsetBounds() {
-        return getInsetBounds(getDisplayLayout());
-    }
-
-    /**
-     * Returns the inset bounds the PIP window can be visible on a given {@param displayLayout}
-     */
-    public Rect getInsetBounds(DisplayLayout displayLayout) {
-        final Rect insetBounds = new Rect();
-        final Rect stableInsets = displayLayout.stableInsets();
-        final Point screenEdgeInsets = getScreenEdgeInsets();
-        final int left = max(stableInsets.left, mNavigationBarsInsets.left) + screenEdgeInsets.x;
-        final int top = max(stableInsets.top, mNavigationBarsInsets.top) + screenEdgeInsets.y;
-        final int right = displayLayout.width()
-                - max(stableInsets.right, mNavigationBarsInsets.right) - screenEdgeInsets.x;
-        final int bottom = displayLayout.height()
-                - max(stableInsets.bottom, mNavigationBarsInsets.bottom) - screenEdgeInsets.y;
-        insetBounds.set(left, top, right, bottom);
+        Rect insetBounds = new Rect();
+        Rect insets = getDisplayLayout().stableInsets();
+        insetBounds.set(insets.left + getScreenEdgeInsets().x,
+                insets.top + getScreenEdgeInsets().y,
+                getDisplayLayout().width() - insets.right - getScreenEdgeInsets().x,
+                getDisplayLayout().height() - insets.bottom - getScreenEdgeInsets().y);
         return insetBounds;
     }
 
@@ -141,7 +112,7 @@ public class PipDisplayLayoutState {
      * @param targetRotation
      */
     public void rotateTo(@Surface.Rotation int targetRotation) {
-        mDisplayLayout.rotateTo(mUiContext.getResources(), targetRotation);
+        mDisplayLayout.rotateTo(mContext.getResources(), targetRotation);
     }
 
     /** Returns the current display rotation of this layout state. */
@@ -157,43 +128,7 @@ public class PipDisplayLayoutState {
 
     /** Set the current display id for the associated display layout. */
     public void setDisplayId(int displayId) {
-        if (mDisplayId == displayId) {
-            return;
-        }
-
         mDisplayId = displayId;
-        updateUiContext();
-    }
-
-    private void updateUiContext() {
-        final Context newContext = mDisplayController.getDisplayContext(mDisplayId);
-        if (newContext == null) {
-            return;
-        }
-
-        mUiContext = newContext;
-        reloadResources();
-        for (DisplayIdListener listener : mDisplayIdListeners) {
-            listener.onDisplayIdChanged(mUiContext);
-        }
-    }
-
-    /** Returns the context associated with the current display. */
-    public Context getCurrentUiContext() {
-        return mUiContext;
-    }
-
-    /** Registers a DisplayIdListener. */
-    public void addDisplayIdListener(DisplayIdListener listener) {
-        if (mDisplayIdListeners.contains(listener)) {
-            return;
-        }
-        mDisplayIdListeners.add(listener);
-    }
-
-    /** Set the navigationBars side and widthOrHeight. */
-    public void setNavigationBarsInsets(Insets insets) {
-        mNavigationBarsInsets = insets;
     }
 
     /** Dumps internal state. */
@@ -203,15 +138,5 @@ public class PipDisplayLayoutState {
         pw.println(innerPrefix + "mDisplayId=" + mDisplayId);
         pw.println(innerPrefix + "getDisplayBounds=" + getDisplayBounds());
         pw.println(innerPrefix + "mScreenEdgeInsets=" + mScreenEdgeInsets);
-        pw.println(innerPrefix + "mNavigationBarsInsets=" + mNavigationBarsInsets);
-    }
-
-    /** Listener interface for display id changes. */
-    public interface DisplayIdListener {
-        /**
-         * Informs listener of display id change. Default implementation does nothing.
-         * @param displayContext associated with the updated display
-         */
-        default void onDisplayIdChanged(@NonNull Context displayContext) {}
     }
 }

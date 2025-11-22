@@ -1,5 +1,4 @@
 # Extending the Shell for Products/OEMs
-[Back to home](README.md)
 
 ---
 

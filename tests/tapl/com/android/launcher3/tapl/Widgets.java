@@ -254,7 +254,6 @@ public final class Widgets extends LauncherInstrumentation.VisibleContainer
                     targetAppSelector);
 
             final UiObject2 searchBar = findSearchBar();
-
             // If header's title is under or above search bar, let's not process the header yet,
             // scroll a bit more to bring the header into visible area.
             if (headerTitle != null
@@ -271,14 +270,6 @@ public final class Widgets extends LauncherInstrumentation.VisibleContainer
                 // to briefly appear to handle the gesture, which can break our test.
                 boolean isHeaderOutOfGestureRegion = headerTitle.getVisibleCenter().y
                         < mLauncher.getBottomGestureStartOnScreen();
-
-                if (!isHeaderOutOfGestureRegion) {
-                    log("Test app's header is not out of gesture region, scrolling up");
-                    mLauncher.scrollDownByDistance(widgetListView, scrollDistance);
-                    isHeaderOutOfGestureRegion = true;
-                }
-
-
                 if (!hasHeaderExpanded && isHeaderOutOfGestureRegion) {
                     log("Header has not been expanded. Click to expand.");
                     hasHeaderExpanded = true;
@@ -295,7 +286,6 @@ public final class Widgets extends LauncherInstrumentation.VisibleContainer
                 UiObject2 widgetsContainer = mLauncher.findObjectInContainer(
                         rightPane != null ? rightPane : widgetListView,
                         widgetsContainerSelector);
-
                 if (widgetsContainer != null) {
                     log("Widgets container found.");
                     return widgetsContainer;

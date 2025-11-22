@@ -17,9 +17,8 @@ object DrawableTokens {
     val BgCellLayout = ResourceDrawableToken<Drawable>(R.drawable.bg_celllayout)
         .setTint(ColorTokens.ColorAccent)
 
-    // pE-TODO(QPR1): Investigate
     @JvmField
-    val BgOverviewClearAllButton = ResourceDrawableToken<RippleDrawable>(R.drawable.overview_action_button_background)
+    val BgOverviewClearAllButton = ResourceDrawableToken<RippleDrawable>(R.drawable.bg_overview_clear_all_button)
         .mutate { context, scheme, uiColorMode ->
             val background = getDrawable(0) as GradientDrawable
             background.setColor(ColorTokens.ColorBackground.resolveColor(context, scheme, uiColorMode))

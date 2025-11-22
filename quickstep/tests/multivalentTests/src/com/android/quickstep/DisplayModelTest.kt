@@ -21,23 +21,16 @@ import android.view.Display
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.android.app.displaylib.DisplaysWithDecorationsRepositoryCompat
 import java.io.PrintWriter
-import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.mock
 
 @SmallTest
 @RunWith(AndroidJUnit4::class)
 class DisplayModelTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
-    private val systemDecorationChangeObserver =
-        SystemDecorationChangeObserver.INSTANCE.get(context)
-    private val displayRepositoryCompat = mock<DisplaysWithDecorationsRepositoryCompat>()
-    private val dispatcher = StandardTestDispatcher()
 
     class TestableResource : DisplayModel.DisplayResource() {
         var isCleanupCalled = false
@@ -52,13 +45,7 @@ class DisplayModelTest {
     }
 
     private val testableDisplayModel =
-        object :
-            DisplayModel<TestableResource>(
-                context,
-                systemDecorationChangeObserver,
-                displayRepositoryCompat,
-                dispatcher,
-            ) {
+        object : DisplayModel<TestableResource>(context) {
             override fun createDisplayResource(display: Display): TestableResource {
                 return TestableResource()
             }

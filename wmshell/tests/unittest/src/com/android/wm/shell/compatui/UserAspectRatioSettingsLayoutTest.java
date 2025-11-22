@@ -16,17 +16,18 @@
 
 package com.android.wm.shell.compatui;
 
+import static android.app.CameraCompatTaskInfo.CAMERA_COMPAT_CONTROL_HIDDEN;
+
 import static com.android.dx.mockito.inline.extended.ExtendedMockito.spyOn;
-import static com.android.window.flags2.Flags.FLAG_APP_COMPAT_UI_FRAMEWORK;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 import android.app.ActivityManager;
+import android.app.CameraCompatTaskInfo.CameraCompatControlState;
 import android.app.TaskInfo;
 import android.content.ComponentName;
-import android.platform.test.annotations.RequiresFlagsDisabled;
 import android.testing.AndroidTestingRunner;
 import android.util.Pair;
 import android.view.LayoutInflater;
@@ -88,7 +89,7 @@ public class UserAspectRatioSettingsLayoutTest extends ShellTestCase {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        mTaskInfo = createTaskInfo(/* hasSizeCompat= */ false);
+        mTaskInfo = createTaskInfo(/* hasSizeCompat= */ false, CAMERA_COMPAT_CONTROL_HIDDEN);
         mWindowManager = new UserAspectRatioSettingsWindowManager(mContext, mTaskInfo,
                 mSyncTransactionQueue, mTaskListener, new DisplayLayout(),
                 new CompatUIController.CompatUIHintsState(),
@@ -106,7 +107,6 @@ public class UserAspectRatioSettingsLayoutTest extends ShellTestCase {
     }
 
     @Test
-    @RequiresFlagsDisabled(FLAG_APP_COMPAT_UI_FRAMEWORK)
     public void testOnClickForUserAspectRatioSettingsButton() {
         final ImageButton button = mLayout.findViewById(R.id.user_aspect_ratio_settings_button);
         button.performClick();
@@ -123,7 +123,6 @@ public class UserAspectRatioSettingsLayoutTest extends ShellTestCase {
     }
 
     @Test
-    @RequiresFlagsDisabled(FLAG_APP_COMPAT_UI_FRAMEWORK)
     public void testOnLongClickForUserAspectRatioButton() {
         doNothing().when(mWindowManager).onUserAspectRatioSettingsButtonLongClicked();
 
@@ -134,7 +133,6 @@ public class UserAspectRatioSettingsLayoutTest extends ShellTestCase {
     }
 
     @Test
-    @RequiresFlagsDisabled(FLAG_APP_COMPAT_UI_FRAMEWORK)
     public void testOnClickForUserAspectRatioSettingsHint() {
         mWindowManager.mHasUserAspectRatioSettingsButton = true;
         mWindowManager.createLayout(/* canShow= */ true);
@@ -145,10 +143,13 @@ public class UserAspectRatioSettingsLayoutTest extends ShellTestCase {
         verify(mLayout).setUserAspectRatioSettingsHintVisibility(/* show= */ false);
     }
 
-    private static TaskInfo createTaskInfo(boolean hasSizeCompat) {
+    private static TaskInfo createTaskInfo(boolean hasSizeCompat,
+            @CameraCompatControlState int cameraCompatControlState) {
         ActivityManager.RunningTaskInfo taskInfo = new ActivityManager.RunningTaskInfo();
         taskInfo.taskId = TASK_ID;
-        taskInfo.appCompatTaskInfo.setTopActivityInSizeCompat(hasSizeCompat);
+        taskInfo.appCompatTaskInfo.topActivityInSizeCompat = hasSizeCompat;
+        taskInfo.appCompatTaskInfo.cameraCompatTaskInfo.cameraCompatControlState =
+                cameraCompatControlState;
         taskInfo.realActivity = new ComponentName("com.mypackage.test", "TestActivity");
         return taskInfo;
     }

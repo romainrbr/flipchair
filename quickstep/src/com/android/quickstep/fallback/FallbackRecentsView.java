@@ -17,7 +17,7 @@ package com.android.quickstep.fallback;
 
 import static android.app.ActivityTaskManager.INVALID_TASK_ID;
 
-import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
+import static com.android.launcher3.Flags.enableGridOnlyOverview;
 import static com.android.quickstep.GestureState.GestureEndTarget.RECENTS;
 import static com.android.quickstep.fallback.RecentsState.DEFAULT;
 import static com.android.quickstep.fallback.RecentsState.MODAL_TASK;
@@ -41,9 +41,12 @@ import com.android.launcher3.statemanager.StateManager.StateListener;
 import com.android.launcher3.statemanager.StatefulContainer;
 import com.android.launcher3.util.SplitConfigurationOptions;
 import com.android.launcher3.util.SplitConfigurationOptions.SplitSelectSource;
+import com.android.quickstep.BaseContainerInterface;
+import com.android.quickstep.FallbackActivityInterface;
 import com.android.quickstep.GestureState;
 import com.android.quickstep.RemoteTargetGluer.RemoteTargetHandle;
-import com.android.quickstep.fallback.window.RecentsWindowManager;
+import com.android.quickstep.fallback.window.RecentsDisplayModel;
+import com.android.quickstep.fallback.window.RecentsWindowFlags;
 import com.android.quickstep.util.GroupTask;
 import com.android.quickstep.util.SingleTask;
 import com.android.quickstep.util.SplitSelectStateController;
@@ -78,13 +81,17 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     }
 
     @Override
+    public BaseContainerInterface<RecentsState, ?> getContainerInterface(int displayId) {
+        return RecentsWindowFlags.Companion.getEnableOverviewInWindow()
+                ? RecentsDisplayModel.getINSTANCE().get(mContext)
+                        .getFallbackWindowInterface(displayId)
+                : FallbackActivityInterface.INSTANCE;
+    }
+
+    @Override
     public void init(OverviewActionsView actionsView, SplitSelectStateController splitController,
             @Nullable DesktopRecentsTransitionController desktopRecentsTransitionController) {
         super.init(actionsView, splitController, desktopRecentsTransitionController);
-        if (mContainer instanceof RecentsWindowManager) {
-            // These will be set during the state transition to DEFAULT
-            return;
-        }
         setOverviewStateEnabled(true);
         setOverlayEnabled(true);
     }
@@ -126,19 +133,18 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
      */
     @Override
     public void onPrepareGestureEndAnimation(
-            AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
-            RemoteTargetHandle[] remoteTargetHandles, boolean isHandlingAtomicEvent) {
-        super.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles,
-                isHandlingAtomicEvent);
-        if (mHomeTask != null && endTarget == RECENTS) {
-            TaskView homeTaskView = getTaskViewByTaskId(mHomeTask.key.id);
-            if (homeTaskView != null) {
-                PendingAnimation pendingAnimation = new PendingAnimation(TASK_DISMISS_DURATION);
-                createTaskDismissAnimation(pendingAnimation, homeTaskView, true, false,
+            @Nullable AnimatorSet animatorSet, GestureState.GestureEndTarget endTarget,
+            RemoteTargetHandle[] remoteTargetHandles) {
+        super.onPrepareGestureEndAnimation(animatorSet, endTarget, remoteTargetHandles);
+        if (mHomeTask != null && endTarget == RECENTS && animatorSet != null) {
+            TaskView tv = getTaskViewByTaskId(mHomeTask.key.id);
+            if (tv != null) {
+                PendingAnimation pa = new PendingAnimation(TASK_DISMISS_DURATION);
+                createTaskDismissAnimation(pa, tv, true, false,
                         TASK_DISMISS_DURATION, false /* dismissingForSplitSelection*/,
-                        null /* gridEndData */);
-                pendingAnimation.addEndListener(e -> setCurrentTask(-1));
-                AnimatorPlaybackController controller = pendingAnimation.createPlaybackController();
+                        false /* isExpressiveDismiss */);
+                pa.addEndListener(e -> setCurrentTask(-1));
+                AnimatorPlaybackController controller = pa.createPlaybackController();
                 controller.dispatchOnStart();
                 animatorSet.play(controller.getAnimationPlayer());
             }
@@ -172,24 +178,26 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     }
 
     @Override
-    protected boolean shouldAvoidAddingStubTaskView(GroupedTaskInfo groupedTaskInfo) {
+    protected boolean shouldAddStubTaskView(GroupedTaskInfo groupedTaskInfo) {
         if (!groupedTaskInfo.isBaseType(GroupedTaskInfo.TYPE_FULLSCREEN)) {
             // can't be in split screen w/ home task
-            return super.shouldAvoidAddingStubTaskView(groupedTaskInfo);
+            return super.shouldAddStubTaskView(groupedTaskInfo);
         }
 
-        if (mHomeTask != null && groupedTaskInfo.containsTask(mHomeTask.key.id) && !hasTaskViews()
-                && mLoadPlanEverApplied) {
+        Task runningTask = Task.from(groupedTaskInfo.getTaskInfo1());
+        if (mHomeTask != null && runningTask != null
+                && mHomeTask.key.id == runningTask.key.id
+                && !hasTaskViews() && mLoadPlanEverApplied) {
             // Do not add a stub task if we are running over home with empty recents, so that we
             // show the empty recents message instead of showing a stub task and later removing it.
-            // Ignore empty task signal if [applyLoadPlan] has never run.
-            return true;
+            // Ignore empty task signal if applyLoadPlan has never run.
+            return false;
         }
-        return super.shouldAvoidAddingStubTaskView(groupedTaskInfo);
+        return super.shouldAddStubTaskView(groupedTaskInfo);
     }
 
     @Override
-    protected void applyLoadPlan(List<GroupTask> taskGroups, int taskListChangeId) {
+    protected void applyLoadPlan(List<GroupTask> taskGroups) {
         // When quick-switching on 3p-launcher, we add a "stub" tile corresponding to Launcher
         // as well. This tile is never shown as we have setCurrentTaskHidden, but allows use to
         // track the index of the next task appropriately, as if we are switching on any other app.
@@ -213,7 +221,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
                 taskGroups = newList;
             }
         }
-        super.applyLoadPlan(taskGroups, taskListChangeId);
+        super.applyLoadPlan(taskGroups);
     }
 
     @Override
@@ -263,8 +271,6 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
             resetModalVisuals();
         }
 
-        resetShareUIState();
-
         // Set border after select mode changes to avoid showing border during state transition
         if (!toState.isRecentsViewVisible() || toState == MODAL_TASK) {
             setTaskBorderEnabled(false);
@@ -301,7 +307,7 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
         }
 
         // disabling this so app icons aren't drawn on top of recent tasks.
-        if (isOverlayEnabled && !(mContainer instanceof RecentsWindowManager)) {
+        if (isOverlayEnabled && !RecentsWindowFlags.Companion.getEnableOverviewInWindow()) {
             mBlurUtils.setDrawLiveTileBelowRecents(true);
         }
     }
@@ -332,5 +338,11 @@ public class FallbackRecentsView<CONTAINER_TYPE extends Context & RecentsViewCon
     @Override
     public boolean canLaunchFullscreenTask() {
         return !mContainer.isInState(OVERVIEW_SPLIT_SELECT);
+    }
+
+    /** Returns if app pairs are supported in this launcher. */
+    @Override
+    public boolean supportsAppPairs() {
+        return false;
     }
 }

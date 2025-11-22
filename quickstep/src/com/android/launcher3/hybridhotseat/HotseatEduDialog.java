@@ -38,6 +38,7 @@ import com.android.launcher3.Launcher;
 import com.android.launcher3.R;
 import com.android.launcher3.celllayout.CellLayoutLayoutParams;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.uioverrides.PredictedAppIcon;
 import com.android.launcher3.views.AbstractSlideInView;
 
 import java.util.List;
@@ -88,11 +89,11 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
         mSampleHotseat = findViewById(R.id.sample_prediction);
 
         Context context = getContext();
-        DeviceProfile dp = mActivityContext.getDeviceProfile();
-        Rect padding = dp.getHotseatLayoutPadding(context);
+        DeviceProfile grid = mActivityContext.getDeviceProfile();
+        Rect padding = grid.getHotseatLayoutPadding(context);
 
-        mSampleHotseat.getLayoutParams().height = dp.cellHeightPx;
-        mSampleHotseat.setGridSize(dp.numShownHotseatIcons, 1);
+        mSampleHotseat.getLayoutParams().height = grid.cellHeightPx;
+        mSampleHotseat.setGridSize(grid.numShownHotseatIcons, 1);
         mSampleHotseat.setPadding(padding.left, 0, padding.right, 0);
 
         Button turnOnBtn = findViewById(R.id.turn_predictions_on);
@@ -102,8 +103,7 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
         mDismissBtn.setOnClickListener(this::onDismiss);
 
         LinearLayout buttonContainer = findViewById(R.id.button_container);
-        int adjustedMarginEnd =
-                dp.getHotseatProfile().getBarEndOffset() - buttonContainer.getPaddingEnd();
+        int adjustedMarginEnd = grid.hotseatBarEndOffset - buttonContainer.getPaddingEnd();
         if (InvariantDeviceProfile.INSTANCE.get(context)
                 .getDeviceProfile(context).isTaskbarPresent && adjustedMarginEnd > 0) {
             ((LinearLayout.LayoutParams) buttonContainer.getLayoutParams()).setMarginEnd(
@@ -184,9 +184,10 @@ public class HotseatEduDialog extends AbstractSlideInView<Launcher> implements I
     private void populatePreview(List<WorkspaceItemInfo> predictions) {
         for (int i = 0; i < mActivityContext.getDeviceProfile().numShownHotseatIcons; i++) {
             WorkspaceItemInfo info = predictions.get(i);
-            View icon = mActivityContext.getItemInflater().inflateItem(info, mSampleHotseat);
+            PredictedAppIcon icon = PredictedAppIcon.createIcon(mSampleHotseat, info);
             icon.setEnabled(false);
             icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            icon.verifyHighRes();
             CellLayoutLayoutParams lp = new CellLayoutLayoutParams(i, 0, 1, 1);
             mSampleHotseat.addViewToCellLayout(icon, i, info.getViewId(), lp, true);
         }

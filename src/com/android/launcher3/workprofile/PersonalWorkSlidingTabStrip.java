@@ -28,8 +28,11 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
+import com.android.launcher3.pageindicators.Direction;
 import com.android.launcher3.pageindicators.PageIndicator;
 import com.android.launcher3.views.ActivityContext;
+
+import java.util.function.Consumer;
 
 import app.lawnchair.font.FontManager;
 import app.lawnchair.theme.color.tokens.ColorStateListTokens;
@@ -81,7 +84,8 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
     }
 
     @Override
-    public void setScroll(int currentScroll, int totalScroll) {}
+    public void setScroll(int currentScroll, int totalScroll) {
+    }
 
     @Override
     public void setActiveMarker(int activePage) {
@@ -98,6 +102,11 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
 
     @Override
     public void setMarkersCount(int numMarkers) {
+    }
+
+    @Override
+    public void setArrowClickListener(Consumer<Direction> listener) {
+        // No-Op. All Apps doesn't need accessibility arrows for single click navigation.
     }
 
     @Override
@@ -121,8 +130,7 @@ public class PersonalWorkSlidingTabStrip extends LinearLayout implements PageInd
      */
     public static int getTabWidth(Context context, int totalWidth) {
         DeviceProfile grid = ActivityContext.lookupContext(context).getDeviceProfile();
-        int iconPadding = totalWidth / grid.numShownAllAppsColumns
-                - grid.getAllAppsProfile().getIconSizePx();
+        int iconPadding = totalWidth / grid.numShownAllAppsColumns - grid.allAppsIconSizePx;
         return totalWidth - iconPadding;
     }
 

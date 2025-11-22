@@ -31,13 +31,11 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.util.ArraySet;
+import android.util.Log;
 import android.view.LayoutInflater;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.messages.nano.SystemMessageProto.SystemMessage;
-import com.android.systemui.log.LogcatOnlyMessageBuffer;
-import com.android.systemui.log.core.LogLevel;
-import com.android.systemui.log.core.Logger;
 import com.android.systemui.plugins.Plugin;
 import com.android.systemui.plugins.PluginListener;
 import com.android.systemui.plugins.PluginManager;
@@ -56,6 +54,8 @@ import java.util.concurrent.Executor;
  * @param <T> The type of plugin that this contains.
  */
 public class PluginActionManager<T extends Plugin> {
+
+    private static final boolean DEBUG = false;
 
     private static final String TAG = "PluginActionManager";
     public static final String PLUGIN_PERMISSION = "com.android.systemui.permission.PLUGIN";
@@ -76,7 +76,6 @@ public class PluginActionManager<T extends Plugin> {
     private final Class<T> mPluginClass;
     private final Executor mMainExecutor;
     private final Executor mBgExecutor;
-    private final Logger mLogger;
 
     private PluginActionManager(
             Context context,
@@ -105,21 +104,17 @@ public class PluginActionManager<T extends Plugin> {
         mPluginInstanceFactory = pluginInstanceFactory;
         mPrivilegedPlugins.addAll(privilegedPlugins);
         mIsDebuggable = debuggable;
-
-        String tag = String.format("%s[%s]", TAG, mAction);
-        mLogger = new Logger(mListener.getLogBuffer() != null ? mListener.getLogBuffer() :
-                new LogcatOnlyMessageBuffer(LogLevel.WARNING), tag);
     }
 
     /** Load all plugins matching this instance's action. */
     public void loadAll() {
-        mLogger.d("startListening");
+        if (DEBUG) Log.d(TAG, "startListening");
         mBgExecutor.execute(() -> queryAll());
     }
 
     /** Unload all plugins managed by this instance. */
     public void destroy() {
-        mLogger.d("stopListening");
+        if (DEBUG) Log.d(TAG, "stopListening");
         ArrayList<PluginInstance<T>> plugins = new ArrayList<>(mPluginInstances);
         for (PluginInstance<T> plugInstance : plugins) {
             mMainExecutor.execute(() -> onPluginDisconnected(plugInstance));
@@ -190,7 +185,7 @@ public class PluginActionManager<T extends Plugin> {
             // Don't disable privileged plugins as they are a part of the OS.
             return false;
         }
-        logFmt(LogLevel.WARNING, "Disabling plugin: %s", pluginComponent.flattenToShortString());
+        Log.w(TAG, "Disabling plugin " + pluginComponent.flattenToShortString());
         mPluginEnabler.setDisabled(pluginComponent, reason);
 
         return true;
@@ -213,18 +208,18 @@ public class PluginActionManager<T extends Plugin> {
     }
 
     private void onPluginConnected(PluginInstance<T> pluginInstance) {
-        mLogger.d("onPluginConnected");
+        if (DEBUG) Log.d(TAG, "onPluginConnected");
         PluginPrefs.setHasPlugins(mContext);
         pluginInstance.onCreate();
     }
 
     private void onPluginDisconnected(PluginInstance<T> pluginInstance) {
-        mLogger.d("onPluginDisconnected");
+        if (DEBUG) Log.d(TAG, "onPluginDisconnected");
         pluginInstance.onDestroy();
     }
 
     private void queryAll() {
-        mLogger.d("queryAll");
+        if (DEBUG) Log.d(TAG, "queryAll " + mAction);
         for (int i = mPluginInstances.size() - 1; i >= 0; i--) {
             PluginInstance<T> pluginInstance = mPluginInstances.get(i);
             mMainExecutor.execute(() -> onPluginDisconnected(pluginInstance));
@@ -244,11 +239,11 @@ public class PluginActionManager<T extends Plugin> {
     }
 
     private void queryPkg(String pkg) {
-        logFmt(LogLevel.DEBUG, "queryPkg(%s)", pkg);
+        if (DEBUG) Log.d(TAG, "queryPkg " + pkg + " " + mAction);
         if (mAllowMultiple || (mPluginInstances.size() == 0)) {
             handleQueryPlugins(pkg);
         } else {
-            mLogger.d("Too many matching packages found");
+            if (DEBUG) Log.d(TAG, "Too many of " + mAction);
         }
     }
 
@@ -260,23 +255,23 @@ public class PluginActionManager<T extends Plugin> {
             intent.setPackage(pkgName);
         }
         List<ResolveInfo> result = mPm.queryIntentServices(intent, 0);
-        StringBuilder logSb = new StringBuilder();
-
-        logSb.append("Found ");
-        logSb.append(result.size());
-        logSb.append(" plugins");
+        if (DEBUG) {
+            Log.d(TAG, "Found " + result.size() + " plugins");
+            for (ResolveInfo info : result) {
+                ComponentName name = new ComponentName(info.serviceInfo.packageName,
+                        info.serviceInfo.name);
+                Log.d(TAG, "  " + name);
+            }
+        }
 
         if (result.size() > 1 && !mAllowMultiple) {
             // TODO: Show warning.
-            logSb.append(", but multiple plugins are disallowed.");
-            logFmt(LogLevel.WARNING, "%s", logSb);
+            Log.w(TAG, "Multiple plugins found for " + mAction);
             return;
         }
-
         for (ResolveInfo info : result) {
             ComponentName name = new ComponentName(info.serviceInfo.packageName,
                     info.serviceInfo.name);
-            logSb.append("\n  " + name);
             PluginInstance<T> pluginInstance = loadPluginComponent(name);
             if (pluginInstance != null) {
                 // add plugin before sending PLUGIN_CONNECTED message
@@ -284,7 +279,6 @@ public class PluginActionManager<T extends Plugin> {
                 mMainExecutor.execute(() -> onPluginConnected(pluginInstance));
             }
         }
-        logFmt(LogLevel.DEBUG, "%s", logSb);
     }
 
     private PluginInstance<T> loadPluginComponent(ComponentName component) {
@@ -292,11 +286,13 @@ public class PluginActionManager<T extends Plugin> {
         // use these on production builds.
         if (!mIsDebuggable && !isPluginPrivileged(component)) {
             // Never ever ever allow these on production builds, they are only for prototyping.
-            logFmt(LogLevel.ERROR, "Plugin cannot be loaded on production build: %s", component);
+            Log.w(TAG, "Plugin cannot be loaded on production build: " + component);
             return null;
         }
         if (!mPluginEnabler.isEnabled(component)) {
-            logFmt(LogLevel.WARNING, "Plugin is not enabled, aborting load: %s", component);
+            if (DEBUG) {
+                Log.d(TAG, "Plugin is not enabled, aborting load: " + component);
+            }
             return null;
         }
         String packageName = component.getPackageName();
@@ -304,15 +300,16 @@ public class PluginActionManager<T extends Plugin> {
             // TODO: This probably isn't needed given that we don't have IGNORE_SECURITY on
             if (mPm.checkPermission(PLUGIN_PERMISSION, packageName)
                     != PackageManager.PERMISSION_GRANTED) {
-                logFmt(LogLevel.ERROR, "Plugin doesn't have permission: %s", packageName);
+                Log.d(TAG, "Plugin doesn't have permission: " + packageName);
                 return null;
             }
 
             ApplicationInfo appInfo = mPm.getApplicationInfo(packageName, 0);
-            // TODO: Only create the plugin before version
-            // check if we need it for legacy version check.
-            logFmt(LogLevel.DEBUG, "createPlugin: %s", component);
-
+            // TODO: Only create the plugin before version check if we need it for
+            // legacy version check.
+            if (DEBUG) {
+                Log.d(TAG, "createPlugin: " + component);
+            }
             try {
                 return mPluginInstanceFactory.create(
                         mContext, appInfo, component,
@@ -321,7 +318,7 @@ public class PluginActionManager<T extends Plugin> {
                 reportInvalidVersion(component, component.getClassName(), e);
             }
         } catch (Throwable e) {
-            logFmt(LogLevel.ERROR, "Couldn't load plugin: %s", component, e);
+            Log.w(TAG, "Couldn't load plugin: " + component, e);
             return null;
         }
 
@@ -366,31 +363,12 @@ public class PluginActionManager<T extends Plugin> {
         nb.addAction(new Action.Builder(null, "Disable plugin", pi).build());
         mNotificationManager.notify(SystemMessage.NOTE_PLUGIN, nb.build());
         // TODO: Warn user.
-        mLogger.e("Error loading plugin", e);
+        Log.w(TAG, "Error loading plugin; " + e.getMessage());
     }
 
-    /** Format a log message */
-    public void logFmt(LogLevel level, String formatStr, Object innerObj) {
-        logFmt(level, formatStr, innerObj, null);
-    }
-
-    /** Format a log message */
-    public void logFmt(LogLevel level, String formatStr, Object innerObj, Throwable ex) {
-        logFmt(mLogger, level, formatStr, innerObj, ex);
-    }
-
-    /** Format a log message */
-    public static void logFmt(Logger logger, LogLevel level,
-            String formatStr, Object innerObj, Throwable ex) {
-        logger.log(
-                level, msg -> String.format(formatStr, msg.getStr1()),
-                ex, msg -> {
-                    msg.setStr1(innerObj.toString());
-                    return kotlin.Unit.INSTANCE;
-                });
-    }
-
-    /** Construct a {@link PluginActionManager} */
+    /**
+     * Construct a {@link PluginActionManager}
+     */
     public static class Factory {
         private final Context mContext;
         private final PackageManager mPackageManager;
@@ -425,7 +403,7 @@ public class PluginActionManager<T extends Plugin> {
         }
     }
 
-    /** Wrapper for PluginInstance contexts */
+    /** */
     public static class PluginContextWrapper extends ContextWrapper {
         private final ClassLoader mClassLoader;
         private LayoutInflater mInflater;

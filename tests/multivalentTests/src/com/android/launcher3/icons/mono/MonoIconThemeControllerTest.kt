@@ -32,15 +32,13 @@ import com.android.launcher3.Flags
 import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.SourceHint
-import com.android.launcher3.icons.ThemedBitmap
 import com.android.launcher3.icons.cache.LauncherActivityCachingLogic
 import com.android.launcher3.util.ComponentKey
 import com.android.launcher3.util.LauncherMultivalentJUnit.Companion.isRunningInRobolectric
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertSame
 import org.junit.Assume.assumeFalse
+import org.junit.Assume.assumeTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -80,10 +78,11 @@ class MonoIconThemeControllerTest {
     @EnableFlags(Flags.FLAG_FORCE_MONOCHROME_APP_ICONS)
     fun `createThemedBitmap when mono generation is enabled`() {
         ensureBitmapSerializationSupported()
+        // Make sure forced theme icon is enabled in BaseIconFactory
+        assumeTrue(iconFactory.shouldForceThemeIcon())
         val icon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
         assertNotNull(
-            MonoIconThemeController(shouldForceThemeIcon = true)
-                .createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory)
+            MonoIconThemeController().createThemedBitmap(icon, BitmapInfo.LOW_RES_INFO, iconFactory)
         )
     }
 
@@ -95,10 +94,9 @@ class MonoIconThemeControllerTest {
 
         val themeBitmap =
             MonoIconThemeController().createThemedBitmap(icon, iconInfo, iconFactory)!!
-        assertNotSame(
-            ThemedBitmap.NOT_SUPPORTED,
+        assertNotNull(
             MonoIconThemeController()
-                .decode(themeBitmap.serialize(), iconInfo, iconFactory, sourceHint),
+                .decode(themeBitmap.serialize(), iconInfo, iconFactory, sourceHint)
         )
     }
 
@@ -107,10 +105,9 @@ class MonoIconThemeControllerTest {
         ensureBitmapSerializationSupported()
         val icon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, ColorDrawable(Color.RED))
         val iconInfo = iconFactory.createBadgedIconBitmap(icon)
-        assertSame(
-            ThemedBitmap.NOT_SUPPORTED,
+        assertNull(
             MonoIconThemeController()
-                .decode(byteArrayOf(1, 1, 1, 1), iconInfo, iconFactory, sourceHint),
+                .decode(byteArrayOf(1, 1, 1, 1), iconInfo, iconFactory, sourceHint)
         )
     }
 
@@ -128,19 +125,17 @@ class MonoIconThemeControllerTest {
             MonoIconThemeController().createThemedBitmap(icon, iconInfo, iconFactory)
 
         val nonMonoIcon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
-        assertNotSame(
-            nonMonoIcon,
-            MonoIconThemeController().createThemedAdaptiveIcon(context, nonMonoIcon, iconInfo),
+        assertNotNull(
+            MonoIconThemeController().createThemedAdaptiveIcon(context, nonMonoIcon, iconInfo)
         )
     }
 
     @Test
     fun `createThemedAdaptiveIcon invalid bitmap info`() {
         val nonMonoIcon = AdaptiveIconDrawable(ColorDrawable(Color.BLACK), null, null)
-        assertSame(
-            nonMonoIcon,
+        assertNull(
             MonoIconThemeController()
-                .createThemedAdaptiveIcon(context, nonMonoIcon, BitmapInfo.LOW_RES_INFO),
+                .createThemedAdaptiveIcon(context, nonMonoIcon, BitmapInfo.LOW_RES_INFO)
         )
     }
 

@@ -29,7 +29,6 @@ import com.android.launcher3.taskbar.bubbles.BubbleBarView
 import com.android.launcher3.taskbar.bubbles.BubbleBarViewController
 import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController.BubbleLauncherState
 import com.android.launcher3.util.MultiValueAlpha
-import com.android.wm.shell.shared.bubbles.BubbleBarLocation
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -354,7 +353,7 @@ class PersistentBubbleStashControllerTest {
             bubbleBarGesture = true,
         )
 
-        verify(bubbleBarViewController).animateExpanded(true, true)
+        verify(bubbleBarViewController).setExpanded(true, true)
     }
 
     @Test
@@ -367,7 +366,7 @@ class PersistentBubbleStashControllerTest {
             bubbleBarGesture = false,
         )
 
-        verify(bubbleBarViewController).animateExpanded(true, false)
+        verify(bubbleBarViewController).setExpanded(true, false)
     }
 
     @Test
@@ -380,7 +379,7 @@ class PersistentBubbleStashControllerTest {
             bubbleBarGesture = true,
         )
 
-        verify(bubbleBarViewController, never()).animateExpanded(any(), any())
+        verify(bubbleBarViewController, never()).setExpanded(any(), any())
     }
 
     private fun advanceTimeBy(advanceMs: Long) {
@@ -392,26 +391,6 @@ class PersistentBubbleStashControllerTest {
         getInstrumentation().runOnMainSync {
             bubbleBarView = BubbleBarView(context)
             bubbleBarView.layoutParams = FrameLayout.LayoutParams(0, 0)
-            bubbleBarView.setController(
-                object : BubbleBarView.Controller {
-                    override fun getBubbleBarTranslationY(): Float = 0f
-
-                    override fun onBubbleBarTouched() {}
-
-                    override fun expandBubbleBar() {}
-
-                    override fun dismissBubbleBar() {}
-
-                    override fun updateBubbleBarLocation(
-                        location: BubbleBarLocation?,
-                        source: Int,
-                    ) {}
-
-                    override fun setIsDragging(dragging: Boolean) {}
-
-                    override fun onBubbleBarExpandedStateChanged(expanded: Boolean) {}
-                }
-            )
         }
     }
 

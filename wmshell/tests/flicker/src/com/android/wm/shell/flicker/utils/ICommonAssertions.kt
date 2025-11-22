@@ -28,15 +28,11 @@ import com.android.server.wm.flicker.statusBarLayerPositionAtStartAndEnd
 import com.android.server.wm.flicker.statusBarWindowIsAlwaysVisible
 import com.android.server.wm.flicker.taskBarLayerIsVisibleAtStartAndEnd
 import com.android.server.wm.flicker.taskBarWindowIsAlwaysVisible
-import com.android.wm.shell.Flags
 import org.junit.Assume
 import org.junit.Test
 
 interface ICommonAssertions {
     val flicker: LegacyFlickerTest
-
-    val usesTaskbar: Boolean
-        get() = flicker.scenario.isTablet || Flags.enableTaskbarOnPhones()
 
     /** Checks that all parts of the screen are covered during the transition */
     @Presubmit @Test fun entireScreenCovered() = flicker.entireScreenCovered()
@@ -47,7 +43,7 @@ interface ICommonAssertions {
     @Presubmit
     @Test
     fun navBarLayerIsVisibleAtStartAndEnd() {
-        Assume.assumeFalse(usesTaskbar)
+        Assume.assumeFalse(flicker.scenario.isTablet)
         flicker.navBarLayerIsVisibleAtStartAndEnd()
     }
 
@@ -58,7 +54,7 @@ interface ICommonAssertions {
     @Presubmit
     @Test
     fun navBarLayerPositionAtStartAndEnd() {
-        Assume.assumeFalse(usesTaskbar)
+        Assume.assumeFalse(flicker.scenario.isTablet)
         flicker.navBarLayerPositionAtStartAndEnd()
     }
 
@@ -70,7 +66,7 @@ interface ICommonAssertions {
     @Presubmit
     @Test
     fun navBarWindowIsAlwaysVisible() {
-        Assume.assumeFalse(usesTaskbar)
+        Assume.assumeFalse(flicker.scenario.isTablet)
         flicker.navBarWindowIsAlwaysVisible()
     }
 
@@ -80,7 +76,7 @@ interface ICommonAssertions {
     @Presubmit
     @Test
     fun taskBarLayerIsVisibleAtStartAndEnd() {
-        Assume.assumeTrue(usesTaskbar)
+        Assume.assumeTrue(flicker.scenario.isTablet)
         flicker.taskBarLayerIsVisibleAtStartAndEnd()
     }
 
@@ -92,7 +88,7 @@ interface ICommonAssertions {
     @Presubmit
     @Test
     fun taskBarWindowIsAlwaysVisible() {
-        Assume.assumeTrue(usesTaskbar)
+        Assume.assumeTrue(flicker.scenario.isTablet)
         flicker.taskBarWindowIsAlwaysVisible()
     }
 

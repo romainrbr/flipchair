@@ -17,6 +17,7 @@ package com.android.systemui.plugins.statusbar;
 import android.annotation.Nullable;
 import android.content.Context;
 import android.graphics.Point;
+import android.service.notification.StatusBarNotification;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,22 +59,9 @@ public interface NotificationMenuRowPlugin extends Plugin {
 
         public View getMenuView();
 
-        /**
-         * The guts content that provides the [View] to be displayed.
-         *
-         * @return Object of type [NotificationGuts.GutsContent]. The interface is not known in this
-         *          module, therefore only the implementation returns the proper type.
-         */
-        Object getGutsContent();
+        public View getGutsView();
 
         public String getContentDescription();
-
-        /**
-         * Set the name of the app for this menuitem.
-         *
-         * @param appName App name.
-         */
-        void setAppName(String appName);
     }
 
     /**

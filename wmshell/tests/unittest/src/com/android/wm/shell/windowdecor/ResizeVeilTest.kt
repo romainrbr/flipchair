@@ -17,7 +17,6 @@ package com.android.wm.shell.windowdecor
 
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.graphics.drawable.BitmapDrawable
 import android.testing.AndroidTestingRunner
 import android.testing.TestableLooper
 import android.view.Display
@@ -30,13 +29,6 @@ import com.android.wm.shell.TestRunningTaskInfoBuilder
 import com.android.wm.shell.common.DisplayController
 import com.android.wm.shell.common.DisplayController.OnDisplaysChangedListener
 import com.android.wm.shell.windowdecor.WindowDecoration.SurfaceControlViewHostFactory
-import com.android.wm.shell.windowdecor.common.WindowDecorTaskResourceLoader
-import com.google.common.truth.Truth.assertThat
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,7 +44,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
-import org.mockito.kotlin.verifyNoMoreInteractions
+import org.mockito.kotlin.verifyZeroInteractions
 import org.mockito.kotlin.whenever
 
 
@@ -62,7 +54,6 @@ import org.mockito.kotlin.whenever
  * Build/Install/Run:
  * atest WMShellUnitTests:ResizeVeilTest
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 @SmallTest
 @RunWith(AndroidTestingRunner::class)
 @TestableLooper.RunWithLooper
@@ -94,8 +85,6 @@ class ResizeVeilTest : ShellTestCase() {
     private lateinit var mockIconSurface: SurfaceControl
     @Mock
     private lateinit var mockTransaction: SurfaceControl.Transaction
-    @Mock
-    private lateinit var mockTaskResourceLoader: WindowDecorTaskResourceLoader
 
     private val taskInfo = TestRunningTaskInfoBuilder().build()
 
@@ -108,7 +97,7 @@ class ResizeVeilTest : ShellTestCase() {
             .thenReturn(spyResizeVeilSurfaceBuilder)
         doReturn(mockResizeVeilSurface).whenever(spyResizeVeilSurfaceBuilder).build()
         whenever(mockSurfaceControlBuilderFactory
-            .create(eq("Resize veil background of Task=" + taskInfo.taskId)))
+            .create(eq("Resize veil background of Task=" + taskInfo.taskId), any()))
             .thenReturn(spyBackgroundSurfaceBuilder)
         doReturn(mockBackgroundSurface).whenever(spyBackgroundSurfaceBuilder).build()
         whenever(mockSurfaceControlBuilderFactory
@@ -126,7 +115,7 @@ class ResizeVeilTest : ShellTestCase() {
     }
 
     @Test
-    fun init_displayAvailable_viewHostCreated() = runTest {
+    fun init_displayAvailable_viewHostCreated() {
         createResizeVeil(withDisplayAvailable = true)
 
         verify(mockSurfaceControlViewHostFactory)
@@ -134,7 +123,7 @@ class ResizeVeilTest : ShellTestCase() {
     }
 
     @Test
-    fun init_displayUnavailable_viewHostNotCreatedUntilDisplayAppears() = runTest {
+    fun init_displayUnavailable_viewHostNotCreatedUntilDisplayAppears() {
         createResizeVeil(withDisplayAvailable = false)
 
         verify(mockSurfaceControlViewHostFactory, never())
@@ -151,14 +140,14 @@ class ResizeVeilTest : ShellTestCase() {
     }
 
     @Test
-    fun dispose_removesDisplayWindowListener() = runTest {
+    fun dispose_removesDisplayWindowListener() {
         createResizeVeil().dispose()
 
         verify(mockDisplayController).removeDisplayWindowListener(any())
     }
 
     @Test
-    fun showVeil() = runTest {
+    fun showVeil() {
         val veil = createResizeVeil()
 
         veil.showVeil(mockTransaction, mock(), Rect(0, 0, 100, 100), taskInfo, false /* fadeIn */)
@@ -170,7 +159,7 @@ class ResizeVeilTest : ShellTestCase() {
     }
 
     @Test
-    fun showVeil_displayUnavailable_doesNotShow() = runTest {
+    fun showVeil_displayUnavailable_doesNotShow() {
         val veil = createResizeVeil(withDisplayAvailable = false)
 
         veil.showVeil(mockTransaction, mock(), Rect(0, 0, 100, 100), taskInfo, false /* fadeIn */)
@@ -182,7 +171,7 @@ class ResizeVeilTest : ShellTestCase() {
     }
 
     @Test
-    fun showVeil_alreadyVisible_doesNotShowAgain() = runTest {
+    fun showVeil_alreadyVisible_doesNotShowAgain() {
         val veil = createResizeVeil()
 
         veil.showVeil(mockTransaction, mock(), Rect(0, 0, 100, 100), taskInfo, false /* fadeIn */)
@@ -195,7 +184,7 @@ class ResizeVeilTest : ShellTestCase() {
     }
 
     @Test
-    fun showVeil_reparentsVeilToNewParent() = runTest {
+    fun showVeil_reparentsVeilToNewParent() {
         val veil = createResizeVeil(parent = mock())
 
         val newParent = mock<SurfaceControl>()
@@ -211,49 +200,24 @@ class ResizeVeilTest : ShellTestCase() {
     }
 
     @Test
-    fun hideVeil_alreadyHidden_doesNothing() = runTest {
+    fun hideVeil_alreadyHidden_doesNothing() {
         val veil = createResizeVeil()
 
         veil.hideVeil()
 
-        verifyNoMoreInteractions(mockTransaction)
+        verifyZeroInteractions(mockTransaction)
     }
 
-    @Test
-    fun showVeil_loadsIconInBackground() = runTest {
-        val veil = createResizeVeil()
-        veil.showVeil(mockTransaction, mock(), Rect(0, 0, 100, 100), taskInfo, false /* fadeIn */)
-
-        advanceUntilIdle()
-
-        verify(mockTaskResourceLoader).getVeilIcon(taskInfo)
-        assertThat((veil.iconView.drawable as BitmapDrawable).bitmap).isEqualTo(mockAppIcon)
-    }
-
-    @Test
-    fun dispose_iconLoading_cancelsJob() = runTest {
-        val veil = createResizeVeil()
-        veil.showVeil(mockTransaction, mock(), Rect(0, 0, 100, 100), taskInfo, false /* fadeIn */)
-
-        veil.dispose()
-        advanceUntilIdle()
-
-        assertThat(veil.iconView.drawable).isNull()
-    }
-
-    private fun TestScope.createResizeVeil(
+    private fun createResizeVeil(
         withDisplayAvailable: Boolean = true,
         parent: SurfaceControl = mock()
     ): ResizeVeil {
         whenever(mockDisplayController.getDisplay(taskInfo.displayId))
             .thenReturn(if (withDisplayAvailable) mockDisplay else null)
-        whenever(mockTaskResourceLoader.getVeilIcon(taskInfo)).thenReturn(mockAppIcon)
         return ResizeVeil(
             context,
             mockDisplayController,
-            mockTaskResourceLoader,
-            StandardTestDispatcher(testScheduler),
-            this,
+            mockAppIcon,
             parent,
             { mockTransaction },
             mockSurfaceControlBuilderFactory,

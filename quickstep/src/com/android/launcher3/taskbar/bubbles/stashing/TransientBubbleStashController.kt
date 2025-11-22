@@ -115,16 +115,7 @@ class TransientBubbleStashController(
             }
             // Only stash if we're in an app, otherwise we're in home or overview where we should
             // be un-stashed
-            val stash = field == BubbleLauncherState.IN_APP
-            val expand =
-                if (stash) {
-                    // Always collapse when we are stashing
-                    false
-                } else {
-                    // If unstashing, keep the current state
-                    bubbleBarViewController.isExpanded
-                }
-            updateStashedAndExpandedState(stash, expand)
+            updateStashedAndExpandedState(field == BubbleLauncherState.IN_APP, expand = false)
         }
 
     override var isSysuiLocked: Boolean = false
@@ -477,7 +468,7 @@ class TransientBubbleStashController(
                     // reset stash translation
                     translationYDuringStash.updateValue(0f)
                     bubbleBarBubbleTranslationY.updateValue(0f)
-                    bubbleBarViewController.animateExpanded(false)
+                    bubbleBarViewController.isExpanded = false
                 }
                 taskbarInsetsController.onTaskbarOrBubblebarWindowHeightOrInsetsChanged()
             }
@@ -565,7 +556,6 @@ class TransientBubbleStashController(
     ) {
         if (bubbleBarViewController.isHiddenForNoBubbles) {
             // If there are no bubbles the bar and handle are invisible, nothing to do here.
-            cancelAnimation()
             return
         }
         val isStashed = stash && !isBubblesShowingOnHome && !isBubblesShowingOnOverview
@@ -587,7 +577,7 @@ class TransientBubbleStashController(
         }
         if (bubbleBarViewController.isExpanded != expand) {
             val maybeShowEdu = expand && bubbleBarGesture
-            bubbleBarViewController.animateExpanded(expand, maybeShowEdu)
+            bubbleBarViewController.setExpanded(expand, maybeShowEdu)
         }
     }
 

@@ -416,13 +416,11 @@ public class QuickStepContract {
     public static boolean sRecentsDisabled = false;
     public static boolean sHasCustomCornerRadius = false;
     public static float sCustomCornerRadius = 0f;
-
+    
     /**
      * Corner radius that should be used on windows in order to cover the display.
      * These values are expressed in pixels because they should not respect display or font
      * scaling. The corner radius may change when folding/unfolding the device.
-     *
-     * @param context A display associated context.
      */
     public static float getWindowCornerRadius(Context context) {
         // LC-Wrapped

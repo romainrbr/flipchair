@@ -24,25 +24,24 @@ import static android.view.MotionEvent.ACTION_UP;
 import static android.view.WindowManager.LayoutParams.FLAG_SLIPPERY;
 
 import static com.android.launcher3.MotionEventsUtils.isTrackpadScroll;
-import static com.android.launcher3.Utilities.shouldEnableMouseInteractionChanges;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SWIPE_DOWN_WORKSPACE_NOTISHADE_OPEN;
 
 import android.graphics.PointF;
 import android.util.SparseArray;
-import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 
 import com.android.launcher3.AbstractFloatingView;
-import com.android.launcher3.BaseActivity;
 import com.android.launcher3.DeviceProfile;
+import com.android.launcher3.Launcher;
+import com.android.launcher3.LauncherState;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.util.TouchController;
 import com.android.quickstep.SystemUiProxy;
 
-import java.util.function.Supplier;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 
 import app.lawnchair.LawnchairAppKt;
@@ -57,30 +56,29 @@ public class StatusBarTouchController implements TouchController {
 
     private static final String TAG = "StatusBarController";
 
-    private final BaseActivity mLauncher;
+    private final Launcher mLauncher;
     private final SystemUiProxy mSystemUiProxy;
     private final float mTouchSlop;
     private int mLastAction;
     private final SparseArray<PointF> mDownEvents;
-    private final Supplier<Boolean> mIsEnabledCheck;
 
     /* If {@code false}, this controller should not handle the input {@link MotionEvent}.*/
     private boolean mCanIntercept;
 
-    public StatusBarTouchController(BaseActivity l, Supplier<Boolean> isEnabledCheck) {
+    public StatusBarTouchController(Launcher l) {
         mLauncher = l;
         mSystemUiProxy = SystemUiProxy.INSTANCE.get(mLauncher);
         // Guard against TAPs by increasing the touch slop.
         mTouchSlop = 2 * ViewConfiguration.get(l).getScaledTouchSlop();
         mDownEvents = new SparseArray<>();
-        mIsEnabledCheck = isEnabledCheck;
     }
 
     @Override
-    public String dump() {
-        return "mCanIntercept:" + mCanIntercept
-                + " , mLastAction:" + MotionEvent.actionToString(mLastAction)
-                + " , mSysUiProxy available:" + SystemUiProxy.INSTANCE.get(mLauncher).isActive();
+    public void dump(String prefix, PrintWriter writer) {
+        writer.println(prefix + "mCanIntercept:" + mCanIntercept);
+        writer.println(prefix + "mLastAction:" + MotionEvent.actionToString(mLastAction));
+        writer.println(prefix + "mSysUiProxy available:"
+                + SystemUiProxy.INSTANCE.get(mLauncher).isActive());
     }
 
     private void dispatchTouchEvent(MotionEvent ev) {
@@ -167,11 +165,9 @@ public class StatusBarTouchController implements TouchController {
     }
 
     private boolean canInterceptTouch(MotionEvent ev) {
-        if (isTrackpadScroll(ev) || !mIsEnabledCheck.get()
+        if (isTrackpadScroll(ev) || !mLauncher.isInState(LauncherState.NORMAL)
                 || AbstractFloatingView.getTopOpenViewWithType(mLauncher,
-                AbstractFloatingView.TYPE_STATUS_BAR_SWIPE_DOWN_DISALLOW) != null || (
-                shouldEnableMouseInteractionChanges(mLauncher.asContext())
-                        && ev.getSource() == InputDevice.SOURCE_MOUSE)) {
+                AbstractFloatingView.TYPE_STATUS_BAR_SWIPE_DOWN_DISALLOW) != null) {
             return false;
         } else {
             // For NORMAL state, only listen if the event originated above the navbar height

@@ -24,7 +24,6 @@ import android.internal.perfetto.protos.ShellTransitionOuterClass.ShellTransitio
 import android.internal.perfetto.protos.TracePacketOuterClass.TracePacket;
 import android.os.SystemClock;
 import android.os.Trace;
-import android.tracing.TracingUtils;
 import android.tracing.perfetto.DataSourceParams;
 import android.tracing.perfetto.InitArguments;
 import android.tracing.perfetto.Producer;
@@ -70,8 +69,7 @@ public class PerfettoTransitionTracer implements TransitionTracer {
             return;
         }
 
-        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER,
-                TracingUtils.uiTracingSliceName("Transition::logDispatched"));
+        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER, "logDispatched");
         try {
             doLogDispatched(transitionId, handler);
         } finally {
@@ -118,8 +116,7 @@ public class PerfettoTransitionTracer implements TransitionTracer {
             return;
         }
 
-        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER,
-                TracingUtils.uiTracingSliceName("Transition::logMergeRequested"));
+        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER, "logMergeRequested");
         try {
             doLogMergeRequested(mergeRequestedTransitionId, playingTransitionId);
         } finally {
@@ -151,8 +148,7 @@ public class PerfettoTransitionTracer implements TransitionTracer {
             return;
         }
 
-        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER,
-                TracingUtils.uiTracingSliceName("Transition::logMerged"));
+        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER, "logMerged");
         try {
             doLogMerged(mergedTransitionId, playingTransitionId);
         } finally {
@@ -183,8 +179,7 @@ public class PerfettoTransitionTracer implements TransitionTracer {
             return;
         }
 
-        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER,
-                TracingUtils.uiTracingSliceName("Transition::logAborted-shellSide"));
+        Trace.traceBegin(Trace.TRACE_TAG_WINDOW_MANAGER, "logAborted");
         try {
             doLogAborted(transitionId);
         } finally {

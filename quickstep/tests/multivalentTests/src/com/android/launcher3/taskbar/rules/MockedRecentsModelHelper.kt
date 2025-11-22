@@ -21,7 +21,6 @@ import com.android.quickstep.RecentsModel.RecentTasksChangedListener
 import com.android.quickstep.TaskIconCache
 import com.android.quickstep.TaskThumbnailCache
 import com.android.quickstep.util.GroupTask
-import java.util.function.BiConsumer
 import java.util.function.Consumer
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
@@ -43,28 +42,16 @@ class MockedRecentsModelHelper {
 
         on { thumbnailCache } doReturn mockThumbnailCache
 
-        on { unregisterRecentTasksChangedListener(any()) } doAnswer
-            {
-                recentTasksChangedListener = null
-            }
+        on { unregisterRecentTasksChangedListener() } doAnswer { recentTasksChangedListener = null }
 
         on { registerRecentTasksChangedListener(any<RecentTasksChangedListener>()) } doAnswer
             {
                 recentTasksChangedListener = it.getArgument<RecentTasksChangedListener>(0)
             }
 
-        on { getTasks(anyOrNull<BiConsumer<List<GroupTask>, Int>>(), anyOrNull()) } doAnswer
+        on { getTasks(anyOrNull(), anyOrNull()) } doAnswer
             {
-                val request = it.getArgument<BiConsumer<List<GroupTask>, Int>?>(0)
-                if (request != null) {
-                    taskRequests.add { response -> request.accept(response, taskListId) }
-                }
-                taskListId
-            }
-
-        on { getTasks(anyOrNull(), anyOrNull<Consumer<List<GroupTask>>>()) } doAnswer
-            {
-                val request = it.getArgument<Consumer<List<GroupTask>>?>(1)
+                val request = it.getArgument<Consumer<List<GroupTask>>?>(0)
                 if (request != null) {
                     taskRequests.add { response -> request.accept(response) }
                 }

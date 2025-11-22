@@ -31,10 +31,10 @@ import com.android.launcher3.touch.PagedOrientationHandler
 import com.android.launcher3.touch.PagedOrientationHandler.Float2DAction
 import com.android.launcher3.touch.PagedOrientationHandler.Int2DAction
 import com.android.launcher3.touch.SingleAxisSwipeDetector
+import com.android.launcher3.util.SplitConfigurationOptions
 import com.android.launcher3.util.SplitConfigurationOptions.SplitPositionOption
 import com.android.launcher3.util.SplitConfigurationOptions.StagePosition
 import com.android.quickstep.views.IconAppChipView
-import com.android.wm.shell.shared.split.SplitBounds
 
 /**
  * Abstraction layer to separate horizontal and vertical specific implementations for
@@ -49,8 +49,6 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
     fun getPrimarySize(view: View): Int
 
     fun getPrimarySize(rect: RectF): Float
-
-    fun getSecondarySize(rect: RectF): Float
 
     val secondaryTranslationDirectionFactor: Int
 
@@ -175,7 +173,7 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
     fun setSplitTaskSwipeRect(
         dp: DeviceProfile,
         outRect: Rect,
-        splitInfo: SplitBounds,
+        splitInfo: SplitConfigurationOptions.SplitBounds,
         @StagePosition desiredStagePosition: Int,
     )
 
@@ -184,7 +182,7 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         secondarySnapshot: View,
         parentWidth: Int,
         parentHeight: Int,
-        splitBoundsConfig: SplitBounds,
+        splitBoundsConfig: SplitConfigurationOptions.SplitBounds,
         dp: DeviceProfile,
         isRtl: Boolean,
         inSplitSelection: Boolean,
@@ -198,7 +196,7 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
      */
     fun getGroupedTaskViewSizes(
         dp: DeviceProfile,
-        splitBoundsConfig: SplitBounds,
+        splitBoundsConfig: SplitConfigurationOptions.SplitBounds,
         parentWidth: Int,
         parentHeight: Int,
     ): Pair<Point, Point>
@@ -238,7 +236,7 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         groupedTaskViewWidth: Int,
         isRtl: Boolean,
         deviceProfile: DeviceProfile,
-        splitConfig: SplitBounds,
+        splitConfig: SplitConfigurationOptions.SplitBounds,
         inSplitSelection: Boolean,
         oneIconHiddenDueToSmallWidth: Boolean,
     )
@@ -265,10 +263,6 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
         taskInsetMargin: Float,
         taskViewIcon: View,
     ): Float
-
-    fun getAppChipMenuMarginX(appChipView: IconAppChipView, isRtl: Boolean): Int
-
-    fun getAppChipMenuMarginY(appChipView: IconAppChipView, isRtl: Boolean): Int
 
     fun getTaskMenuWidth(
         thumbnailView: View,
@@ -324,7 +318,7 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
     fun getDwbBannerTranslations(
         taskViewWidth: Int,
         taskViewHeight: Int,
-        splitBounds: SplitBounds?,
+        splitBounds: SplitConfigurationOptions.SplitBounds?,
         deviceProfile: DeviceProfile,
         thumbnailViews: Array<View>,
         desiredTaskId: Int,
@@ -356,12 +350,6 @@ interface RecentsPagedOrientationHandler : PagedOrientationHandler {
 
     /** @return the length to drag a task to full screen for launch. */
     fun getTaskLaunchLength(secondaryDimension: Int, taskThumbnailBounds: Rect): Int
-
-    /** Extends the provided rect to account for task dismiss primary translation. */
-    fun extendRectForPrimaryTranslation(rect: Rect, translation: Int)
-
-    /** Extends the provided rect to account for task dismiss secondary translation. */
-    fun extendRectForSecondaryTranslation(rect: Rect, translation: Int)
 
     /**
      * Maps the velocity from the coordinate plane of the foreground app to that of Launcher's

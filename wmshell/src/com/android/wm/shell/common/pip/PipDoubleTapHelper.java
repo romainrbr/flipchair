@@ -52,15 +52,24 @@ public class PipDoubleTapHelper {
     public static final int SIZE_SPEC_MAX = 1;
     public static final int SIZE_SPEC_CUSTOM = 2;
 
+    /**
+     * Returns MAX or DEFAULT {@link PipSizeSpec} to toggle to/from.
+     *
+     * <p>Each double tap toggles back and forth between {@code PipSizeSpec.CUSTOM} and
+     * either {@code PipSizeSpec.MAX} or {@code PipSizeSpec.DEFAULT}. The choice between
+     * the latter two sizes is determined based on the current state of the pip screen.</p>
+     *
+     * @param mPipBoundsState current state of the pip screen
+     */
     @PipSizeSpec
-    private static int getMaxOrDefaultPipSizeSpec(@NonNull PipBoundsState pipBoundsState) {
+    private static int getMaxOrDefaultPipSizeSpec(@NonNull PipBoundsState mPipBoundsState) {
         // determine the average pip screen width
-        int averageWidth = (pipBoundsState.getMaxSize().x
-                + pipBoundsState.getMinSize().x) / 2;
+        int averageWidth = (mPipBoundsState.getMaxSize().x
+                + mPipBoundsState.getMinSize().x) / 2;
 
         // If pip screen width is above average, DEFAULT is the size spec we need to
         // toggle to. Otherwise, we choose MAX.
-        return (pipBoundsState.getBounds().width() > averageWidth)
+        return (mPipBoundsState.getBounds().width() > averageWidth)
                 ? SIZE_SPEC_DEFAULT
                 : SIZE_SPEC_MAX;
     }
@@ -68,33 +77,35 @@ public class PipDoubleTapHelper {
     /**
      * Determines the {@link PipSizeSpec} to toggle to on double tap.
      *
-     * @param pipBoundsState current state of the pip bounds
+     * @param mPipBoundsState current state of the pip screen
      * @param userResizeBounds latest user resized bounds (by pinching in/out)
+     * @return pip screen size to switch to
      */
     @PipSizeSpec
-    public static int nextSizeSpec(@NonNull PipBoundsState pipBoundsState,
+    public static int nextSizeSpec(@NonNull PipBoundsState mPipBoundsState,
             @NonNull Rect userResizeBounds) {
-        boolean isScreenMax = pipBoundsState.getBounds().width() == pipBoundsState.getMaxSize().x
-                && pipBoundsState.getBounds().height() == pipBoundsState.getMaxSize().y;
-        boolean isScreenDefault = (pipBoundsState.getBounds().width()
-                == pipBoundsState.getNormalBounds().width())
-                && (pipBoundsState.getBounds().height()
-                == pipBoundsState.getNormalBounds().height());
+        // is pip screen at its maximum
+        boolean isScreenMax = mPipBoundsState.getBounds().width()
+                == mPipBoundsState.getMaxSize().x;
+
+        // is pip screen at its normal default size
+        boolean isScreenDefault = (mPipBoundsState.getBounds().width()
+                == mPipBoundsState.getNormalBounds().width())
+                && (mPipBoundsState.getBounds().height()
+                == mPipBoundsState.getNormalBounds().height());
 
         // edge case 1
         // if user hasn't resized screen yet, i.e. CUSTOM size does not exist yet
         // or if user has resized exactly to DEFAULT, then we just want to maximize
         if (isScreenDefault
-                && userResizeBounds.width() == pipBoundsState.getNormalBounds().width()
-                && userResizeBounds.height() == pipBoundsState.getNormalBounds().height()) {
+                && userResizeBounds.width() == mPipBoundsState.getNormalBounds().width()) {
             return SIZE_SPEC_MAX;
         }
 
         // edge case 2
-        // if user has resized to max, then we want to toggle to DEFAULT
+        // if user has maximized, then we want to toggle to DEFAULT
         if (isScreenMax
-                && userResizeBounds.width() == pipBoundsState.getMaxSize().x
-                && userResizeBounds.height() == pipBoundsState.getMaxSize().y) {
+                && userResizeBounds.width() == mPipBoundsState.getMaxSize().x) {
             return SIZE_SPEC_DEFAULT;
         }
 
@@ -102,6 +113,9 @@ public class PipDoubleTapHelper {
         if (isScreenDefault || isScreenMax) {
             return SIZE_SPEC_CUSTOM;
         }
-        return getMaxOrDefaultPipSizeSpec(pipBoundsState);
+
+        // if we are currently in user resized CUSTOM size state
+        // then we toggle either to MAX or DEFAULT depending on the current pip screen state
+        return getMaxOrDefaultPipSizeSpec(mPipBoundsState);
     }
 }

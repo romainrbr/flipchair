@@ -47,7 +47,7 @@ class AddFoldersWithItemsTask(
         val addedWorkspaceScreensFinal = IntArray()
 
         synchronized(dataModel) {
-            val workspaceScreens = dataModel.itemsIdMap.collectWorkspaceScreens()
+            val workspaceScreens = dataModel.collectWorkspaceScreens()
             val modelWriter = taskController.getModelWriter()
 
             folders.forEach { folderInfo ->
@@ -55,7 +55,6 @@ class AddFoldersWithItemsTask(
                 val coords = itemSpaceFinder.findSpaceForItem(
                     workspaceScreens,
                     addedWorkspaceScreensFinal,
-                    addedItemsFinal,
                     folderInfo.spanX,
                     folderInfo.spanY,
                 )
@@ -114,7 +113,11 @@ class AddFoldersWithItemsTask(
                     }
                 }
 
-                callbacks.bindItemsAdded(addedItemsFinal)
+                callbacks.bindAppsAdded(
+                    addedWorkspaceScreensFinal,
+                    ArrayList(addNotAnimated),
+                    ArrayList(addAnimated),
+                )
 
                 // Notify completion after items are bound
                 onComplete?.invoke()

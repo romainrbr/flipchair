@@ -30,7 +30,8 @@ import com.android.wm.shell.splitscreen.SplitScreenController;
  */
 public interface WindowDecorViewModel {
     /**
-     * Sets the transition starter that starts freeform task transitions.
+     * Sets the transition starter that starts freeform task transitions. Only called when
+     * {@link com.android.wm.shell.transition.Transitions#ENABLE_SHELL_TRANSITIONS} is {@code true}.
      *
      * @param transitionStarter the transition starter that starts freeform task transitions
      */

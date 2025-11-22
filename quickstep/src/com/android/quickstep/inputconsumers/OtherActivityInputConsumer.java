@@ -136,8 +136,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
             InputMonitorCompat inputMonitorCompat,
             InputEventReceiver inputEventReceiver,
             boolean disableHorizontalSwipe,
-            Factory handlerFactory,
-            RotationTouchHelper rotationTouchHelper) {
+            Factory handlerFactory) {
         super(base);
         mDeviceState = deviceState;
         mNavBarPosition = mDeviceState.getNavBarPosition();
@@ -164,7 +163,7 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
         mPassedPilferInputSlop = mPassedWindowMoveSlop = continuingPreviousGesture;
         mStartDisplacement = continuingPreviousGesture ? 0 : -mTouchSlop;
         mDisableHorizontalSwipe = !mPassedPilferInputSlop && disableHorizontalSwipe;
-        mRotationTouchHelper = rotationTouchHelper;
+        mRotationTouchHelper = RotationTouchHelper.INSTANCE.get(this);
     }
 
     @Override
@@ -421,13 +420,6 @@ public class OtherActivityInputConsumer extends ContextWrapper implements InputC
 
     private void startTouchTrackingForWindowAnimation(long touchTimeMs) {
         mInteractionHandler = mHandlerFactory.newHandler(mGestureState, touchTimeMs);
-        if (mInteractionHandler == null) {
-            // Can happen e.g. when a display is disconnected, so try to handle gracefully.
-            Log.d(TAG, "AbsSwipeUpHandler not available for displayId=$focusedDisplayId");
-            ActiveGestureProtoLogProxy.logOnAbsSwipeUpHandlerNotAvailable(
-                    mGestureState.getDisplayId());
-            return;
-        }
         mInteractionHandler.setGestureEndCallback(this::onInteractionGestureFinished);
         mMotionPauseDetector.setOnMotionPauseListener(mInteractionHandler.getMotionPauseListener());
         mMotionPauseDetector.setIsTrackpadGesture(mGestureState.isTrackpadGesture());

@@ -23,7 +23,7 @@ import android.view.VelocityTracker;
 import android.view.ViewConfiguration;
 
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.protolog.ProtoLog;
+import com.android.internal.protolog.common.ProtoLog;
 import com.android.wm.shell.common.ShellExecutor;
 import com.android.wm.shell.protolog.ShellProtoLogGroup;
 
@@ -54,7 +54,6 @@ public class PipTouchState {
     private final PointF mLastTouch = new PointF();
     private final PointF mLastDelta = new PointF();
     private final PointF mVelocity = new PointF();
-    private MotionEvent mLatestMotionEvent;
     private boolean mAllowTouches = true;
 
     // Set to false to block both PipTouchHandler and PipResizeGestureHandler's input processing
@@ -120,7 +119,6 @@ public class PipTouchState {
                 initOrResetVelocityTracker();
                 addMovementToVelocityTracker(ev);
 
-                mLatestMotionEvent = ev;
                 mActivePointerId = ev.getPointerId(0);
                 if (DEBUG) {
                     ProtoLog.e(ShellProtoLogGroup.WM_SHELL_PICTURE_IN_PICTURE,
@@ -247,13 +245,6 @@ public class PipTouchState {
      */
     public PointF getLastTouchPosition() {
         return mLastTouch;
-    }
-
-    /**
-     * @return the motion event of the latest touch event.
-     */
-    public MotionEvent getLatestMotionEvent() {
-        return mLatestMotionEvent;
     }
 
     /**
@@ -428,7 +419,6 @@ public class PipTouchState {
         pw.println(innerPrefix + "mLastTouch=" + mLastTouch);
         pw.println(innerPrefix + "mLastDelta=" + mLastDelta);
         pw.println(innerPrefix + "mVelocity=" + mVelocity);
-        pw.println(innerPrefix + "mLatestMotionEvent=" + mLatestMotionEvent);
         pw.println(innerPrefix + "mIsUserInteracting=" + mIsUserInteracting);
         pw.println(innerPrefix + "mIsDragging=" + mIsDragging);
         pw.println(innerPrefix + "mStartedDragging=" + mStartedDragging);

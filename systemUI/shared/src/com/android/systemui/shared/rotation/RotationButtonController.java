@@ -17,8 +17,6 @@
 package com.android.systemui.shared.rotation;
 
 import static android.content.pm.PackageManager.FEATURE_PC;
-import static android.hardware.devicestate.DeviceState.PROPERTY_FOLDABLE_DISPLAY_CONFIGURATION_INNER_PRIMARY;
-import static android.hardware.devicestate.DeviceState.PROPERTY_FOLDABLE_DISPLAY_CONFIGURATION_OUTER_PRIMARY;
 import static android.view.Display.DEFAULT_DISPLAY;
 
 import static com.android.internal.view.RotationPolicy.NATURAL_ROTATION;
@@ -38,8 +36,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
-import android.hardware.devicestate.DeviceState;
-import android.hardware.devicestate.DeviceStateManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.RemoteException;
@@ -71,10 +67,8 @@ import com.android.systemui.shared.rotation.RotationButton.RotationButtonUpdates
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.TaskStackChangeListener;
 import com.android.systemui.shared.system.TaskStackChangeListeners;
-import com.android.window.flags2.Flags;
 
 import java.io.PrintWriter;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -100,7 +94,7 @@ public class RotationButtonController {
     private final UiEventLogger mUiEventLogger = new UiEventLoggerImpl();
     private final ViewRippler mViewRippler = new ViewRippler();
     private final Supplier<Integer> mWindowRotationProvider;
-    @Nullable private RotationButton mRotationButton;
+    private RotationButton mRotationButton;
 
     private boolean mIsRecentsAnimationRunning;
     private boolean mDocked;
@@ -207,14 +201,6 @@ public class RotationButtonController {
         mRotationButton.setUpdatesCallback(updatesCallback);
     }
 
-    private void clearRotationButton() {
-        if (mRotationButton == null) {
-            return;
-        }
-        mRotationButton.onDestroy();
-        mRotationButton = null;
-    }
-
     public Context getContext() {
         return mContext;
     }
@@ -244,7 +230,6 @@ public class RotationButtonController {
      */
     public void onDestroy() {
         unregisterListeners();
-        clearRotationButton();
     }
 
     public void registerListeners(boolean registerRotationWatcher) {
@@ -301,23 +286,12 @@ public class RotationButtonController {
         TaskStackChangeListeners.getInstance().unregisterTaskStackListener(mTaskStackListener);
     }
 
-    /**
-     * Sets device rotation to {@code rotationSuggestion} if {@code isLocked} is true and
-     * {@link Flags#enableDeviceStateAutoRotateSettingRefactor()} is disabled.
-     * <p> When {@link Flags#enableDeviceStateAutoRotateSettingRefactor()} is enabled, the rotation
-     * change in system server is conditional on auto-rotate still being OFF.
-     */
-    public void setRotationAtAngle(
+    public void setRotationLockedAtAngle(
             @Nullable Boolean isLocked, int rotationSuggestion, String caller) {
         if (isLocked == null) {
             // Ignore if we can't read the setting for the current user
             return;
         }
-        if (isFoldable() && Flags.enableDeviceStateAutoRotateSettingRefactor()) {
-            RotationPolicy.setRotationAtAngleIfAllowed(rotationSuggestion, caller);
-            return;
-        }
-
         RotationPolicy.setRotationLockAtAngle(mContext, /* enabled= */ isLocked,
                 /* rotation= */ rotationSuggestion, caller);
     }
@@ -327,8 +301,6 @@ public class RotationButtonController {
     }
 
     void setRotateSuggestionButtonState(final boolean visible, final boolean force) {
-        if (mRotationButton == null) return;
-
         // At any point the button can become invisible because an a11y service became active.
         // Similarly, a call to make the button visible may be rejected because an a11y service is
         // active. Must account for this.
@@ -389,9 +361,7 @@ public class RotationButtonController {
             fadeOut.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    if (mRotationButton != null) {
-                        mRotationButton.hide();
-                    }
+                    mRotationButton.hide();
                 }
             });
 
@@ -401,9 +371,7 @@ public class RotationButtonController {
     }
 
     public void setDarkIntensity(float darkIntensity) {
-        if (mRotationButton != null) {
-            mRotationButton.setDarkIntensity(darkIntensity);
-        }
+        mRotationButton.setDarkIntensity(darkIntensity);
     }
 
     public void setRecentsAnimationRunning(boolean running) {
@@ -432,10 +400,6 @@ public class RotationButtonController {
     }
 
     public void onRotationProposal(int rotation, boolean isValid) {
-        if (mRotationButton == null) {
-            return;
-        }
-
         boolean isUserSetupComplete = Settings.Secure.getInt(mContext.getContentResolver(),
                 Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
         if (!isUserSetupComplete && OEM_DISALLOW_ROTATION_IN_SUW) {
@@ -509,10 +473,10 @@ public class RotationButtonController {
         }
         // The isVisible check makes the rotation button disappear when we are not locked
         // (e.g. for tabletop auto-rotate).
-        if (isRotationLocked || (mRotationButton != null && mRotationButton.isVisible())) {
+        if (isRotationLocked || mRotationButton.isVisible()) {
             // Do not allow a change in rotation to set user rotation when docked.
             if (shouldOverrideUserLockPrefs(rotation) && isRotationLocked && !mDocked) {
-                setRotationAtAngle(true, rotation, /* caller= */
+                setRotationLockedAtAngle(true, rotation, /* caller= */
                         "RotationButtonController#onRotationWatcherChanged");
             }
             setRotateSuggestionButtonState(false /* visible */, true /* forced */);
@@ -548,9 +512,10 @@ public class RotationButtonController {
 
     public void onTaskbarStateChange(boolean visible, boolean stashed) {
         mTaskBarVisible = visible;
-        if (mRotationButton != null) {
-            mRotationButton.onTaskbarStateChanged(visible, stashed);
+        if (getRotationButton() == null) {
+            return;
         }
+        getRotationButton().onTaskbarStateChanged(visible, stashed);
     }
 
     private void showPendingRotationButtonIfNeeded() {
@@ -609,7 +574,6 @@ public class RotationButtonController {
                 "%s\tmDarkIconColor=0x%s", prefix, Integer.toHexString(mDarkIconColor)));
     }
 
-    @Nullable
     public RotationButton getRotationButton() {
         return mRotationButton;
     }
@@ -617,7 +581,7 @@ public class RotationButtonController {
     private void onRotateSuggestionClick(View v) {
         mUiEventLogger.log(RotationButtonEvent.ROTATION_SUGGESTION_ACCEPTED);
         incrementNumAcceptedRotationSuggestionsIfNeeded();
-        setRotationAtAngle(
+        setRotationLockedAtAngle(
                 RotationPolicyUtil.isRotationLocked(mContext), mLastRotationSuggestion,
                 /* caller= */ "RotationButtonController#onRotateSuggestionClick");
         Log.i(TAG, "onRotateSuggestionClick() mLastRotationSuggestion=" + mLastRotationSuggestion);
@@ -671,7 +635,7 @@ public class RotationButtonController {
             // Don't reschedule if a hide animator is running
             if (mRotateHideAnimator != null && mRotateHideAnimator.isRunning()) return;
             // Don't reschedule if not visible
-            if (mRotationButton == null || !mRotationButton.isVisible()) return;
+            if (!mRotationButton.isVisible()) return;
         }
 
         // Stop any pending removal
@@ -703,27 +667,6 @@ public class RotationButtonController {
         if (numSuggestions < NUM_ACCEPTED_ROTATION_SUGGESTIONS_FOR_INTRODUCTION) {
             Settings.Secure.putInt(cr, Settings.Secure.NUM_ROTATION_SUGGESTIONS_ACCEPTED,
                     numSuggestions + 1);
-        }
-    }
-
-    private boolean isFoldable() {
-        if (android.hardware.devicestate.feature.flags.Flags.deviceStatePropertyMigration()) {
-            final DeviceStateManager deviceStateManager = mContext.getSystemService(
-                    DeviceStateManager.class);
-            if (deviceStateManager == null) return false;
-            List<DeviceState> deviceStates = deviceStateManager.getSupportedDeviceStates();
-            for (int i = 0; i < deviceStates.size(); i++) {
-                DeviceState state = deviceStates.get(i);
-                if (state.hasProperty(PROPERTY_FOLDABLE_DISPLAY_CONFIGURATION_OUTER_PRIMARY)
-                        || state.hasProperty(
-                        PROPERTY_FOLDABLE_DISPLAY_CONFIGURATION_INNER_PRIMARY)) {
-                    return true;
-                }
-            }
-            return false;
-        } else {
-            return mContext.getResources().getIntArray(
-                    com.android.internal.R.array.config_foldedDeviceStates).length != 0;
         }
     }
 

@@ -26,6 +26,7 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
 import android.view.Display;
+import android.view.InsetsState;
 import android.view.SurfaceControl;
 import android.view.SurfaceControlViewHost;
 import android.view.WindowManager;
@@ -35,7 +36,7 @@ import android.window.StartingWindowInfo;
 import android.window.TaskSnapshot;
 
 import com.android.wm.shell.common.ShellExecutor;
-import com.android.wm.shell.shared.TransactionPool;
+import com.android.wm.shell.common.TransactionPool;
 
 class WindowlessSnapshotWindowCreator {
     private static final int DEFAULT_FADEOUT_DURATION = 233;
@@ -72,21 +73,22 @@ class WindowlessSnapshotWindowCreator {
         final Display display = mDisplayManager.getDisplay(runningTaskInfo.displayId);
         final StartingSurfaceDrawer.WindowlessStartingWindow wlw =
                 new StartingSurfaceDrawer.WindowlessStartingWindow(
-                        mContext.getResources().getConfiguration(), rootSurface);
+                runningTaskInfo.configuration, rootSurface);
         final SurfaceControlViewHost mViewHost = new SurfaceControlViewHost(
                 mContext, display, wlw, "WindowlessSnapshotWindowCreator");
         final Rect windowBounds = runningTaskInfo.configuration.windowConfiguration.getBounds();
+        final InsetsState topWindowInsetsState = info.topOpaqueWindowInsetsState;
         final FrameLayout rootLayout = new FrameLayout(
                 mSplashscreenContentDrawer.createViewContextWrapper(mContext));
         mViewHost.setView(rootLayout, lp);
-        SnapshotDrawerUtils.drawSnapshotOnSurface(lp, wlw.mChildSurface, snapshot,
-                windowBounds, false /* releaseAfterDraw */);
+        SnapshotDrawerUtils.drawSnapshotOnSurface(info, lp, wlw.mChildSurface, snapshot,
+                windowBounds, topWindowInsetsState, false /* releaseAfterDraw */);
 
         final ActivityManager.TaskDescription taskDescription =
                 SnapshotDrawerUtils.getOrCreateTaskDescription(runningTaskInfo);
 
-        final SnapshotWindowRecord record = new SnapshotWindowRecord(mViewHost, rootSurface,
-                wlw.mChildSurface, taskDescription.getBackgroundColor(), snapshot.hasImeSurface(),
+        final SnapshotWindowRecord record = new SnapshotWindowRecord(mViewHost, wlw.mChildSurface,
+                taskDescription.getBackgroundColor(), snapshot.hasImeSurface(),
                 runningTaskInfo.topActivityType, removeExecutor,
                 taskId, mStartingWindowRecordManager);
         mStartingWindowRecordManager.addRecord(taskId, record);
@@ -96,16 +98,14 @@ class WindowlessSnapshotWindowCreator {
     private class SnapshotWindowRecord extends StartingSurfaceDrawer.SnapshotRecord {
         private SurfaceControlViewHost mViewHost;
         private SurfaceControl mChildSurface;
-        private SurfaceControl mRootSurface;
         private final boolean mHasImeSurface;
 
-        SnapshotWindowRecord(SurfaceControlViewHost viewHost, SurfaceControl rootSurface,
-                SurfaceControl childSurface, int bgColor, boolean hasImeSurface, int activityType,
+        SnapshotWindowRecord(SurfaceControlViewHost viewHost, SurfaceControl childSurface,
+                int bgColor, boolean hasImeSurface, int activityType,
                 ShellExecutor removeExecutor, int id,
                 StartingSurfaceDrawer.StartingWindowRecordManager recordManager) {
             super(activityType, removeExecutor, id, recordManager);
             mViewHost = viewHost;
-            mRootSurface = rootSurface;
             mChildSurface = childSurface;
             mBGColor = bgColor;
             mHasImeSurface = hasImeSurface;
@@ -147,10 +147,6 @@ class WindowlessSnapshotWindowCreator {
                         mTransactionPool.release(t);
                         mChildSurface = null;
                     }
-                    if (mRootSurface != null && mRootSurface.isValid()) {
-                        mRootSurface.release();
-                    }
-                    mRootSurface = null;
                     if (mViewHost != null) {
                         mViewHost.release();
                         mViewHost = null;

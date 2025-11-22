@@ -32,13 +32,12 @@ import android.view.View;
 import android.view.ViewRootImpl;
 import android.view.WindowManager;
 import android.view.WindowManagerGlobal;
-import android.view.accessibility.AccessibilityManager;
 import android.window.SurfaceSyncGroup;
 
 import androidx.annotation.Nullable;
 
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.protolog.ProtoLog;
+import com.android.internal.protolog.common.ProtoLog;
 import com.android.wm.shell.R;
 import com.android.wm.shell.common.SystemWindows;
 import com.android.wm.shell.common.pip.PipMenuController;
@@ -63,8 +62,6 @@ public class TvPipMenuController implements PipMenuController, TvPipMenuView.Lis
     private SurfaceControl mLeash;
     private TvPipMenuView mPipMenuView;
     private TvPipBackgroundView mPipBackgroundView;
-
-    private final AccessibilityManager mA11yManager;
 
     private boolean mIsReloading;
     private static final int PIP_MENU_FORCE_CLOSE_DELAY_MS = 10_000;
@@ -109,8 +106,6 @@ public class TvPipMenuController implements PipMenuController, TvPipMenuView.Lis
         mTvPipBoundsState = tvPipBoundsState;
         mSystemWindows = systemWindows;
         mMainHandler = mainHandler;
-
-        mA11yManager = context.getSystemService(AccessibilityManager.class);
 
         // We need to "close" the menu the platform call for all the system dialogs to close (for
         // example, on the Home button press).
@@ -504,9 +499,7 @@ public class TvPipMenuController implements PipMenuController, TvPipMenuView.Lis
             switchToMenuMode(menuMode);
         } else {
             if (isMenuOpen(menuMode)) {
-                if (!mA11yManager.isEnabled()) {
-                    mMainHandler.postDelayed(mClosePipMenuRunnable, PIP_MENU_FORCE_CLOSE_DELAY_MS);
-                }
+                mMainHandler.postDelayed(mClosePipMenuRunnable, PIP_MENU_FORCE_CLOSE_DELAY_MS);
                 mMenuModeOnFocus = menuMode;
             }
             // Send a request to gain window focus if the menu is open, or lose window focus
@@ -601,10 +594,8 @@ public class TvPipMenuController implements PipMenuController, TvPipMenuView.Lis
     public void onUserInteracting() {
         ProtoLog.d(ShellProtoLogGroup.WM_SHELL_PICTURE_IN_PICTURE,
                 "%s: onUserInteracting - mCurrentMenuMode=%s", TAG, getMenuModeString());
-        if (mMainHandler.hasCallbacks(mClosePipMenuRunnable)) {
-            mMainHandler.removeCallbacks(mClosePipMenuRunnable);
-            mMainHandler.postDelayed(mClosePipMenuRunnable, PIP_MENU_FORCE_CLOSE_DELAY_MS);
-        }
+        mMainHandler.removeCallbacks(mClosePipMenuRunnable);
+        mMainHandler.postDelayed(mClosePipMenuRunnable, PIP_MENU_FORCE_CLOSE_DELAY_MS);
 
     }
     @Override

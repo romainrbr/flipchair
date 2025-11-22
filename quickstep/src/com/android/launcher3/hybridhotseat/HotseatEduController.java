@@ -33,6 +33,7 @@ import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
+import com.android.launcher3.util.IntArray;
 import com.android.launcher3.views.ArrowTipView;
 import com.android.launcher3.views.Snackbar;
 
@@ -56,6 +57,7 @@ public class HotseatEduController {
     private HotseatEduDialog mActiveDialog;
 
     private ArrayList<ItemInfo> mNewItems = new ArrayList<>();
+    private IntArray mNewScreens = null;
 
     HotseatEduController(Launcher launcher) {
         mLauncher = launcher;
@@ -94,6 +96,7 @@ public class HotseatEduController {
         }
         if (pageId == -1) {
             pageId = mLauncher.getModel().getModelDbController().getNewScreenId();
+            mNewScreens = IntArray.wrap(pageId);
         }
         boolean isPortrait = !mLauncher.getDeviceProfile().isVerticalBarLayout();
         int hotseatItemsNum = mLauncher.getDeviceProfile().numShownHotseatIcons;
@@ -114,7 +117,18 @@ public class HotseatEduController {
     void moveHotseatItems() {
         mHotseat.removeAllViewsInLayout();
         if (!mNewItems.isEmpty()) {
-            mLauncher.bindItemsAdded(mNewItems);
+            int lastPage = mNewItems.get(mNewItems.size() - 1).screenId;
+            ArrayList<ItemInfo> animated = new ArrayList<>();
+            ArrayList<ItemInfo> nonAnimated = new ArrayList<>();
+
+            for (ItemInfo info : mNewItems) {
+                if (info.screenId == lastPage) {
+                    animated.add(info);
+                } else {
+                    nonAnimated.add(info);
+                }
+            }
+            mLauncher.bindAppsAdded(mNewScreens, nonAnimated, animated);
         }
     }
 

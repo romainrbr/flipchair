@@ -282,15 +282,14 @@ public class AutoInstallsLayout {
      * 
      * @param out array of size 2.
      */
-    protected void parseContainerAndScreen(XmlPullParser parser, int[] out)
-            throws XmlPullParserException {
+    protected void parseContainerAndScreen(XmlPullParser parser, int[] out) {
         if (HOTSEAT_CONTAINER_NAME.equals(getAttributeValue(parser, ATTR_CONTAINER))) {
             out[0] = Favorites.CONTAINER_HOTSEAT;
             // Hack: hotseat items are stored using screen ids
-            out[1] = getAttributeValueAsInt(parser, ATTR_RANK);
+            out[1] = Integer.parseInt(getAttributeValue(parser, ATTR_RANK));
         } else {
             out[0] = Favorites.CONTAINER_DESKTOP;
-            out[1] = getAttributeValueAsInt(parser, ATTR_SCREEN);
+            out[1] = Integer.parseInt(getAttributeValue(parser, ATTR_SCREEN));
         }
     }
 
@@ -702,16 +701,6 @@ public class AutoInstallsLayout {
             }
         }
         return value;
-    }
-
-    protected static int getAttributeValueAsInt(XmlPullParser parser, String attribute)
-            throws XmlPullParserException {
-        String value = getAttributeValue(parser, attribute);
-        if (value == null) {
-            throw new XmlPullParserException("Missing attribute " + attribute);
-        } else {
-            return Integer.parseInt(value);
-        }
     }
 
     /**

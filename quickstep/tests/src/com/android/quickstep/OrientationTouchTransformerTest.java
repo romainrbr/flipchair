@@ -339,8 +339,7 @@ public class OrientationTouchTransformerTest {
         ArrayMap<CachedDisplayInfo, List<WindowBounds>> internalDisplayBounds = new ArrayMap<>();
         doReturn(internalDisplayBounds).when(wmProxy).estimateInternalDisplayBounds(any());
         return new DisplayController.Info(
-                getApplicationContext(), false, wmProxy, new ArrayMap<>(),
-                DisplayMetrics.DENSITY_DEFAULT);
+                getApplicationContext(), wmProxy, new ArrayMap<>());
     }
 
     private float generateTouchRegionHeight(Size screenSize, int rotation) {

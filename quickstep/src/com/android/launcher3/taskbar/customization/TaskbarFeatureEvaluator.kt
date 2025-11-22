@@ -38,16 +38,10 @@ private constructor(private val taskbarActivityContext: TaskbarActivityContext) 
         get() = taskbarActivityContext.isTransientTaskbar
 
     val isLandscape: Boolean
-        get() = taskbarActivityContext.deviceProfile.deviceProperties.isLandscape
-
-    val isTnMinimalState: Boolean
-        get() = taskbarActivityContext.isTaskbarInMinimalState
+        get() = taskbarActivityContext.deviceProfile.isLandscape
 
     val supportsPinningPopup: Boolean
         get() = !hasNavButtons
-
-    val supportsTransitionToTransientTaskbar: Boolean
-        get() = !hasNavButtons && !taskbarActivityContext.showDesktopTaskbarForFreeformDisplay()
 
     fun onDestroy() {
         taskbarFeatureEvaluator = null

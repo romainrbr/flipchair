@@ -23,7 +23,6 @@ import static com.android.wm.shell.onehanded.OneHandedAnimationController.TRANSI
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.os.Handler;
 import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.ArrayMap;
@@ -43,7 +42,6 @@ import com.android.internal.jank.InteractionJankMonitor;
 import com.android.wm.shell.R;
 import com.android.wm.shell.common.DisplayLayout;
 import com.android.wm.shell.common.ShellExecutor;
-import com.android.wm.shell.shared.annotations.ShellMainThread;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -72,8 +70,6 @@ public class OneHandedDisplayAreaOrganizer extends DisplayAreaOrganizer {
     private final OneHandedSettingsUtil mOneHandedSettingsUtil;
     private final InteractionJankMonitor mJankMonitor;
     private final Context mContext;
-    @ShellMainThread
-    private final Handler mHandler;
 
     private boolean mIsReady;
     private float mLastVisualOffset = 0;
@@ -140,11 +136,9 @@ public class OneHandedDisplayAreaOrganizer extends DisplayAreaOrganizer {
             OneHandedAnimationController animationController,
             OneHandedTutorialHandler tutorialHandler,
             InteractionJankMonitor jankMonitor,
-            ShellExecutor mainExecutor,
-            @ShellMainThread Handler handler) {
+            ShellExecutor mainExecutor) {
         super(mainExecutor);
         mContext = context;
-        mHandler = handler;
         setDisplayLayout(displayLayout);
         mOneHandedSettingsUtil = oneHandedSettingsUtil;
         mAnimationController = animationController;
@@ -339,7 +333,7 @@ public class OneHandedDisplayAreaOrganizer extends DisplayAreaOrganizer {
                 getDisplayAreaTokenMap().entrySet().iterator().next();
         final InteractionJankMonitor.Configuration.Builder builder =
                 InteractionJankMonitor.Configuration.Builder.withSurface(
-                        cujType, mContext, firstEntry.getValue(), mHandler);
+                        cujType, mContext, firstEntry.getValue());
         if (!TextUtils.isEmpty(tag)) {
             builder.setTag(tag);
         }

@@ -17,15 +17,15 @@ package com.android.quickstep.util;
 
 import static android.app.WindowConfiguration.WINDOWING_MODE_FULLSCREEN;
 
+import static com.android.launcher3.Flags.enableGridOnlyOverview;
 import static com.android.launcher3.states.RotationHelper.deltaRotation;
 import static com.android.launcher3.touch.PagedOrientationHandler.MATRIX_POST_TRANSLATE;
-import static com.android.launcher3.util.OverviewReleaseFlags.enableGridOnlyOverview;
+import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_BOTTOM_OR_RIGHT;
+import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
+import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_UNDEFINED;
+import static com.android.launcher3.util.SplitConfigurationOptions.StagePosition;
 import static com.android.quickstep.util.RecentsOrientedState.postDisplayRotation;
 import static com.android.quickstep.util.RecentsOrientedState.preDisplayRotation;
-import static com.android.wm.shell.Flags.enableFlexibleTwoAppSplit;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_BOTTOM_OR_RIGHT;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_TOP_OR_LEFT;
-import static com.android.wm.shell.shared.split.SplitScreenConstants.SPLIT_POSITION_UNDEFINED;
 
 import android.animation.TimeInterpolator;
 import android.content.Context;
@@ -45,6 +45,7 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatedFloat;
 import com.android.launcher3.anim.PendingAnimation;
+import com.android.launcher3.util.SplitConfigurationOptions.SplitBounds;
 import com.android.launcher3.util.TraceHelper;
 import com.android.quickstep.BaseActivityInterface;
 import com.android.quickstep.BaseContainerInterface;
@@ -54,8 +55,6 @@ import com.android.quickstep.TaskAnimationManager;
 import com.android.quickstep.util.SurfaceTransaction.SurfaceProperties;
 import com.android.systemui.shared.recents.model.ThumbnailData;
 import com.android.systemui.shared.recents.utilities.PreviewPositionHelper;
-import com.android.wm.shell.shared.split.SplitBounds;
-import com.android.wm.shell.shared.split.SplitScreenConstants;
 
 /**
  * A utility class which emulates the layout behavior of TaskView and RecentsView
@@ -82,8 +81,8 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     private PointF mPivotOverride = null;
     private final PointF mPivot = new PointF();
     private DeviceProfile mDp;
-    @SplitScreenConstants.SplitPosition
-    private int mSplitPosition = SPLIT_POSITION_UNDEFINED;
+    @StagePosition
+    private int mStagePosition = STAGE_POSITION_UNDEFINED;
 
     private final Matrix mMatrix = new Matrix();
     private final Matrix mMatrixTmp = new Matrix();
@@ -116,11 +115,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     private int mOrientationStateId;
     private SplitBounds mSplitBounds;
     private Boolean mDrawsBelowRecents = null;
-    private Boolean mDrawAboveOtherApps = null;
     private boolean mIsGridTask;
     private final boolean mIsDesktopTask;
     private boolean mIsAnimatingToCarousel = false;
-    private final int mDesktopTaskIndex;
+    private int mTaskRectTranslationX;
+    private int mTaskRectTranslationY;
+    private int mDesktopTaskIndex = 0;
 
     @Nullable
     private Matrix mTaskRectTransform = null;
@@ -152,15 +152,12 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         mLayoutValid = false;
         mOrientationState.setDeviceProfile(dp);
         if (enableGridOnlyOverview()) {
-            mIsGridTask = dp.getDeviceProperties().isTablet() && !mIsDesktopTask;
+            mIsGridTask = dp.isTablet && !mIsDesktopTask;
         }
         calculateTaskSize();
     }
 
-    /**
-     * Updates the task size.
-     */
-    public void calculateTaskSize() {
+    private void calculateTaskSize() {
         if (mDp == null) {
             return;
         }
@@ -186,7 +183,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             // sized task space bounds
             mTaskRect.set(mFullTaskSize);
             mOrientationState.getOrientationHandler()
-                    .setSplitTaskSwipeRect(mDp, mTaskRect, mSplitBounds, mSplitPosition);
+                    .setSplitTaskSwipeRect(mDp, mTaskRect, mSplitBounds, mStagePosition);
         } else if (mIsDesktopTask) {
             // For desktop, tasks can take up only part of the screen size.
             // Full task size represents the whole screen size, but scaled down to fit in recents.
@@ -212,6 +209,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         } else {
             mTaskRect.set(mFullTaskSize);
         }
+        mTaskRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
     }
 
     /**
@@ -229,8 +227,11 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         if (mDp == null) {
             return 1;
         }
-        float scale = mOrientationState.getFullScreenScaleAndPivot(
-                mIsAnimatingToCarousel ? mCarouselTaskSize : mFullTaskSize, mDp, mPivot);
+        // Copy mFullTaskSize instead of updating it directly so it could be reused next time
+        // without recalculating
+        Rect scaleRect = new Rect(mIsAnimatingToCarousel ? mCarouselTaskSize : mFullTaskSize);
+        scaleRect.offset(mTaskRectTranslationX, mTaskRectTranslationY);
+        float scale = mOrientationState.getFullScreenScaleAndPivot(scaleRect, mDp, mPivot);
         if (mPivotOverride != null) {
             mPivot.set(mPivotOverride);
         }
@@ -258,13 +259,10 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         setPreview(runningTarget);
         mSplitBounds = splitInfo;
         if (mSplitBounds == null) {
-            mSplitPosition = SPLIT_POSITION_UNDEFINED;
+            mStagePosition = STAGE_POSITION_UNDEFINED;
         } else {
-            mSplitPosition = runningTarget.taskId == splitInfo.leftTopTaskId
-                    ? SPLIT_POSITION_TOP_OR_LEFT : SPLIT_POSITION_BOTTOM_OR_RIGHT;
-            if (enableFlexibleTwoAppSplit()) {
-                mPositionHelper.setSplitBounds(mSplitBounds, mSplitPosition);
-            }
+            mStagePosition = runningTarget.taskId == splitInfo.leftTopTaskId
+                    ? STAGE_POSITION_TOP_OR_LEFT : STAGE_POSITION_BOTTOM_OR_RIGHT;
         }
         calculateTaskSize();
     }
@@ -292,10 +290,6 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
         mDrawsBelowRecents = drawsBelowRecents;
     }
 
-    public boolean getDrawsBelowRecents() {
-        return mDrawsBelowRecents != null ? mDrawsBelowRecents : false;
-    }
-
     /**
      * Sets whether the task is part of overview grid and not being focused.
      */
@@ -304,12 +298,13 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     }
 
     /**
-     * Sets whether drawing this app above other apps during animation. It's currently used when
-     * activating an app window from the exploded desktop view which will launch the desktop tile
-     * and exit Overview.
+     * Apply translations on TaskRect's starting location.
      */
-    public void setDrawsAboveOtherApps(boolean drawsAboveOtherApps) {
-        mDrawAboveOtherApps = drawsAboveOtherApps;
+    public void setTaskRectTranslation(int taskRectTranslationX, int taskRectTranslationY) {
+        mTaskRectTranslationX = taskRectTranslationX;
+        mTaskRectTranslationY = taskRectTranslationY;
+        // Re-calculate task size after changing translation
+        calculateTaskSize();
     }
 
     /**
@@ -323,10 +318,9 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     /**
      * Adds animation for all the components corresponding to transition from an app to carousel.
      */
-    public void addAppToCarouselAnim(PendingAnimation pa, Interpolator interpolator,
-            boolean isHandlingAtomicEvent) {
+    public void addAppToCarouselAnim(PendingAnimation pa, Interpolator interpolator) {
         pa.addFloat(fullScreenProgress, AnimatedFloat.VALUE, 1, 0, interpolator);
-        if (enableGridOnlyOverview() && mDp.getDeviceProperties().isTablet() && !isHandlingAtomicEvent) {
+        if (enableGridOnlyOverview() && mDp.isTablet && mDp.isGestureMode) {
             mIsAnimatingToCarousel = true;
             carouselScale.value = mCarouselTaskSize.width() / (float) mFullTaskSize.width();
         }
@@ -358,7 +352,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
     public RectF getCurrentRect() {
         RectF result = getCurrentCropRect();
         mMatrixTmp.set(mMatrix);
-        preDisplayRotation(mOrientationState.getDisplayRotation(), mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx(),
+        preDisplayRotation(mOrientationState.getDisplayRotation(), mDp.widthPx, mDp.heightPx,
                 mMatrixTmp);
         mMatrixTmp.mapRect(result);
         return result;
@@ -412,11 +406,11 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
      * window coordinate space.
      */
     public void applyWindowToHomeRotation(Matrix matrix) {
-        matrix.postTranslate(mDp.getDeviceProperties().getWindowX(), mDp.getDeviceProperties().getWindowY());
+        matrix.postTranslate(mDp.windowX, mDp.windowY);
         postDisplayRotation(deltaRotation(
                         mOrientationState.getRecentsActivityRotation(),
                         mOrientationState.getDisplayRotation()),
-                mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx(), matrix);
+                mDp.widthPx, mDp.heightPx, matrix);
     }
 
     /**
@@ -451,7 +445,7 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
             boolean isRtlEnabled = !mIsRecentsRtl;
             mPositionHelper.updateThumbnailMatrix(
                     mThumbnailPosition, mThumbnailData, mTaskRect.width(), mTaskRect.height(),
-                    mDp.getDeviceProperties().isTablet(), mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
+                    mDp.isTablet, mOrientationState.getRecentsActivityRotation(), isRtlEnabled);
             mPositionHelper.getMatrix().invert(mInversePositionMatrix);
             if (DEBUG) {
                 Log.d(TAG, " taskRect: " + mTaskRect);
@@ -542,22 +536,15 @@ public class TaskViewSimulator implements TransformParams.BuilderProxy {
                 .setWindowCrop(mTmpCropRect)
                 .setCornerRadius(getCurrentCornerRadius());
 
-        if (mDrawsBelowRecents == null && mDrawAboveOtherApps == null) {
-            // No reordering will be enforced.
-            return;
-        }
-
-        // In shell transitions, the animation leashes are reparented to an animation container
-        // so we can bump layers as needed.
-        int baseLayer = app.prefixOrderIndex - mDesktopTaskIndex;
-        // 1000/2000 are arbitrary numbers to give room for multiple layers.
+        // If mDrawsBelowRecents is unset, no reordering will be enforced.
         if (mDrawsBelowRecents != null) {
-            baseLayer += mDrawsBelowRecents ? Integer.MIN_VALUE + 2000 :  Integer.MAX_VALUE - 2000;
+            // In shell transitions, the animation leashes are reparented to an animation container
+            // so we can bump layers as needed.
+            builder.setLayer(mDrawsBelowRecents
+                    // 1000 is an arbitrary number to give room for multiple layers.
+                    ? Integer.MIN_VALUE + 1000 + app.prefixOrderIndex - mDesktopTaskIndex
+                    : Integer.MAX_VALUE - 1000 + app.prefixOrderIndex - mDesktopTaskIndex);
         }
-        if (mDrawAboveOtherApps != null && mDrawAboveOtherApps) {
-            baseLayer += 1000;
-        }
-        builder.setLayer(baseLayer);
     }
 
     /**

@@ -23,7 +23,6 @@ import static com.android.launcher3.util.SplitConfigurationOptions.getLogEventFo
 import android.content.Intent;
 import android.content.pm.LauncherApps;
 import android.graphics.Point;
-import android.os.UserHandle;
 import android.util.Pair;
 import android.util.SparseArray;
 import android.view.MotionEvent;
@@ -31,7 +30,6 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.android.internal.logging.InstanceId;
 import com.android.launcher3.AbstractFloatingView;
@@ -55,7 +53,6 @@ import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.SystemUiProxy;
 import com.android.quickstep.util.LogUtils;
 import com.android.quickstep.util.SingleTask;
-import com.android.systemui.shared.recents.model.Task;
 import com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper;
 import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
 
@@ -145,35 +142,25 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             return null;
         }
 
-        ItemInfo itemInfo = null;
+        ItemInfo itemInfo;
         if (icon.getTag() instanceof ItemInfo item && ShortcutUtil.supportsShortcuts(item)) {
             itemInfo = item;
-        } else if (PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled(mContext)
-                && icon.getTag() instanceof SingleTask task) {
-            Task.TaskKey key = task.getTask().getKey();
-            AppInfo appInfo = getApp(
-                    new ComponentKey(key.getComponent(), UserHandle.of(key.userId)));
-            if (appInfo != null) {
-                WorkspaceItemInfo wif = appInfo.makeWorkspaceItem(icon.getContext());
-                itemInfo = SingleTask.Companion.createTaskItemInfo(task, wif);
-            }
-        }
-
-        if (itemInfo == null) {
+        } else if (icon.getTag() instanceof SingleTask task) {
+            itemInfo = SingleTask.Companion.createTaskItemInfo(task);
+        } else {
             return null;
         }
 
         PopupContainerWithArrow<BaseTaskbarContext> container;
         int deepShortcutCount = mPopupDataProvider.getShortcutCountForItem(itemInfo);
         // TODO(b/198438631): add support for INSTALL shortcut factory
-        final ItemInfo finalInfo = itemInfo;
         List<SystemShortcut> systemShortcuts = getSystemShortcuts()
-                .map(s -> s.getShortcut(context, finalInfo, icon))
+                .map(s -> s.getShortcut(context, itemInfo, icon))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         // TODO(b/375648361): Revisit to see if this can be implemented within getSystemShortcuts().
-        if (PinToTaskbarShortcut.Companion.isPinningAppWithContextMenuEnabled(mContext)) {
+        if (Flags.enablePinningAppWithContextMenu()) {
             SystemShortcut shortcut = createPinShortcut(context, itemInfo, icon);
             if (shortcut != null) {
                 systemShortcuts.add(0, shortcut);
@@ -181,7 +168,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
         }
 
         container = (PopupContainerWithArrow) context.getLayoutInflater().inflate(
-                R.layout.popup_container, context.getDragLayer(), false);
+                    R.layout.popup_container, context.getDragLayer(), false);
         container.populateAndShowRows(icon, itemInfo, deepShortcutCount, systemShortcuts);
 
         // TODO (b/198438631): configure for taskbar/context
@@ -222,8 +209,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
     }
 
     @Nullable
-    @VisibleForTesting
-    SystemShortcut createPinShortcut(BaseTaskbarContext target, ItemInfo itemInfo,
+    private SystemShortcut createPinShortcut(BaseTaskbarContext target, ItemInfo itemInfo,
             BubbleTextView originalView) {
         // Predicted items use {@code HotseatPredictionController.PinPrediction} shortcut to pin.
         if (itemInfo.isPredictedItem()) {
@@ -233,18 +219,6 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             return new PinToTaskbarShortcut<>(target, itemInfo, originalView, false,
                     mHotseatInfosList);
         }
-
-        if (itemInfo.container == CONTAINER_ALL_APPS) {
-            // If the target ItemInfo is already pinned on taskbar. Show the unpin option instead.
-            for (int i = 0; i < mHotseatInfosList.size(); i++) {
-                if (Objects.equals(mHotseatInfosList.valueAt(i).getComponentKey(),
-                        itemInfo.getComponentKey())) {
-                    return new PinToTaskbarShortcut<>(target, itemInfo, originalView, false,
-                            mHotseatInfosList);
-                }
-            }
-        }
-
         if (mHotseatInfosList.size()
                 < mContext.getTaskbarSpecsEvaluator().getNumShownHotseatIcons()) {
             return new PinToTaskbarShortcut<>(target, itemInfo, originalView, true,
@@ -292,10 +266,7 @@ public class TaskbarPopupController implements TaskbarControllers.LoggableTaskba
             // Move the icon to align with the center-top of the touch point
             Point iconShift = new Point();
             iconShift.x = mIconLastTouchPos.x - sv.getIconCenter().x;
-            iconShift.y = mIconLastTouchPos.y
-                    - mContext.getDeviceProfile()
-                    .getTaskbarProfile()
-                    .getIconSize();
+            iconShift.y = mIconLastTouchPos.y - mContext.getDeviceProfile().taskbarIconSize;
 
             ((TaskbarDragController) ActivityContext.lookupContext(
                     v.getContext()).getDragController()).startDragOnLongClick(sv, iconShift);

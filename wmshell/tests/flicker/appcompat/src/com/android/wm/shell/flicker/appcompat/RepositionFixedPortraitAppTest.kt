@@ -17,6 +17,7 @@
 package com.android.wm.shell.flicker.appcompat
 
 import android.platform.test.annotations.Postsubmit
+import android.tools.Rotation
 import android.tools.flicker.assertions.FlickerTest
 import android.tools.flicker.junit.FlickerParametersRunnerFactory
 import android.tools.flicker.legacy.FlickerBuilder
@@ -31,7 +32,7 @@ import org.junit.runners.Parameterized
 /**
  * Test launching a fixed portrait letterboxed app in landscape and repositioning to the right.
  *
- * To run this test: `atest WMShellFlickerTestsAppCompat:RepositionFixedPortraitAppTest`
+ * To run this test: `atest WMShellFlickerTestsOther:RepositionFixedPortraitAppTest`
  *
  * Actions:
  *
@@ -90,7 +91,9 @@ class RepositionFixedPortraitAppTest(flicker: LegacyFlickerTest) : BaseAppCompat
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
         fun getParams(): Collection<FlickerTest> {
-            return LegacyFlickerTestFactory.nonRotationTests()
+            return LegacyFlickerTestFactory.nonRotationTests(
+                supportedRotations = listOf(Rotation.ROTATION_90)
+            )
         }
     }
 }

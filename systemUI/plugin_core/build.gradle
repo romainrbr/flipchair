@@ -20,7 +20,3 @@ android {
 
 addFrameworkJar('framework-16.jar')
 compileOnlyCommonJars()
-
-dependencies {
-    compileOnly projects.log
-}

@@ -18,6 +18,7 @@ package com.android.launcher3.views;
 import static android.view.Gravity.LEFT;
 
 import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.Flags.enableAdditionalHomeAnimations;
 import static com.android.launcher3.Utilities.getFullDrawable;
 import static com.android.launcher3.Utilities.mapToRange;
 import static com.android.launcher3.util.Executors.MODEL_EXECUTOR;
@@ -168,7 +169,8 @@ public class FloatingIconView extends FrameLayout implements
         // FIV hasn't fully laid out. During those frames, hide this FIV and continue drawing the
         // TaskView directly while transforming it in the place of this FIV. However, if we fade
         // the TaskView at all, we need to display this FIV regardless.
-        setAlpha(isLaidOut() || taskViewDrawAlpha < 255 ? alpha : 0f);
+        setAlpha(!enableAdditionalHomeAnimations() || isLaidOut() || taskViewDrawAlpha < 255
+                ? alpha : 0f);
         mClipIconView.update(rect, progress, shapeProgressStart, cornerRadius, isOpening, this,
                 mLauncher.getDeviceProfile(), taskViewDrawAlpha);
 
@@ -226,14 +228,14 @@ public class FloatingIconView extends FrameLayout implements
         // Position the floating view exactly on top of the original
         lp.topMargin = Math.round(pos.top);
         if (mIsRtl) {
-            lp.setMarginStart(Math.round(mLauncher.getDeviceProfile().getDeviceProperties().getWidthPx() - pos.right));
+            lp.setMarginStart(Math.round(mLauncher.getDeviceProfile().widthPx - pos.right));
         } else {
             lp.setMarginStart(Math.round(pos.left));
         }
         // Set the properties here already to make sure they are available when running the first
         // animation frame.
         int left = mIsRtl
-                ? mLauncher.getDeviceProfile().getDeviceProperties().getWidthPx() - lp.getMarginStart() - lp.width
+                ? mLauncher.getDeviceProfile().widthPx - lp.getMarginStart() - lp.width
                 : lp.leftMargin;
         layout(left, lp.topMargin, left + lp.width, lp.topMargin + lp.height);
     }
@@ -370,8 +372,8 @@ public class FloatingIconView extends FrameLayout implements
 
             mFinalDrawableBounds.set(0, 0, originalWidth, originalHeight);
 
-            float aspectRatio = mLauncher.getDeviceProfile().getDeviceProperties().getAspectRatio();
-            if (dp.getDeviceProperties().isLandscape()) {
+            float aspectRatio = mLauncher.getDeviceProfile().aspectRatio;
+            if (dp.isLandscape) {
                 lp.width = (int) Math.max(lp.width, lp.height * aspectRatio);
             } else {
                 lp.height = (int) Math.max(lp.height, lp.width * aspectRatio);

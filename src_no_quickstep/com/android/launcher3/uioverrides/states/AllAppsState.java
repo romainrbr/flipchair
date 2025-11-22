@@ -18,13 +18,11 @@ package com.android.launcher3.uioverrides.states;
 import static com.android.app.animation.Interpolators.DECELERATE;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_ALLAPPS;
 
-import android.graphics.Color;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
 import com.android.launcher3.util.Themes;
 import com.android.launcher3.views.ActivityContext;
-import com.android.launcher3.views.ScrimColors;
 
 /**
  * Definition for AllApps state
@@ -67,7 +65,7 @@ public class AllAppsState extends LauncherState {
 
     @Override
     public ScaleAndTranslation getHotseatScaleAndTranslation(Launcher launcher) {
-        if (launcher.getDeviceProfile().getDeviceProperties().isTablet()) {
+        if (launcher.getDeviceProfile().isTablet) {
             return getWorkspaceScaleAndTranslation(launcher);
         } else {
             ScaleAndTranslation overviewScaleAndTranslation = LauncherState.OVERVIEW
@@ -85,7 +83,7 @@ public class AllAppsState extends LauncherState {
         return new PageAlphaProvider(DECELERATE) {
             @Override
             public float getPageAlpha(int pageIndex) {
-                return launcher.getDeviceProfile().getDeviceProperties().isTablet()
+                return launcher.getDeviceProfile().isTablet
                         ? superPageAlphaProvider.getPageAlpha(pageIndex)
                         : 0;
             }
@@ -98,11 +96,9 @@ public class AllAppsState extends LauncherState {
     }
 
     @Override
-    public ScrimColors getWorkspaceScrimColor(Launcher launcher) {
-        return new ScrimColors(
-                /* backgroundColor */ launcher.getDeviceProfile().getDeviceProperties().isTablet()
+    public int getWorkspaceScrimColor(Launcher launcher) {
+        return launcher.getDeviceProfile().isTablet
                 ? launcher.getResources().getColor(R.color.widgets_picker_scrim)
-                : Themes.getAttrColor(launcher, R.attr.allAppsScrimColor),
-                /* foregroundColor */ Color.TRANSPARENT);
+                : Themes.getAttrColor(launcher, R.attr.allAppsScrimColor);
     }
 }

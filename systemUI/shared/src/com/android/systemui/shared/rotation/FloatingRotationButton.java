@@ -19,7 +19,6 @@ package com.android.systemui.shared.rotation;
 import android.annotation.DimenRes;
 import android.annotation.IdRes;
 import android.annotation.LayoutRes;
-import android.annotation.Nullable;
 import android.annotation.StringRes;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -80,8 +79,8 @@ public class FloatingRotationButton implements RotationButton {
 
     private FloatingRotationButtonPositionCalculator mPositionCalculator;
 
-    @Nullable private RotationButtonController mRotationButtonController;
-    @Nullable private RotationButtonUpdatesCallback mUpdatesCallback;
+    private RotationButtonController mRotationButtonController;
+    private RotationButtonUpdatesCallback mUpdatesCallback;
     private Position mPosition;
 
     public FloatingRotationButton(Context context, @StringRes int contentDescriptionResource,
@@ -133,17 +132,14 @@ public class FloatingRotationButton implements RotationButton {
     }
 
     @Override
-    public void setRotationButtonController(
-            @Nullable RotationButtonController rotationButtonController) {
+    public void setRotationButtonController(RotationButtonController rotationButtonController) {
         mRotationButtonController = rotationButtonController;
-        if (mRotationButtonController != null) {
-            updateIcon(mRotationButtonController.getLightIconColor(),
-                    mRotationButtonController.getDarkIconColor());
-        }
+        updateIcon(mRotationButtonController.getLightIconColor(),
+                mRotationButtonController.getDarkIconColor());
     }
 
     @Override
-    public void setUpdatesCallback(@Nullable RotationButtonUpdatesCallback updatesCallback) {
+    public void setUpdatesCallback(RotationButtonUpdatesCallback updatesCallback) {
         mUpdatesCallback = updatesCallback;
     }
 
@@ -193,40 +189,15 @@ public class FloatingRotationButton implements RotationButton {
     }
 
     @Override
-    public void onDestroy() {
-        setRotationButtonController(null);
-        setOnClickListener(null);
-        setOnHoverListener(null);
-        setUpdatesCallback(null);
-
-        if (mKeyButtonContainer.isAttachedToWindow()) {
-            mWindowManager.removeViewImmediate(mKeyButtonContainer);
-        }
-
-        mKeyButtonView.animate().cancel();
-        mAnimatedDrawable.stop();
-        mKeyButtonView.setImageDrawable(null);
-        // Calling AnimatedDrawable#stop() and ImageView.setImageDrawable(null) above will not let
-        // RenderThread clear ref to view (via AnimatedVectorDrawable$VectorDrawableAnimatorRT)
-        // quick enough for LeakCanary to ignore the leak. To mute LeakCanary, a workaround is to
-        // clear the mKeyButtonView.mParent so that LeakCanary won't complain the leak on
-        // mKeyButtonContainer.
-        mKeyButtonContainer.removeView(mKeyButtonView);
-    }
-
-    @Override
     public boolean isVisible() {
         return mIsShowing;
     }
 
     @Override
     public void updateIcon(int lightIconColor, int darkIconColor) {
-        if (mRotationButtonController != null) {
-            mAnimatedDrawable = (AnimatedVectorDrawable) mKeyButtonView.getContext()
-                    .getDrawable(mRotationButtonController.getIconResId());
-            mAnimatedDrawable.setBounds(
-                    0, 0, mKeyButtonView.getWidth(), mKeyButtonView.getHeight());
-        }
+        mAnimatedDrawable = (AnimatedVectorDrawable) mKeyButtonView.getContext()
+                .getDrawable(mRotationButtonController.getIconResId());
+        mAnimatedDrawable.setBounds(0, 0, mKeyButtonView.getWidth(), mKeyButtonView.getHeight());
         mKeyButtonView.setImageDrawable(mAnimatedDrawable);
         mKeyButtonView.setColors(lightIconColor, darkIconColor);
     }
@@ -280,10 +251,8 @@ public class FloatingRotationButton implements RotationButton {
             updateDimensionResources();
 
             if (mIsShowing) {
-                if (mRotationButtonController != null) {
-                    updateIcon(mRotationButtonController.getLightIconColor(),
-                            mRotationButtonController.getDarkIconColor());
-                }
+                updateIcon(mRotationButtonController.getLightIconColor(),
+                        mRotationButtonController.getDarkIconColor());
                 final LayoutParams layoutParams = adjustViewPositionAndCreateLayoutParams();
                 mWindowManager.updateViewLayout(mKeyButtonContainer, layoutParams);
                 if (mAnimatedDrawable != null) {

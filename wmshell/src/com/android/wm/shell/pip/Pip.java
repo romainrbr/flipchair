@@ -16,12 +16,10 @@
 
 package com.android.wm.shell.pip;
 
-import android.annotation.NonNull;
 import android.graphics.Rect;
 
 import com.android.wm.shell.shared.annotations.ExternalThread;
 
-import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
 /**
@@ -45,17 +43,12 @@ public interface Pip {
     }
 
     /**
-     * Set the callback when isInPip state is changed.
+     * Set the callback when {@link PipTaskOrganizer#isInPip()} state is changed.
      *
-     * @param callback The callback accepts the state of isInPip when it's changed.
+     * @param callback The callback accepts the result of {@link PipTaskOrganizer#isInPip()}
+     *                 when it's changed.
      */
-    default void addOnIsInPipStateChangedListener(@NonNull Consumer<Boolean> callback) {}
-
-    /**
-     * Remove the callback when isInPip state is changed.
-     * @param callback The callback accepts the state of isInPip when it's changed.
-     */
-    default void removeOnIsInPipStateChangedListener(@NonNull Consumer<Boolean> callback) {}
+    default void setOnIsInPipStateChangedListener(Consumer<Boolean> callback) {}
 
     /**
      * Called when showing Pip menu.
@@ -76,10 +69,9 @@ public interface Pip {
     default void removePipExclusionBoundsChangeListener(Consumer<Rect> listener) { }
 
     /**
-     * Register {@link PipTransitionController.PipTransitionCallback} to listen on PiP transition
-     * started / finished callbacks.
+     * @return {@link PipTransitionController} instance.
      */
-    default void registerPipTransitionCallback(
-            @NonNull PipTransitionController.PipTransitionCallback callback,
-            @NonNull Executor executor) { }
+    default PipTransitionController getPipTransitionController() {
+        return null;
+    }
 }

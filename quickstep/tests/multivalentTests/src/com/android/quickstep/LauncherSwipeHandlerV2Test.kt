@@ -29,8 +29,8 @@ import com.android.launcher3.R
 import com.android.launcher3.dagger.LauncherAppComponent
 import com.android.launcher3.dagger.LauncherAppModule
 import com.android.launcher3.dagger.LauncherAppSingleton
+import com.android.launcher3.util.LauncherModelHelper
 import com.android.launcher3.util.MSDLPlayerWrapper
-import com.android.launcher3.util.SandboxApplication
 import com.android.systemui.contextualeducation.GestureType
 import com.android.systemui.shared.system.InputConsumerController
 import dagger.BindsInstance
@@ -39,8 +39,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Answers.RETURNS_DEEP_STUBS
 import org.mockito.Mock
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
 import org.mockito.junit.MockitoJUnit
 import org.mockito.kotlin.eq
@@ -53,28 +53,25 @@ class LauncherSwipeHandlerV2Test {
 
     @Mock private lateinit var taskAnimationManager: TaskAnimationManager
 
-    @Mock private lateinit var deviceState: RecentsAnimationDeviceState
-
     private lateinit var gestureState: GestureState
     @Mock private lateinit var inputConsumerController: InputConsumerController
 
-    @Mock(answer = RETURNS_DEEP_STUBS) private lateinit var systemUiProxy: SystemUiProxy
-
-    @Mock(answer = RETURNS_DEEP_STUBS) private lateinit var recentsModel: RecentsModel
+    @Mock private lateinit var systemUiProxy: SystemUiProxy
 
     @Mock private lateinit var msdlPlayerWrapper: MSDLPlayerWrapper
-
-    @Mock private lateinit var rotationTouchHelper: RotationTouchHelper
 
     private lateinit var underTest: LauncherSwipeHandlerV2
 
     @get:Rule val mockitoRule = MockitoJUnit.rule()
-    @get:Rule val sandboxContext = SandboxApplication()
+
+    private val launcherModelHelper = LauncherModelHelper()
+    private val sandboxContext = launcherModelHelper.sandboxContext
 
     private val flingSpeed =
         -(sandboxContext.resources.getDimension(R.dimen.quickstep_fling_threshold_speed) + 1)
 
-    private lateinit var displayManager: DisplayManager
+    private val displayManager: DisplayManager =
+        sandboxContext.spyService(DisplayManager::class.java)
 
     @Before
     fun setup() {
@@ -85,14 +82,14 @@ class LauncherSwipeHandlerV2Test {
                 DisplayInfo(),
                 DEFAULT_DISPLAY_ADJUSTMENTS,
             )
-        displayManager = sandboxContext.spyService(DisplayManager::class.java)
         whenever(displayManager.getDisplay(eq(DEFAULT_DISPLAY))).thenReturn(display)
         whenever(displayManager.displays).thenReturn(arrayOf(display))
 
         sandboxContext.initDaggerComponent(
             DaggerTestComponent.builder()
                 .bindSystemUiProxy(systemUiProxy)
-                .bindRecentsModel(recentsModel)
+                .bindRotationHelper(mock(RotationTouchHelper::class.java))
+                .bindRecentsState(mock(RecentsAnimationDeviceState::class.java))
         )
         gestureState =
             spy(
@@ -107,8 +104,6 @@ class LauncherSwipeHandlerV2Test {
             LauncherSwipeHandlerV2(
                 sandboxContext,
                 taskAnimationManager,
-                deviceState,
-                rotationTouchHelper,
                 gestureState,
                 0,
                 false,
@@ -139,9 +134,11 @@ class LauncherSwipeHandlerV2Test {
 interface TestComponent : LauncherAppComponent {
     @Component.Builder
     interface Builder : LauncherAppComponent.Builder {
-        @BindsInstance fun bindSystemUiProxy(systemUiProxy: SystemUiProxy): Builder
+        @BindsInstance fun bindSystemUiProxy(proxy: SystemUiProxy): Builder
 
-        @BindsInstance fun bindRecentsModel(recentsModel: RecentsModel): Builder
+        @BindsInstance fun bindRotationHelper(helper: RotationTouchHelper): Builder
+
+        @BindsInstance fun bindRecentsState(state: RecentsAnimationDeviceState): Builder
 
         override fun build(): TestComponent
     }

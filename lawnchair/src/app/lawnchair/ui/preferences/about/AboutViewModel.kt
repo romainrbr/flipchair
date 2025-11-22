@@ -102,7 +102,7 @@ class AboutViewModel(
                 socialUrl = "https://codebucket.de",
             ),
             TeamMember(
-                name = "Zongle Wang",
+                name = "Goooler",
                 role = Role.Development,
                 photoUrl = "https://avatars.githubusercontent.com/u/10363352",
                 socialUrl = "https://github.com/Goooler",
@@ -150,12 +150,6 @@ class AboutViewModel(
                 role = Role.QuickSwitchMaintenance,
                 photoUrl = "https://avatars.githubusercontent.com/u/7065700",
                 socialUrl = "https://x.com/skittles9823",
-            ),
-            TeamMember(
-                name = "Pun Butrach",
-                role = Role.Development,
-                photoUrl = "https://avatars.githubusercontent.com/u/93124920",
-                socialUrl = "https://github.com/validcube",
             ),
             TeamMember(
                 name = "SuperDragonXD",

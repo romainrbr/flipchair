@@ -34,7 +34,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.VisibleForTesting;
 
-import com.android.launcher3.Utilities;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.pm.UserCache;
@@ -169,12 +168,7 @@ public class WidgetManagerHelper {
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     public RemoteViews loadGeneratedPreview(@NonNull AppWidgetProviderInfo info,
             int widgetCategory) {
-        try {
-            return mAppWidgetManager.getWidgetPreview(info.provider, info.getProfile(), widgetCategory);
-        } catch (NoSuchMethodError | NoClassDefFoundError e) {
-            Log.w("LC_"+TAG, "loadGeneratedPreview: Error loading widget preview");
-            return null;
-        }
+        return mAppWidgetManager.getWidgetPreview(info.provider, info.getProfile(), widgetCategory);
     }
 
     private static Stream<AppWidgetProviderInfo> allWidgetsSteam(Context context) {

@@ -254,7 +254,6 @@ fun GenericSearchProviderPreference(
                         description = stringResource(id = R.string.fuzzy_search_desc),
                     )
                 }
-
                 SearchProviderId.WEB -> {
                     SliderPreference(
                         label = stringResource(id = R.string.max_web_suggestion_delay),
@@ -270,7 +269,6 @@ fun GenericSearchProviderPreference(
                         suggestionsUrlAdapter = prefs2.webSuggestionProviderSuggestionsUrl.getAdapter(),
                     )
                 }
-
                 SearchProviderId.HISTORY -> {
                     val context = LocalContext.current
 
@@ -287,7 +285,6 @@ fun GenericSearchProviderPreference(
                         },
                     )
                 }
-
                 else -> {}
             }
         }

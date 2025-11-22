@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.UserHandle
 import android.util.Pair
-import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherSettings
@@ -35,8 +34,8 @@ class AddFoldersWithItemsTask(
     ) {
         val context = taskController.context
 
-        val idp = InvariantDeviceProfile.INSTANCE.get(context)
-        val model = LauncherAppState.getInstance(context).model
+        val idp = LauncherAppState.getInstance(context).invariantDeviceProfile
+        val model = LauncherAppState.getInstance(context).model;
         val itemSpaceFinder = WorkspaceItemSpaceFinder(dataModel, idp, model)
 
         if (folders.isEmpty()) {
@@ -47,14 +46,14 @@ class AddFoldersWithItemsTask(
         val addedWorkspaceScreensFinal = IntArray()
 
         synchronized(dataModel) {
-            val workspaceScreens = dataModel.collectWorkspaceScreens()
             val modelWriter = taskController.getModelWriter()
 
             folders.forEach { folderInfo ->
                 // Find space for the folder
                 val coords = itemSpaceFinder.findSpaceForItem(
-                    workspaceScreens,
+                    dataModel.itemsIdMap.collectWorkspaceScreens(),
                     addedWorkspaceScreensFinal,
+                    addedItemsFinal,
                     folderInfo.spanX,
                     folderInfo.spanY,
                 )
@@ -113,11 +112,7 @@ class AddFoldersWithItemsTask(
                     }
                 }
 
-                callbacks.bindAppsAdded(
-                    addedWorkspaceScreensFinal,
-                    ArrayList(addNotAnimated),
-                    ArrayList(addAnimated),
-                )
+                callbacks.bindItemsAdded(addedItemsFinal)
 
                 // Notify completion after items are bound
                 onComplete?.invoke()

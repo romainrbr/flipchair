@@ -288,7 +288,6 @@ class LawnchairIconProvider @JvmOverloads constructor(
                         }
                     }
                 }
-
                 ACTION_DATE_CHANGED -> {
                     context.getSystemService<UserManager>()?.userProfiles?.forEach { user ->
                         iconPack.getCalendars().forEach { componentName ->

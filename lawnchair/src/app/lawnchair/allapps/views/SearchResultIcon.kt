@@ -53,7 +53,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
         setOnLongClickListener(this)
         layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            launcher.deviceProfile.allAppsCellHeightPx,
+            launcher.deviceProfile.allAppsProfile.cellHeightPx,
         )
     }
 
@@ -80,12 +80,10 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
                 allowLongClick = false
                 bindFromAction(target, iconComponentKey == null)
             }
-
             target.shortcutInfo != null -> {
                 allowLongClick = true
                 bindFromShortcutInfo(target.shortcutInfo)
             }
-
             else -> {
                 allowLongClick = true
                 val className = extras.getString("class").orEmpty()
@@ -210,9 +208,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
             info.bitmap = when {
                 info.hasFlags(SearchActionItemInfo.FLAG_PRIMARY_ICON_FROM_TITLE) ->
                     li.createIconBitmap("${info.title}", packageIcon.color)
-
                 icon == null -> packageIcon
-
                 else -> icon.loadDrawable(context)?.let { li.createBadgedIconBitmap(it, BaseIconFactory.IconOptions().setUser(info.user)) } ?: packageIcon
             }
             if (info.hasFlags(SearchActionItemInfo.FLAG_BADGE_WITH_COMPONENT_NAME) && target.extras.containsKey("class")) {

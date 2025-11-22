@@ -132,7 +132,6 @@ fun wallpaperDrawable(
     ) {
         value = when {
             wallpaperInfo != null -> wallpaperInfo.loadThumbnail(context.packageManager)
-
             hasPermission -> {
                 withContext(Dispatchers.IO) {
                     wallpaperManager.drawable?.let {
@@ -142,7 +141,6 @@ fun wallpaperDrawable(
                     }
                 }
             }
-
             else -> null
         }
     }

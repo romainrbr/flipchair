@@ -17,11 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Science
-import androidx.compose.material.icons.outlined.SettingsBackupRestore
-import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.TipsAndUpdates
 import androidx.compose.material3.DropdownMenuItem
@@ -52,8 +49,8 @@ import app.lawnchair.ui.preferences.components.AnnouncementPreference
 import app.lawnchair.ui.preferences.components.controls.PreferenceCategory
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.ClickableIcon
-import app.lawnchair.ui.preferences.components.layout.DividerColumn
 import app.lawnchair.ui.preferences.components.layout.PreferenceDivider
+import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.components.layout.PreferenceTemplate
 import app.lawnchair.ui.preferences.data.liveinfo.SyncLiveInformation
@@ -71,13 +68,12 @@ import app.lawnchair.ui.preferences.navigation.PreferenceRootRoute
 import app.lawnchair.ui.preferences.navigation.Quickstep
 import app.lawnchair.ui.preferences.navigation.Search
 import app.lawnchair.ui.preferences.navigation.Smartspace
-import app.lawnchair.ui.theme.isSelectedThemeDark
-import app.lawnchair.ui.theme.preferenceGroupColor
 import app.lawnchair.ui.util.addIf
 import app.lawnchair.util.isDefaultLauncher
 import app.lawnchair.util.restartLauncher
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
+import com.patrykmichalik.opto.core.firstBlocking
 
 @Composable
 fun PreferencesDashboard(
@@ -87,7 +83,14 @@ fun PreferencesDashboard(
 ) {
     val context = LocalContext.current
     SyncLiveInformation()
-    val pref2 = preferenceManager2()
+    val prefs = preferenceManager()
+    val prefs2 = preferenceManager2()
+
+    val aboutDescrption = if (prefs.hideVersionInfo.get()) {
+        prefs.pseudonymVersion.get()
+    } else {
+        "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}"
+    }
 
     PreferenceLayout(
         label = stringResource(id = R.string.settings),
@@ -108,7 +111,7 @@ fun PreferencesDashboard(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        PreferenceCategoryGroup {
+        PreferenceGroup {
             PreferenceCategory(
                 label = stringResource(R.string.general_label),
                 description = stringResource(R.string.general_description),
@@ -125,10 +128,11 @@ fun PreferencesDashboard(
                 isSelected = currentRoute is HomeScreen,
             )
 
+            val isSmartspaceEnabled = prefs2.enableSmartspace.firstBlocking()
             PreferenceCategory(
                 label = stringResource(id = R.string.smartspace_widget),
                 description = stringResource(R.string.smartspace_widget_description),
-                iconResource = R.drawable.ic_smartspace,
+                iconResource = if (isSmartspaceEnabled) R.drawable.ic_smartspace else R.drawable.ic_smartspace_off,
                 onNavigate = { onNavigate(Smartspace) },
                 isSelected = currentRoute is Smartspace,
             )
@@ -141,7 +145,7 @@ fun PreferencesDashboard(
                 isSelected = currentRoute is Dock,
             )
 
-            val deckLayout = pref2.deckLayout.getAdapter()
+            val deckLayout = prefs2.deckLayout.getAdapter()
             if (!deckLayout.state.value) {
                 PreferenceCategory(
                     label = stringResource(R.string.app_drawer_label),
@@ -188,35 +192,12 @@ fun PreferencesDashboard(
 
             PreferenceCategory(
                 label = stringResource(R.string.about_label),
-                description = "${context.getString(R.string.derived_app_name)} ${BuildConfig.MAJOR_VERSION}",
-                iconResource = R.drawable.ic_about,
+                description = aboutDescrption,
+                iconResource = R.drawable.info_24px,
                 onNavigate = { onNavigate(About) },
                 isSelected = currentRoute is About,
             )
         }
-    }
-}
-
-@Composable
-fun PreferenceCategoryGroup(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    val color = preferenceGroupColor()
-
-    Surface(
-        modifier = modifier.padding(horizontal = 16.dp),
-        shape = MaterialTheme.shapes.large,
-        color = color,
-        tonalElevation = if (isSelectedThemeDark) 1.dp else 0.dp,
-    ) {
-        DividerColumn(
-            content = content,
-            startIndent = (-16).dp,
-            endIndent = (-16).dp,
-            color = MaterialTheme.colorScheme.surface,
-            thickness = 2.dp,
-        )
     }
 }
 

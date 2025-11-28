@@ -9,21 +9,26 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +61,6 @@ fun <T> DraggablePreferenceGroup(
     defaultList: List<T>,
     onOrderChange: (List<T>) -> Unit,
     modifier: Modifier = Modifier,
-    onSettle: ((List<T>) -> Unit)? = null,
     itemContent: @Composable ReorderableScope.(
         item: T,
         index: Int,
@@ -64,14 +68,7 @@ fun <T> DraggablePreferenceGroup(
         onDraggingChange: (Boolean) -> Unit,
     ) -> Unit,
 ) {
-    var localItems by remember { mutableStateOf(items) }
-
-    LaunchedEffect(items) {
-        if (localItems != items) {
-            localItems = items
-        }
-    }
-
+    var localItems = items
     var isAnyDragging by remember { mutableStateOf(false) }
 
     val color by animateColorAsState(
@@ -94,15 +91,12 @@ fun <T> DraggablePreferenceGroup(
                 modifier = Modifier,
                 list = localItems,
                 onSettle = { fromIndex, toIndex ->
-                    val newItems = localItems.toMutableList().apply {
+                    localItems = localItems.toMutableList().apply {
                         add(toIndex, removeAt(fromIndex))
-                    }.toList()
-                    localItems = newItems
-                    onOrderChange(newItems)
-                    if (onSettle != null) {
-                        onSettle(newItems)
+                    }.toList().also { newItems ->
+                        onOrderChange(newItems)
+                        isAnyDragging = false
                     }
-                    isAnyDragging = false
                 },
                 onMove = {
                     isAnyDragging = true
@@ -119,20 +113,8 @@ fun <T> DraggablePreferenceGroup(
                                 .a11yDrag(
                                     index = index,
                                     items = items,
-                                    onMoveUp = {
-                                        localItems = it
-                                        onOrderChange(it)
-                                        if (onSettle != null) {
-                                            onSettle(it)
-                                        }
-                                    },
-                                    onMoveDown = {
-                                        localItems = it
-                                        onOrderChange(it)
-                                        if (onSettle != null) {
-                                            onSettle(it)
-                                        }
-                                    },
+                                    onMoveUp = { localItems = it },
+                                    onMoveDown = { localItems = it },
                                 ),
                         ) {
                             itemContent(
@@ -156,11 +138,7 @@ fun <T> DraggablePreferenceGroup(
         ExpandAndShrink(visible = localItems != defaultList) {
             PreferenceGroup {
                 ClickablePreference(label = stringResource(id = R.string.action_reset)) {
-                    val resetList = defaultList
-                    onOrderChange(resetList)
-                    if (onSettle != null) {
-                        onSettle(resetList)
-                    }
+                    onOrderChange(defaultList)
                 }
             }
         }
@@ -231,6 +209,21 @@ fun DraggableSwitchPreference(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 enabled = enabled,
+                thumbContent = {
+                    if (checked) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize),
+                        )
+                    }
+                },
             )
         },
         enabled = enabled,
@@ -238,6 +231,7 @@ fun DraggableSwitchPreference(
     )
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DragHandle(
     scope: ReorderableScope,
@@ -268,6 +262,7 @@ fun DragHandle(
         enabled = isDraggable,
         onClick = {},
         interactionSource = interactionSource,
+        shapes = IconButtonDefaults.shapes(),
     ) {
         Icon(
             imageVector = Icons.Rounded.DragHandle,

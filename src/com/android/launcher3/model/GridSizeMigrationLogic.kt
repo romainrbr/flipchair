@@ -26,12 +26,9 @@ import com.android.launcher3.BuildConfigs
 import com.android.launcher3.Flags
 import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.get
-import com.android.launcher3.LauncherPrefs.Companion.getPrefs
 import com.android.launcher3.LauncherSettings
 import com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME
 import com.android.launcher3.LauncherSettings.Favorites.TMP_TABLE
-import com.android.launcher3.Utilities
-import com.android.launcher3.config.FeatureFlags
 import com.android.launcher3.logging.FileLog
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_ROW_SHIFT_GRID_MIGRATION

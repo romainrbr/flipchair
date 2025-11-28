@@ -170,7 +170,6 @@ fun SmartspacePreview(
                     view
                 },
                 modifier = Modifier.padding(
-                    start = 8.dp,
                     top = 8.dp,
                     bottom = 16.dp,
                 ),

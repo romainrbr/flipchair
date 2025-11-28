@@ -3,6 +3,7 @@ package app.lawnchair.ui.preferences.about
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import app.lawnchair.preferences.PreferenceManager
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import java.io.File
@@ -18,6 +19,7 @@ class AboutViewModel(
 ) : AndroidViewModel(application) {
 
     private val api: GitHubService = gitHubApiRetrofit.create()
+    private val prefs: PreferenceManager = PreferenceManager.getInstance(application)
 
     private val nightlyBuildsRepository = NightlyBuildsRepository(
         applicationContext = application,
@@ -31,7 +33,11 @@ class AboutViewModel(
     init {
         _uiState.update {
             it.copy(
-                versionName = BuildConfig.VERSION_NAME,
+                versionName = if (prefs.hideVersionInfo.get()) {
+                    prefs.pseudonymVersion.get() + " (pseudonym)"
+                } else {
+                    BuildConfig.VERSION_NAME
+                },
                 commitHash = BuildConfig.COMMIT_HASH,
                 coreTeam = team,
                 supportAndPr = supportAndPr,
@@ -96,7 +102,7 @@ class AboutViewModel(
                 socialUrl = "https://codebucket.de",
             ),
             TeamMember(
-                name = "Zongle Wang",
+                name = "Goooler",
                 role = Role.Development,
                 photoUrl = "https://avatars.githubusercontent.com/u/10363352",
                 socialUrl = "https://github.com/Goooler",
@@ -144,12 +150,6 @@ class AboutViewModel(
                 role = Role.QuickSwitchMaintenance,
                 photoUrl = "https://avatars.githubusercontent.com/u/7065700",
                 socialUrl = "https://x.com/skittles9823",
-            ),
-            TeamMember(
-                name = "Pun Butrach",
-                role = Role.Development,
-                photoUrl = "https://avatars.githubusercontent.com/u/93124920",
-                socialUrl = "https://github.com/validcube",
             ),
             TeamMember(
                 name = "SuperDragonXD",

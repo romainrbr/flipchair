@@ -133,7 +133,6 @@ public final class TaskbarAllAppsController {
         if (isOpen()) {
             mSlideInView.close(true);
         } else {
-            mControllers.taskbarEduTooltipController.hide();
             mControllers.taskbarPopupController.maybeCloseMultiInstanceMenu();
             show(true, showKeyboard);
         }

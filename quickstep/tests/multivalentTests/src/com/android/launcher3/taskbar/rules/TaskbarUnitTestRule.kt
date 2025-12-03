@@ -26,18 +26,15 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.taskbar.TaskbarActivityContext
 import com.android.launcher3.taskbar.TaskbarControllers
-import com.android.launcher3.taskbar.TaskbarManagerImpl
+import com.android.launcher3.taskbar.TaskbarManager
 import com.android.launcher3.taskbar.TaskbarNavButtonController.TaskbarNavButtonCallbacks
 import com.android.launcher3.taskbar.TaskbarUIController
 import com.android.launcher3.taskbar.bubbles.BubbleControllers
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.util.Executors.UI_HELPER_EXECUTOR
 import com.android.launcher3.util.TestUtil
-import com.android.launcher3.util.coroutines.ProductionDispatchers
 import com.android.quickstep.AllAppsActionManager
-import com.android.quickstep.LauncherDisplaysWithDecorationsRepositoryCompat
-import com.android.quickstep.fallback.window.RecentsWindowManager
-import com.android.quickstep.input.QuickstepKeyGestureEventsManager
+import com.android.quickstep.fallback.window.RecentsDisplayModel
 import java.lang.reflect.Field
 import java.lang.reflect.ParameterizedType
 import java.util.Locale
@@ -46,10 +43,6 @@ import org.junit.Assume.assumeTrue
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import org.mockito.kotlin.any
-import org.mockito.kotlin.doNothing
-import org.mockito.kotlin.spy
-import org.mockito.kotlin.whenever
 
 /**
  * Manages the Taskbar lifecycle for unit tests.
@@ -85,7 +78,7 @@ class TaskbarUnitTestRule(
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
 
-    private lateinit var taskbarManager: TaskbarManagerImpl
+    private lateinit var taskbarManager: TaskbarManager
 
     val activityContext: TaskbarActivityContext
         get() {
@@ -110,54 +103,20 @@ class TaskbarUnitTestRule(
                 context.settingsCacheSandbox[getUriFor(NAV_BAR_KIDS_MODE)] =
                     if (description.getAnnotation(NavBarKidsMode::class.java) != null) 1 else 0
 
-                val quickstepKeyGestureEventsManagerSpy =
-                    spy(QuickstepKeyGestureEventsManager(context))
-                doNothing()
-                    .whenever(quickstepKeyGestureEventsManagerSpy)
-                    .registerAllAppsKeyGestureEvent(any())
-                doNothing()
-                    .whenever(quickstepKeyGestureEventsManagerSpy)
-                    .unregisterAllAppsKeyGestureEvent()
-                doNothing()
-                    .whenever(quickstepKeyGestureEventsManagerSpy)
-                    .registerOverviewKeyGestureEvent(any())
-                doNothing()
-                    .whenever(quickstepKeyGestureEventsManagerSpy)
-                    .unregisterOverviewKeyGestureEvent()
                 taskbarManager =
                     TestUtil.getOnUiThread {
                         object :
-                            TaskbarManagerImpl(
+                            TaskbarManager(
                                 context,
-                                AllAppsActionManager(
-                                    context,
-                                    UI_HELPER_EXECUTOR,
-                                    quickstepKeyGestureEventsManagerSpy,
-                                ) {
+                                AllAppsActionManager(context, UI_HELPER_EXECUTOR) {
                                     PendingIntent(IIntentSender.Default())
                                 },
                                 object : TaskbarNavButtonCallbacks {},
-                                RecentsWindowManager.REPOSITORY_INSTANCE.get(context),
-                                LauncherDisplaysWithDecorationsRepositoryCompat.INSTANCE.get(
-                                    context
-                                ),
-                                ProductionDispatchers.main,
+                                RecentsDisplayModel.INSTANCE.get(context),
                             ) {
                             override fun recreateTaskbars() {
                                 super.recreateTaskbars()
                                 if (currentActivityContext != null) {
-                                    injectControllers()
-                                    // TODO(b/346394875): we should test a non-default uiController.
-                                    activityContext.setUIController(TaskbarUIController.DEFAULT)
-                                    controllerInjectionCallback.invoke()
-                                }
-                            }
-
-                            override fun recreateTaskbarForDisplay(displayId: Int, duration: Int) {
-                                super.recreateTaskbarForDisplay(displayId, duration)
-                                if (
-                                    displayId == context.displayId && currentActivityContext != null
-                                ) {
                                     injectControllers()
                                     // TODO(b/346394875): we should test a non-default uiController.
                                     activityContext.setUIController(TaskbarUIController.DEFAULT)
@@ -184,7 +143,6 @@ class TaskbarUnitTestRule(
                     base.evaluate()
                 } finally {
                     instrumentation.runOnMainSync { taskbarManager.destroy() }
-                    context.displayControllerSpy?.cleanup()
                 }
             }
         }

@@ -29,13 +29,8 @@ class DesksUtils {
 
         @JvmStatic
         fun areMultiDesksFlagsEnabled() =
-            if (false) {
-                // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
-                DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue &&
-                    DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
-            } else {
-                false
-            }
+            DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue &&
+                DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
 
         /** Returns true if this [task] contains the [DesktopWallpaperActivity]. */
         @JvmStatic

@@ -36,7 +36,6 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.android.app.animation.Interpolators;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.anim.AnimatorPlaybackController;
 import com.android.launcher3.model.data.ItemInfo;
@@ -70,11 +69,10 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
         QuickstepLauncher, RecentsView<QuickstepLauncher, LauncherState>, LauncherState> {
 
     public LauncherSwipeHandlerV2(Context context, TaskAnimationManager taskAnimationManager,
-            RecentsAnimationDeviceState deviceState, RotationTouchHelper rotationTouchHelper,
             GestureState gestureState, long touchTimeMs, boolean continuingLastGesture,
             InputConsumerController inputConsumer, MSDLPlayerWrapper msdlPlayerWrapper) {
-        super(context, taskAnimationManager, deviceState, rotationTouchHelper, gestureState,
-                touchTimeMs, continuingLastGesture, inputConsumer, msdlPlayerWrapper);
+        super(context, taskAnimationManager, gestureState, touchTimeMs,
+                continuingLastGesture, inputConsumer, msdlPlayerWrapper);
     }
 
 
@@ -87,13 +85,8 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
             RemoteAnimationTarget runningTaskTarget,
             @Nullable TaskView targetTaskView) {
         if (mContainer == null) {
-            mStateCallback.addChangeListener(
-                    STATE_LAUNCHER_PRESENT | STATE_HANDLER_INVALIDATED,
-                    isPresent -> {
-                        if (mRecentsView != null) {
-                            mRecentsView.startHome();
-                        }
-                    });
+            mStateCallback.addChangeListener(STATE_LAUNCHER_PRESENT | STATE_HANDLER_INVALIDATED,
+                    isPresent -> mRecentsView.startHome());
             return new HomeAnimationFactory() {
                 @Override
                 public AnimatorPlaybackController createActivityAnimationToHome() {
@@ -147,7 +140,7 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
                 true /* hideOriginal */, iconLocation, false /* isOpening */);
 
         // We want the window alpha to be 0 once this threshold is met, so that the
-        // FloatingIconView can be seen morphing into the icon shape.
+        // FolderIconView can be seen morphing into the icon shape.
         float windowAlphaThreshold = 1f - SHAPE_PROGRESS_DURATION;
 
         return new FloatingViewHomeAnimationFactory(floatingIconView) {
@@ -195,11 +188,7 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
                     float progress,
                     float radius,
                     int overlayAlpha) {
-                // We want the icon alpha to be 1 once this threshold is met, so that it can be
-                // seen morphing into the icon shape. But before the threshold, we want to limit
-                // the alpha to reduce the blur effect behind the window.
-                float iconAlpha = Interpolators.clampToProgress(progress, 0f, windowAlphaThreshold);
-                floatingIconView.update(iconAlpha, currentRect, progress, windowAlphaThreshold,
+                floatingIconView.update(1f /* alpha */, currentRect, progress, windowAlphaThreshold,
                         radius, false, overlayAlpha);
             }
 
@@ -327,9 +316,7 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
 
     @Override
     protected void finishRecentsControllerToHome(Runnable callback) {
-        if (mRecentsView != null) {
-            mRecentsView.cleanupRemoteTargets();
-        }
+        mRecentsView.cleanupRemoteTargets();
         mRecentsAnimationController.finish(
                 true /* toRecents */, callback, true /* sendUserLeaveHint */);
     }
@@ -373,7 +360,7 @@ public class LauncherSwipeHandlerV2 extends AbsSwipeUpHandler<
         public AnimatorPlaybackController createActivityAnimationToHome() {
             // Return an empty APC here since we have an non-user controlled animation
             // to home.
-            long accuracy = 2 * Math.max(mDp.getDeviceProperties().getWidthPx(), mDp.getDeviceProperties().getHeightPx());
+            long accuracy = 2 * Math.max(mDp.widthPx, mDp.heightPx);
             return mContainer.getStateManager().createAnimationToNewWorkspace(
                     NORMAL, accuracy, StateAnimationConfig.SKIP_ALL_ANIMATIONS);
         }

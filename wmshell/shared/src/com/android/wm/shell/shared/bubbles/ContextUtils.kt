@@ -19,6 +19,7 @@ package com.android.wm.shell.shared.bubbles
 import android.content.Context
 import android.view.View
 import android.view.WindowManagerPolicyConstants
+import com.android.internal.R
 
 /** Simplifies accessing context fields. */
 object ContextUtils {
@@ -26,7 +27,7 @@ object ContextUtils {
     /** Gets navigation mode. */
     @JvmStatic
     val Context.navigationMode: Int
-        get() = resources.getInteger(com.android.internal.R.integer.config_navBarInteractionMode)
+        get() = resources.getInteger(R.integer.config_navBarInteractionMode)
 
     /** Returns whether the navigation mode is gestures. */
     @JvmStatic

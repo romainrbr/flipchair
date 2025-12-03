@@ -28,7 +28,7 @@ import android.view.ViewConfiguration;
 
 import androidx.annotation.Nullable;
 
-import com.android.internal.protolog.ProtoLog;
+import com.android.internal.protolog.common.ProtoLog;
 
 /**
  * Handles {@link MotionEvent}s for bubbles that begin in the nav bar area

@@ -1,104 +1,4 @@
-# Bubble Tea
-
-## Bubble Tea [QPR1]
-
-### 🏗️ Development 4 Release 1 (Draft)
-
-aka: Snapshot 10
-
-Bug fixes only
-
-Build: BD4.2311 (latest), BS10.2111, BS10.2011
-
-Compatibility list:
-
-| 🏗️ Crash   | 💫 Limited features | 🥞 Fully supported |
-|-------------|---------------------|--------------------|
-| Android 8.1 |                     | Android 12.0       |
-| Android 9   |                     | Android 12.1       |
-| Android 10  |                     | Android 13         |
-| Android 11  |                     | Android 14         |
-|             |                     | Android 15         |
-|             |                     | Android 16         |
-
-
-#### Features
-
-* [Launcher] Move to Google Sans Flex font (TODO)
-* [Lawnchair] Material 3 Expressive Settings (Phase 2, TODO)
-* [Lawnchair] Better At-a-Glance perceptive wallpaper colour luminance detection
-    * Big word that means Lawnchair will take system default hint bright/dark theme and fallback to luminosity detection for bright/dark mode detection in At a Glance.
-* [Launcher] Enable Material Expressive Folder Expansion animation flag
-* [Launcher/Font] Variable font for Launcher3 (????????)
-* [Launcher/Popup] Dynamically get app widget popup icon
-* [Launcher] Foldable support (actually real)
-
-#### Fixes
-* [Launcher] Fix a lot of internal basic functionality
-* [Lawnchair] Re-added some Lawnchair-specific code
-* [Launcher] Fix workspace navigation
-* [Launcher] Fix allapps navigation
-* [Launcher] Fix folder navigation
-* [Launcher] Support Android 12.0/12.1/13/14/15
-* [Lawnchair/Smartspace] At-a-Glance can't launch activity due to background startup restrictions on Android 14 and above
-* [Launcher] Use Lawnchair theming colour for allapps
-* [WM-Shell] Fix conflict with prebuilts aidl, make Release build work again
-* [Launcher/Desktop] Correct deviceHasLargeScreen check for Baklava
-* [Lawnchair/Search] Make search layout changes work
-* [Lawnchair/Smartspace] Allow disabling the smartspace feature
-
-### 🥞 Snapshot 9 (Development 4 Release 1)
-
-This snapshot marks the first time Bubble Tea QPR1 is able to assemble the APK without errors, 
-all that's left is bug bash testing. Limited visibility closed testing is available.
-
-Build: BS9.2011
-
-This is a developer-focused change log:
-* Re-added searchuilib
-* SearchUiLib updated to latest commits before being private
-* Exclude disabled variant of Compose launcher3 features
-* Fix all errors in Lawnchair side
-
-### Snapshot 8 (Development 4 Release 1)
-
-Build: BS8.1811
-
-This snapshot marks the first time Bubble Tea QPR1 is able to compile ALL of the Launcher3 code 
-without errors, that leaves Lawnchair code as the remaining task before successfully compiling 
-Bubble Tea QPR1
-
-This is a developer-focused change log:
-* Migrate some functions to new changes
-* WM-Shell (and WM-Shell Shared) updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Add Mechanics (SystemUI Platform Library)
-* Some unresolved reference in Lawnchair code
-
-### Snapshot 7 (Development 4 Release 1)
-
-Build: BS7.1711
-
-This snapshot marks the first time Bubble Tea QPR1 is able to pass KSP build stage without any 
-hiccups, the next 1 or 2 snapshots will be focusing on compilation stage, which should be the last 
-stage before we can get started on pE Development 4. 
-
-This is a developer-focused change log:
-* Codebase updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Prebuilt updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Platform libs updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-  * Move ViewCapture to platform lib
-  * Add Displaylib
-* Flags updated to Android 16-0.0_r3 (Android 16.0.0 Release 3)
-* Pull concurrent, dagger (the launcher3) as module
-  * TODO? We might need to migrate it to build source like compose instead
-* Lots of prebuilt documentations update
-* Add compose as part of launcher3 build source
-  * Removed test because I hate configuration gradle
-  * cc: @validcube fix me, cc: too bad
-
-## Bubble Tea [r2]
-
-Lawnchair 16 pE Development 3 is here! Contributors are encouraged to target this branch instead of 
+Lawnchair 16 pE Development 2 is here! Contributors are encouraged to target this branch instead of 
 older (i.e., Lawnchair `15-dev`).
 
 ### 🥞 Development 3 Release 2
@@ -184,7 +84,7 @@ Compatibility list:
 * [Lawnchair/Iconloaderlib] Don't parse monochrome drawable in Android 12.1 or less
 * [Launcher3/AllApps] Allow theming of Expressive allapps
 * ~~[Lawnchair] Lawnchair can now be compiled in release mode~~
-  * [Lawnchair] Fix crashes with WM-Shell
+    * [Lawnchair] Fix crashes with WM-Shell
 * [Lawnchair] Bottom sheet blur will only trigger when your device supported blur*
 * [Lawnchair/Lazy] Corner radii of lazy component now matched radius of non-lazy*
 * [Lawnchair/Debug] Cleanup the debug menu*

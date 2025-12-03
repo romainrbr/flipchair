@@ -20,10 +20,8 @@ import android.app.Instrumentation
 import android.tools.flicker.junit.FlickerBuilderProvider
 import android.tools.flicker.legacy.FlickerBuilder
 import android.tools.flicker.legacy.LegacyFlickerTest
-import android.tools.flicker.rules.ClearAppCacheRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.tapl.LauncherInstrumentation
-import org.junit.ClassRule
 
 abstract class BaseBenchmarkTest
 @JvmOverloads
@@ -45,9 +43,5 @@ constructor(
             setup { flicker.scenario.setIsTablet(tapl.isTablet) }
             transition()
         }
-    }
-
-    companion object {
-        @ClassRule @JvmField val clearCache = ClearAppCacheRule()
     }
 }

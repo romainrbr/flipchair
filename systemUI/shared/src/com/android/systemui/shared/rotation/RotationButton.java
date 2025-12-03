@@ -16,7 +16,6 @@
 
 package com.android.systemui.shared.rotation;
 
-import android.annotation.Nullable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
@@ -26,17 +25,14 @@ import android.view.View;
  * one in contextual for 3 button nav and a floating rotation button for gestural.
  */
 public interface RotationButton {
-    default void setRotationButtonController(
-            @Nullable RotationButtonController rotationButtonController) { }
-    default void setUpdatesCallback(
-            @Nullable RotationButtonUpdatesCallback updatesCallback) { }
+    default void setRotationButtonController(RotationButtonController rotationButtonController) { }
+    default void setUpdatesCallback(RotationButtonUpdatesCallback updatesCallback) { }
 
     default View getCurrentView() {
         return null;
     }
     default boolean show() { return false; }
     default boolean hide() { return false; }
-    default void onDestroy() {}
     default boolean isVisible() {
         return false;
     }

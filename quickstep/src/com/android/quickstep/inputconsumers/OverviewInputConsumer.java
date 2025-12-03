@@ -57,6 +57,7 @@ public class OverviewInputConsumer<S extends BaseState<S>,
     private final boolean mStartingInActivityBounds;
 
     private boolean mTargetHandledTouch;
+    private boolean mHasSetTouchModeForFirstDPadEvent;
     private boolean mIsWaitingForAttachToWindow;
 
     public OverviewInputConsumer(
@@ -114,6 +115,9 @@ public class OverviewInputConsumer<S extends BaseState<S>,
                 mInputMonitor.pilferPointers();
             }
         }
+        if (mHasSetTouchModeForFirstDPadEvent) {
+            mContainer.getRootView().clearFocus();
+        }
     }
 
     @Override
@@ -134,14 +138,11 @@ public class OverviewInputConsumer<S extends BaseState<S>,
                 break;
             case KeyEvent.KEYCODE_DPAD_LEFT:
             case KeyEvent.KEYCODE_DPAD_RIGHT:
-            case KeyEvent.KEYCODE_DPAD_UP:
-            case KeyEvent.KEYCODE_DPAD_DOWN:
-            case KeyEvent.KEYCODE_TAB:
+                if (mHasSetTouchModeForFirstDPadEvent) {
+                    break;
+                }
                 View viewRoot = mContainer.getRootView();
                 if (viewRoot.isAttachedToWindow()) {
-                    if (!viewRoot.getViewRootImpl().getView().isInTouchMode()) {
-                        break;
-                    }
                     setTouchModeChanged(viewRoot);
                     break;
                 }
@@ -176,6 +177,7 @@ public class OverviewInputConsumer<S extends BaseState<S>,
         // to focused views, while focus can only be requested in
         // {@link View#requestFocusNoSearch(int, Rect)} when touch mode is false. To
         // note, here we launch overview with live tile.
+        mHasSetTouchModeForFirstDPadEvent = true;
         viewRoot.getViewRootImpl().touchModeChanged(false);
     }
 }

@@ -8,7 +8,6 @@ import com.android.launcher3.Launcher
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import com.android.launcher3.logging.StatsLogManager.LauncherEvent
-import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.views.OptionsPopupView.OptionItem
 import com.patrykmichalik.opto.core.firstBlocking
 import com.patrykmichalik.opto.core.setBlocking
@@ -105,7 +104,7 @@ object LauncherOptionsPopup {
             "widgets" to OptionItem(
                 launcher,
                 R.string.widget_button_text,
-                SystemShortcut.Widgets.getDrawableId(),
+                R.drawable.ic_widget,
                 LauncherEvent.LAUNCHER_WIDGETSTRAY_BUTTON_TAP_OR_LONGPRESS,
                 onStartWidgetsMenu,
             ),
@@ -173,7 +172,7 @@ object LauncherOptionsPopup {
 
             "widgets" -> LauncherOptionMetadata(
                 label = R.string.widget_button_text,
-                icon = SystemShortcut.Widgets.getDrawableId(),
+                icon = R.drawable.ic_widget,
             )
 
             "all_apps" -> LauncherOptionMetadata(

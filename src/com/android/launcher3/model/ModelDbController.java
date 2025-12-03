@@ -35,6 +35,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.UserHandle;
+import android.os.UserManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -52,13 +53,13 @@ import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.LauncherSettings;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.graphics.LauncherPreviewRenderer;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError;
 import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.pm.UserCache;
-import com.android.launcher3.preview.PreviewContext;
 import com.android.launcher3.provider.LauncherDbUtils;
 import com.android.launcher3.provider.LauncherDbUtils.SQLiteTransaction;
 import com.android.launcher3.provider.RestoreDbTask;
@@ -66,8 +67,8 @@ import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.SandboxContext;
 import com.android.launcher3.widget.LauncherWidgetHolder;
 
+import java.io.File;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -114,16 +115,31 @@ public class ModelDbController {
         mContext = context;
     }
 
+    private void printDBs(String prefix) {
+        try {
+            File directory = new File(mContext.getDatabasePath(mIdp.dbFile).getParent());
+            if (directory.exists()) {
+                for (File file : directory.listFiles()) {
+                    Log.d("b/353505773", prefix + "Database file: " + file.getName());
+                }
+            } else {
+                Log.d("b/353505773", prefix + "No files found in the database directory");
+            }
+        } catch (Exception e) {
+            Log.e("b/353505773", prefix + e.getMessage());
+        }
+    }
+
     private synchronized void createDbIfNotExists() {
         if (mOpenHelper == null) {
-            // Initialize the restore task before opening the DB
-            Consumer<ModelDbController> restoreTask = RestoreDbTask.createRestoreTask(mContext);
             String dbFile = mPrefs.get(DB_FILE);
             if (dbFile.isEmpty()) {
                 dbFile = mIdp.dbFile;
             }
             mOpenHelper = createDatabaseHelper(false /* forMigration */, dbFile);
-            restoreTask.accept(this);
+            printDBs("before: ");
+            RestoreDbTask.restoreIfNeeded(mContext, this);
+            printDBs("after: ");
         }
     }
 
@@ -507,7 +523,6 @@ public class ModelDbController {
      * @return Ids of deleted folders.
      */
     @WorkerThread
-    @Nullable
     public IntArray deleteEmptyFolders() {
         createDbIfNotExists();
 
@@ -530,7 +545,7 @@ public class ModelDbController {
             return folderIds;
         } catch (SQLException ex) {
             Log.e(TAG, ex.getMessage(), ex);
-            return null;
+            return new IntArray();
         }
     }
 
@@ -539,7 +554,6 @@ public class ModelDbController {
      * @return Ids of deleted app pairs.
      */
     @WorkerThread
-    @Nullable
     public IntArray deleteBadAppPairs() {
         createDbIfNotExists();
 
@@ -563,7 +577,7 @@ public class ModelDbController {
             return appPairIds;
         } catch (SQLException ex) {
             Log.e(TAG, ex.getMessage(), ex);
-            return null;
+            return new IntArray();
         }
     }
 
@@ -572,7 +586,6 @@ public class ModelDbController {
      * @return Ids of deleted apps.
      */
     @WorkerThread
-    @Nullable
     public IntArray deleteUnparentedApps() {
         createDbIfNotExists();
 
@@ -594,7 +607,7 @@ public class ModelDbController {
             return appIds;
         } catch (SQLException ex) {
             Log.e(TAG, ex.getMessage(), ex);
-            return null;
+            return new IntArray();
         }
     }
 
@@ -617,7 +630,7 @@ public class ModelDbController {
     public synchronized void loadDefaultFavoritesIfNecessary() {
         createDbIfNotExists();
 
-        if (!(mContext instanceof PreviewContext)) {
+        if (!(mContext instanceof LauncherPreviewRenderer.PreviewContext)) {
             LawnchairAppKt.getLawnchairApp(mContext).cleanUpDatabases();
         }
 
@@ -663,8 +676,12 @@ public class ModelDbController {
     }
 
     private DefaultLayoutParser getDefaultLayoutParser(LauncherWidgetHolder widgetHolder) {
+        int defaultLayout = mIdp.demoModeLayoutId != 0
+                && mContext.getSystemService(UserManager.class).isDemoUser()
+                ? mIdp.demoModeLayoutId : mIdp.defaultLayoutId;
+
         return new DefaultLayoutParser(mContext, widgetHolder,
-                mOpenHelper, mContext.getResources(), mIdp.defaultLayoutId);
+                mOpenHelper, mContext.getResources(), defaultLayout);
     }
 
     private ConstantItem<Boolean> getEmptyDbCreatedKey() {

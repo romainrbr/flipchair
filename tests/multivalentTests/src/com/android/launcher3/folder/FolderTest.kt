@@ -75,19 +75,13 @@ import org.mockito.kotlin.whenever
 @RunWith(AndroidJUnit4::class)
 class FolderTest {
 
-    private lateinit var dragController: DragController<*>
     private lateinit var context: Context
     private lateinit var workspaceBuilder: TestWorkspaceBuilder
     private lateinit var folder: Folder
 
     @Before
     fun setUp() {
-        dragController = Mockito.mock(DragController::class.java)
-        context =
-            object : ActivityContextWrapper(ApplicationProvider.getApplicationContext()) {
-                override fun <T : DragController<*>> getDragController(): T = dragController as T
-            }
-
+        context = ActivityContextWrapper(ApplicationProvider.getApplicationContext())
         workspaceBuilder = TestWorkspaceBuilder(context)
         folder = spy(Folder(context, null))
     }
@@ -271,6 +265,7 @@ class FolderTest {
         val viewMock = Mockito.mock(View::class.java)
         val dragOptions = DragOptions()
         `when`(viewMock.tag).thenReturn(itemInfo)
+        folder.dragController = Mockito.mock(DragController::class.java)
 
         folder.startDrag(viewMock, dragOptions)
 
@@ -337,11 +332,12 @@ class FolderTest {
         doNothing().`when`(folder).completeDragExit()
         folder.isExternalDrag = true
         folder.isDragInProgress = true
+        folder.dragController = Mockito.mock(DragController::class.java)
 
         folder.onDragEnd()
 
         verify(folder, times(1)).completeDragExit()
-        verify(dragController, times(1)).removeDragListener(folder)
+        verify(folder.dragController, times(1)).removeDragListener(folder)
         assertFalse(folder.isDragInProgress)
     }
 
@@ -349,11 +345,12 @@ class FolderTest {
     fun `Verify onDragEnd that we do not call completeDragExit and set drag in progress false`() {
         folder.isExternalDrag = false
         folder.isDragInProgress = true
+        folder.dragController = Mockito.mock(DragController::class.java)
 
         folder.onDragEnd()
 
         verify(folder, times(0)).completeDragExit()
-        verify(dragController, times(1)).removeDragListener(folder)
+        verify(folder.dragController, times(1)).removeDragListener(folder)
         assertFalse(folder.isDragInProgress)
     }
 

@@ -30,10 +30,9 @@ import android.graphics.Rect;
 import android.os.RemoteException;
 import android.util.ArraySet;
 import android.util.Size;
-import android.util.SparseArray;
 
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.protolog.ProtoLog;
+import com.android.internal.protolog.common.ProtoLog;
 import com.android.internal.util.function.TriConsumer;
 import com.android.wm.shell.R;
 import com.android.wm.shell.common.DisplayLayout;
@@ -43,7 +42,9 @@ import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,7 +52,7 @@ import java.util.function.Consumer;
 /**
  * Singleton source of truth for the current state of PIP bounds.
  */
-public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
+public class PipBoundsState {
     public static final int STASH_TYPE_NONE = 0;
     public static final int STASH_TYPE_LEFT = 1;
     public static final int STASH_TYPE_RIGHT = 2;
@@ -68,37 +69,26 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
     @Retention(RetentionPolicy.SOURCE)
     public @interface StashType {}
 
-    public static final int NAMED_KCA_LAUNCHER_SHELF = 0;
-    public static final int NAMED_KCA_TABLETOP_MODE = 1;
-
-    @IntDef(prefix = { "NAMED_KCA_" }, value = {
-            NAMED_KCA_LAUNCHER_SHELF,
-            NAMED_KCA_TABLETOP_MODE
-    })
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface NamedKca {}
-
     private static final String TAG = PipBoundsState.class.getSimpleName();
 
-    @NonNull private final Rect mBounds = new Rect();
-    @NonNull private final Rect mMovementBounds = new Rect();
-    @NonNull private final Rect mNormalBounds = new Rect();
-    @NonNull private final Rect mExpandedBounds = new Rect();
-    @NonNull private final Rect mNormalMovementBounds = new Rect();
-    @NonNull private final Rect mExpandedMovementBounds = new Rect();
-    @NonNull private final Rect mRestoreBounds = new Rect();
-    @NonNull private final PipDisplayLayoutState mPipDisplayLayoutState;
+    private final @NonNull Rect mBounds = new Rect();
+    private final @NonNull Rect mMovementBounds = new Rect();
+    private final @NonNull Rect mNormalBounds = new Rect();
+    private final @NonNull Rect mExpandedBounds = new Rect();
+    private final @NonNull Rect mNormalMovementBounds = new Rect();
+    private final @NonNull Rect mExpandedMovementBounds = new Rect();
+    private final @NonNull PipDisplayLayoutState mPipDisplayLayoutState;
     private final Point mMaxSize = new Point();
     private final Point mMinSize = new Point();
-    @NonNull private Context mContext;
+    private final @NonNull Context mContext;
     private float mAspectRatio;
     private int mStashedState = STASH_TYPE_NONE;
     private int mStashOffset;
-    @Nullable private PipReentryState mPipReentryState;
+    private @Nullable PipReentryState mPipReentryState;
     private final LauncherState mLauncherState = new LauncherState();
-    @NonNull private final SizeSpecSource mSizeSpecSource;
-    @Nullable private ComponentName mLastPipComponentName;
-    @NonNull private final MotionBoundsState mMotionBoundsState = new MotionBoundsState();
+    private final @NonNull SizeSpecSource mSizeSpecSource;
+    private @Nullable ComponentName mLastPipComponentName;
+    private final @NonNull MotionBoundsState mMotionBoundsState = new MotionBoundsState();
     private boolean mIsImeShowing;
     private int mImeHeight;
     private boolean mIsShelfShowing;
@@ -130,21 +120,12 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
      * as unrestricted keep clear area. Values in this map would be appended to
      * {@link #getUnrestrictedKeepClearAreas()} and this is meant for internal usage only.
      */
-    private final SparseArray<Rect> mNamedUnrestrictedKeepClearAreas = new SparseArray<>();
+    private final Map<String, Rect> mNamedUnrestrictedKeepClearAreas = new HashMap<>();
 
-    @Nullable private Runnable mOnMinimalSizeChangeCallback;
-    @Nullable private TriConsumer<Boolean, Integer, Boolean> mOnShelfVisibilityChangeCallback;
-    private final List<Consumer<Rect>> mOnPipExclusionBoundsChangeCallbacks = new ArrayList<>();
-    private final List<Consumer<Float>> mOnAspectRatioChangedCallbacks = new ArrayList<>();
-
-    /**
-     * This is used to set the launcher shelf height ahead of non-auto-enter-pip animation,
-     * to avoid the race condition. See also {@link #NAMED_KCA_LAUNCHER_SHELF}.
-     */
-    public final Rect mCachedLauncherShelfHeightKeepClearArea = new Rect();
-
-    private final List<OnPipComponentChangedListener> mOnPipComponentChangedListeners =
-            new ArrayList<>();
+    private @Nullable Runnable mOnMinimalSizeChangeCallback;
+    private @Nullable TriConsumer<Boolean, Integer, Boolean> mOnShelfVisibilityChangeCallback;
+    private List<Consumer<Rect>> mOnPipExclusionBoundsChangeCallbacks = new ArrayList<>();
+    private List<Consumer<Float>> mOnAspectRatioChangedCallbacks = new ArrayList<>();
 
     // the size of the current bounds relative to the max size spec
     private float mBoundsScale;
@@ -155,12 +136,13 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
         reloadResources();
         mSizeSpecSource = sizeSpecSource;
         mPipDisplayLayoutState = pipDisplayLayoutState;
-        mPipDisplayLayoutState.addDisplayIdListener(this);
 
         // Update the relative proportion of the bounds compared to max possible size. Max size
         // spec takes the aspect ratio of the bounds into account, so both width and height
         // scale by the same factor.
-        addPipExclusionBoundsChangeCallback((bounds) -> updateBoundsScale());
+        addPipExclusionBoundsChangeCallback((bounds) -> {
+            updateBoundsScale();
+        });
     }
 
     /** Reloads the resources. */
@@ -169,12 +151,6 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
 
         // update the size spec resources upon config change too
         mSizeSpecSource.onConfigurationChanged();
-    }
-
-    @Override
-    public void onDisplayIdChanged(@NonNull Context context) {
-        mContext = context;
-        reloadResources();
     }
 
     /** Update the bounds scale percentage value. */
@@ -349,14 +325,11 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
     /** Set the last {@link ComponentName} to enter PIP mode. */
     public void setLastPipComponentName(@Nullable ComponentName lastPipComponentName) {
         final boolean changed = !Objects.equals(mLastPipComponentName, lastPipComponentName);
-        if (!changed) return;
-        clearReentryState();
-        setHasUserResizedPip(false);
-        setHasUserMovedPip(false);
-        final ComponentName oldComponentName = mLastPipComponentName;
         mLastPipComponentName = lastPipComponentName;
-        for (OnPipComponentChangedListener listener : mOnPipComponentChangedListeners) {
-            listener.onPipComponentChanged(oldComponentName, mLastPipComponentName);
+        if (changed) {
+            clearReentryState();
+            setHasUserResizedPip(false);
+            setHasUserMovedPip(false);
         }
     }
 
@@ -388,16 +361,6 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
 
     /** Sets the preferred size of PIP as specified by the activity in PIP mode. */
     public void setOverrideMinSize(@Nullable Size overrideMinSize) {
-        if (overrideMinSize != null) {
-            final Size defaultSize = mSizeSpecSource.getDefaultSize(getAspectRatio());
-            if (overrideMinSize.getWidth() > defaultSize.getWidth()
-                    || overrideMinSize.getHeight() > defaultSize.getHeight()) {
-                ProtoLog.w(ShellProtoLogGroup.WM_SHELL_PICTURE_IN_PICTURE,
-                        "Ignore override min size(%s): larger than default size (%s)",
-                        overrideMinSize, defaultSize);
-                return;
-            }
-        }
         final boolean changed = !Objects.equals(overrideMinSize, getOverrideMinSize());
         mSizeSpecSource.setOverrideMinSize(overrideMinSize);
         if (changed && mOnMinimalSizeChangeCallback != null) {
@@ -426,25 +389,11 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
     public void setImeVisibility(boolean imeShowing, int imeHeight) {
         mIsImeShowing = imeShowing;
         mImeHeight = imeHeight;
-        // If IME is showing, save the current PiP bounds in case we need to restore it later.
-        if (mIsImeShowing) {
-            mRestoreBounds.set(getBounds());
-        }
     }
 
     /** Returns whether the IME is currently showing. */
     public boolean isImeShowing() {
         return mIsImeShowing;
-    }
-
-    /** Returns the bounds to restore PiP to (bounds before IME was expanded). */
-    public Rect getRestoreBounds() {
-        return mRestoreBounds;
-    }
-
-    /** Sets mRestoreBounds to (0,0,0,0). */
-    public void clearRestoreBounds() {
-        mRestoreBounds.setEmpty();
     }
 
     /** Returns the IME height. */
@@ -481,31 +430,16 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
         mUnrestrictedKeepClearAreas.addAll(unrestrictedAreas);
     }
 
-    /** Set a named unrestricted keep clear area. */
-    public void setNamedUnrestrictedKeepClearArea(
-            @NamedKca int tag, @Nullable Rect unrestrictedArea) {
-        if (unrestrictedArea == null) {
-            mNamedUnrestrictedKeepClearAreas.remove(tag);
-        } else {
-            mNamedUnrestrictedKeepClearAreas.put(tag, unrestrictedArea);
-            if (tag == NAMED_KCA_LAUNCHER_SHELF) {
-                mCachedLauncherShelfHeightKeepClearArea.set(unrestrictedArea);
-            }
-        }
+    /** Add a named unrestricted keep clear area. */
+    public void addNamedUnrestrictedKeepClearArea(@NonNull String name, Rect unrestrictedArea) {
+        mNamedUnrestrictedKeepClearAreas.put(name, unrestrictedArea);
     }
 
-    /**
-     * Forcefully set the keep-clear-area for launcher shelf height if applicable.
-     * This is used for entering PiP in button navigation mode to make sure the destination bounds
-     * calculation includes the shelf height, to avoid race conditions that such callback is sent
-     * from Launcher after the entering animation is started.
-     */
-    public void mayUseCachedLauncherShelfHeight() {
-        if (!mCachedLauncherShelfHeightKeepClearArea.isEmpty()) {
-            setNamedUnrestrictedKeepClearArea(
-                    NAMED_KCA_LAUNCHER_SHELF, mCachedLauncherShelfHeightKeepClearArea);
-        }
+    /** Remove a named unrestricted keep clear area. */
+    public void removeNamedUnrestrictedKeepClearArea(@NonNull String name) {
+        mNamedUnrestrictedKeepClearAreas.remove(name);
     }
+
 
     /**
      * @return restricted keep clear areas.
@@ -520,12 +454,9 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
      */
     @NonNull
     public Set<Rect> getUnrestrictedKeepClearAreas() {
-        if (mNamedUnrestrictedKeepClearAreas.size() == 0) return mUnrestrictedKeepClearAreas;
+        if (mNamedUnrestrictedKeepClearAreas.isEmpty()) return mUnrestrictedKeepClearAreas;
         final Set<Rect> unrestrictedAreas = new ArraySet<>(mUnrestrictedKeepClearAreas);
-        for (int i = 0; i < mNamedUnrestrictedKeepClearAreas.size(); i++) {
-            final int key = mNamedUnrestrictedKeepClearAreas.keyAt(i);
-            unrestrictedAreas.add(mNamedUnrestrictedKeepClearAreas.get(key));
-        }
+        unrestrictedAreas.addAll(mNamedUnrestrictedKeepClearAreas.values());
         return unrestrictedAreas;
     }
 
@@ -557,10 +488,6 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
     /** Set whether the user has resized the PIP. */
     public void setHasUserResizedPip(boolean hasUserResizedPip) {
         mHasUserResizedPip = hasUserResizedPip;
-        // If user resized PiP while IME is showing, clear the pre-IME restore bounds.
-        if (hasUserResizedPip && isImeShowing()) {
-            clearRestoreBounds();
-        }
     }
 
     /** Returns whether the user has moved the PIP. */
@@ -571,10 +498,6 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
     /** Set whether the user has moved the PIP. */
     public void setHasUserMovedPip(boolean hasUserMovedPip) {
         mHasUserMovedPip = hasUserMovedPip;
-        // If user moved PiP while IME is showing, clear the pre-IME restore bounds.
-        if (hasUserMovedPip && isImeShowing()) {
-            clearRestoreBounds();
-        }
     }
 
     /**
@@ -624,21 +547,6 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
             @NonNull Consumer<Float> onAspectRatioChangedCallback) {
         if (mOnAspectRatioChangedCallbacks.contains(onAspectRatioChangedCallback)) {
             mOnAspectRatioChangedCallbacks.remove(onAspectRatioChangedCallback);
-        }
-    }
-
-    /** Adds callback to listen on component change. */
-    public void addOnPipComponentChangedListener(@NonNull OnPipComponentChangedListener listener) {
-        if (!mOnPipComponentChangedListeners.contains(listener)) {
-            mOnPipComponentChangedListeners.add(listener);
-        }
-    }
-
-    /** Removes callback to listen on component change. */
-    public void removeOnPipComponentChangedListener(
-            @NonNull OnPipComponentChangedListener listener) {
-        if (mOnPipComponentChangedListeners.contains(listener)) {
-            mOnPipComponentChangedListeners.remove(listener);
         }
     }
 
@@ -721,7 +629,7 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
      * Represents the state of pip to potentially restore upon reentry.
      */
     @VisibleForTesting
-    static final class PipReentryState {
+    public static final class PipReentryState {
         private static final String TAG = PipReentryState.class.getSimpleName();
 
         private final float mSnapFraction;
@@ -746,22 +654,6 @@ public class PipBoundsState implements PipDisplayLayoutState.DisplayIdListener {
             pw.println(innerPrefix + "mBoundsScale=" + mBoundsScale);
             pw.println(innerPrefix + "mSnapFraction=" + mSnapFraction);
         }
-    }
-
-    /**
-     * Listener interface for PiP component change, i.e. the app in pip mode changes
-     * TODO: Move this out of PipBoundsState once pip1 is deprecated.
-     */
-    public interface OnPipComponentChangedListener {
-        /**
-         * Callback when the component in pip mode changes.
-         * @param oldPipComponent previous component in pip mode,
-         *                        {@code null} if this is the very first time PiP appears.
-         * @param newPipComponent new component that enters pip mode.
-         */
-        void onPipComponentChanged(
-                @Nullable ComponentName oldPipComponent,
-                @NonNull ComponentName newPipComponent);
     }
 
     /** Dumps internal state. */

@@ -17,20 +17,31 @@ package com.android.launcher3.util
 
 import android.content.Context
 import android.content.Intent
+import android.os.SystemClock
+import android.view.InputDevice
+import android.view.KeyCharacterMap
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.children
+import androidx.lifecycle.Lifecycle.State.RESUMED
+import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ActivityScenario.ActivityAction
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
 import androidx.test.uiautomator.UiDevice
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherState
 import com.android.launcher3.R
 import com.android.launcher3.allapps.AllAppsStore.DEFER_UPDATES_TEST
-import com.android.launcher3.integration.util.LauncherActivityScenarioRule
+import com.android.launcher3.tapl.TestHelpers
 import com.android.launcher3.util.ModelTestExtensions.loadModelSync
 import com.android.launcher3.util.Wait.atMost
+import java.util.function.Function
 import java.util.function.Predicate
-import org.junit.Rule
+import java.util.function.Supplier
+import org.junit.After
 
 /**
  * Base class for tests which use Launcher activity with some utility methods.
@@ -39,27 +50,97 @@ import org.junit.Rule
  */
 open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
 
-    @get:Rule
-    var launcherActivity =
-        LauncherActivityScenarioRule<LAUNCHER_TYPE>(getInstrumentation().targetContext)
+    private var currentScenario: ActivityScenario<LAUNCHER_TYPE>? = null
+
+    val scenario: ActivityScenario<LAUNCHER_TYPE>
+        get() =
+            currentScenario
+                ?: ActivityScenario.launch<LAUNCHER_TYPE>(
+                        TestHelpers.getHomeIntentInPackage(targetContext()),
+                        null,
+                    )
+                    .also { currentScenario = it }
 
     @JvmField val uiDevice = UiDevice.getInstance(getInstrumentation())
 
+    @After
+    fun closeCurrentActivity() {
+        currentScenario?.close()
+        currentScenario = null
+    }
+
     protected fun loadLauncherSync() {
         LauncherAppState.getInstance(targetContext()).model.loadModelSync()
-        launcherActivity.initializeActivity()
+        scenario.moveToState(RESUMED)
     }
 
     protected fun targetContext(): Context = getInstrumentation().targetContext
 
-    protected fun waitForLauncherCondition(message: String, condition: (LAUNCHER_TYPE) -> Boolean) =
-        atMost(message, { launcherActivity.getFromLauncher(condition)!! })
+    protected fun goToState(state: LauncherState) {
+        executeOnLauncher { it.stateManager.goToState(state, 0) }
+        UiDevice.getInstance(getInstrumentation()).waitForIdle()
+    }
+
+    protected fun executeOnLauncher(f: ActivityAction<LAUNCHER_TYPE>) = scenario.onActivity(f)
+
+    protected fun <T> getFromLauncher(f: Function<in LAUNCHER_TYPE, out T?>): T? {
+        var result: T? = null
+        executeOnLauncher { result = f.apply(it) }
+        return result
+    }
+
+    protected fun isInState(state: Supplier<LauncherState>): Boolean =
+        getFromLauncher { it.stateManager.state == state.get() }!!
+
+    protected fun waitForState(message: String, state: Supplier<LauncherState>) =
+        waitForLauncherCondition(message) { it.stateManager.currentStableState === state.get() }
 
     protected fun waitForLauncherCondition(
         message: String,
-        condition: (LAUNCHER_TYPE) -> Boolean,
+        condition: Function<LAUNCHER_TYPE, Boolean>,
+    ) = atMost(message, { getFromLauncher(condition)!! })
+
+    protected fun waitForLauncherCondition(
+        message: String,
+        condition: Function<LAUNCHER_TYPE, Boolean>,
         timeout: Long,
-    ) = atMost(message, { launcherActivity.getFromLauncher(condition)!! }, null, timeout)
+    ) = atMost(message, { getFromLauncher(condition)!! }, null, timeout)
+
+    protected fun <T> getOnceNotNull(message: String, f: Function<LAUNCHER_TYPE, T?>): T? {
+        var output: T? = null
+        atMost(
+            message,
+            {
+                val fromLauncher = getFromLauncher<T>(f)
+                output = fromLauncher
+                fromLauncher != null
+            },
+        )
+        return output
+    }
+
+    protected fun getAllAppsScroll(launcher: LAUNCHER_TYPE) =
+        launcher.appsView.activeRecyclerView.computeVerticalScrollOffset()
+
+    @JvmOverloads
+    protected fun injectKeyEvent(keyCode: Int, actionDown: Boolean, metaState: Int = 0) {
+        uiDevice.waitForIdle()
+        val eventTime = SystemClock.uptimeMillis()
+        val event =
+            KeyEvent(
+                eventTime,
+                eventTime,
+                if (actionDown) KeyEvent.ACTION_DOWN else MotionEvent.ACTION_UP,
+                keyCode,
+                /* repeat= */ 0,
+                metaState,
+                KeyCharacterMap.VIRTUAL_KEYBOARD,
+                /* scancode= */ 0,
+                /* flags= */ 0,
+                InputDevice.SOURCE_KEYBOARD,
+            )
+        executeOnLauncher { it.dispatchKeyEvent(event) }
+    }
 
     @JvmOverloads
     fun startAppFast(
@@ -72,10 +153,9 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
         uiDevice.waitForIdle()
     }
 
-    fun freezeAllApps() =
-        launcherActivity.executeOnLauncher {
-            it.appsView.appsStore.enableDeferUpdates(DEFER_UPDATES_TEST)
-        }
+    fun freezeAllApps() = executeOnLauncher {
+        it.appsView.appsStore.enableDeferUpdates(DEFER_UPDATES_TEST)
+    }
 
     fun executeShellCommand(cmd: String) = uiDevice.executeShellCommand(cmd)
 
@@ -95,7 +175,7 @@ open class BaseLauncherActivityTest<LAUNCHER_TYPE : Launcher> {
      * readers).
      */
     fun addWidgetToWorkspace(view: View) {
-        launcherActivity.executeOnLauncher {
+        executeOnLauncher {
             view.performClick()
             UiDevice.getInstance(getInstrumentation()).waitForIdle()
             view.findViewById<View>(R.id.widget_add_button).performClick()

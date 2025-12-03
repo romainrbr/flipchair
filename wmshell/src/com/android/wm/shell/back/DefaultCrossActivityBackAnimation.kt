@@ -16,13 +16,11 @@
 package com.android.wm.shell.back
 
 import android.content.Context
-import android.os.Handler
 import android.view.SurfaceControl
 import android.window.BackEvent
 import com.android.wm.shell.R
 import com.android.wm.shell.RootTaskDisplayAreaOrganizer
-import com.android.wm.shell.shared.animation.Interpolators
-import com.android.wm.shell.shared.annotations.ShellMainThread
+import com.android.wm.shell.animation.Interpolators
 import javax.inject.Inject
 import kotlin.math.max
 
@@ -32,15 +30,13 @@ class DefaultCrossActivityBackAnimation
 constructor(
     context: Context,
     background: BackAnimationBackground,
-    rootTaskDisplayAreaOrganizer: RootTaskDisplayAreaOrganizer,
-    @ShellMainThread handler: Handler,
+    rootTaskDisplayAreaOrganizer: RootTaskDisplayAreaOrganizer
 ) :
     CrossActivityBackAnimation(
         context,
         background,
         rootTaskDisplayAreaOrganizer,
-        SurfaceControl.Transaction(),
-        handler
+        SurfaceControl.Transaction()
     ) {
 
     private val postCommitInterpolator = Interpolators.EMPHASIZED

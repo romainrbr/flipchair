@@ -104,7 +104,6 @@ public class ExpandedAnimationControllerTest extends PhysicsAnimationLayoutTestC
     @Test
     public void testExpansionAndCollapse() throws Exception {
         expand();
-        waitForAnimation();
         testBubblesInCorrectExpandedPositions();
         waitForMainThread();
 

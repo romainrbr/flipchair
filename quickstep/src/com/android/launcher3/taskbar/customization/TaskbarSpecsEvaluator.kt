@@ -35,7 +35,7 @@ class TaskbarSpecsEvaluator(
     val taskbarIconPadding: Int =
         if (
             TaskbarIconSpecs.transientOrPinnedTaskbarIconPaddingSize.size > taskbarIconSize.size &&
-                taskbarFeatureEvaluator.supportsTransitionToTransientTaskbar
+                !taskbarFeatureEvaluator.hasNavButtons
         ) {
             (TaskbarIconSpecs.iconSize52dp.size - taskbarIconSize.size) / 2
         } else {

@@ -16,7 +16,3 @@ android {
 }
 
 addFrameworkJar('framework-16.jar')
-
-dependencies {
-    implementation projects.utils
-}

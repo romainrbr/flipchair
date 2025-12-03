@@ -17,17 +17,12 @@
 package com.android.launcher3.taskbar
 
 import android.animation.AnimatorTestRule
-import android.platform.test.annotations.DisableFlags
 import android.platform.test.annotations.EnableFlags
 import android.platform.test.flag.junit.SetFlagsRule
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
-import com.android.launcher3.Flags
-import com.android.launcher3.LauncherPrefs
 import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING
-import com.android.launcher3.LauncherPrefs.Companion.TASKBAR_PINNING_IN_DESKTOP_MODE
 import com.android.launcher3.QuickstepTransitionManager.PINNED_TASKBAR_TRANSITION_DURATION
 import com.android.launcher3.R
-import com.android.launcher3.statehandlers.DesktopVisibilityController
 import com.android.launcher3.taskbar.StashedHandleViewController.ALPHA_INDEX_STASHED
 import com.android.launcher3.taskbar.TaskbarAutohideSuspendController.FLAG_AUTOHIDE_SUSPEND_EDU_OPEN
 import com.android.launcher3.taskbar.TaskbarControllerTestUtil.asProperty
@@ -55,7 +50,6 @@ import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.InjectController
 import com.android.launcher3.taskbar.rules.TaskbarUnitTestRule.UserSetupMode
 import com.android.launcher3.taskbar.rules.TaskbarWindowSandboxContext
-import com.android.launcher3.taskbar.rules.displayControllerSpy
 import com.android.launcher3.util.LauncherMultivalentJUnit
 import com.android.launcher3.util.LauncherMultivalentJUnit.EmulatedDevices
 import com.android.systemui.shared.system.QuickStepContract.SYSUI_STATE_BUBBLES_EXPANDED
@@ -67,9 +61,6 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.spy
-import org.mockito.kotlin.whenever
 
 @RunWith(LauncherMultivalentJUnit::class)
 @EnableFlags(FLAG_ENABLE_BUBBLE_BAR)
@@ -88,9 +79,6 @@ class TaskbarStashControllerTest {
     @InjectController lateinit var autohideSuspendController: TaskbarAutohideSuspendController
     @InjectController lateinit var bubbleBarViewController: BubbleBarViewController
     @InjectController lateinit var bubbleStashController: BubbleStashController
-
-    private val desktopVisibilityController: DesktopVisibilityController
-        get() = DesktopVisibilityController.INSTANCE[context]
 
     private val activityContext by taskbarUnitTestRule::activityContext
 
@@ -130,27 +118,7 @@ class TaskbarStashControllerTest {
     }
 
     @Test
-    @DisableFlags(Flags.FLAG_ENABLE_OVERVIEW_ON_CONNECTED_DISPLAYS)
-    fun testRecreateAsTransient_withoutOverviewOnConnectedDisplays_timeoutStarted() {
-        context.displayControllerSpy?.setupTaskbarPinningPrefListener(context.displayId)
-
-        testRecreateAsTransient_timeoutStarted()
-    }
-
-    @Test
-    @EnableFlags(Flags.FLAG_ENABLE_OVERVIEW_ON_CONNECTED_DISPLAYS)
-    fun testRecreateAsTransient_withOverviewOnConnectedDisplay_timeoutStarted() {
-        context.displayControllerSpy?.let { controller ->
-            controller.setupTaskbarPinningPrefListener(context.displayId)
-            controller.infoModifierForDisplay = {
-                spy(it) { on { it?.isTransientTaskbar } doReturn true }
-            }
-        }
-
-        testRecreateAsTransient_timeoutStarted()
-    }
-
-    private fun testRecreateAsTransient_timeoutStarted() {
+    fun testRecreateAsTransient_timeoutStarted() {
         var isPinned by TASKBAR_PINNING.asProperty(context)
         isPinned = true
         activityContext.controllers.sharedState?.taskbarWasPinned = true
@@ -325,7 +293,7 @@ class TaskbarStashControllerTest {
         }
 
         val expectedHeight =
-            activityContext.deviceProfile.taskbarProfile.run { height + bottomMargin }
+            activityContext.deviceProfile.run { taskbarHeight + taskbarBottomMargin }
         assertThat(stashController.touchableHeight).isEqualTo(expectedHeight)
     }
 
@@ -333,7 +301,7 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testGetTouchableHeight_pinnedMode_taskbarHeight() {
         assertThat(stashController.touchableHeight)
-            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
+            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
     }
 
     @Test
@@ -347,33 +315,22 @@ class TaskbarStashControllerTest {
     @TaskbarMode(THREE_BUTTONS)
     fun testGetContentHeightToReportToApps_threeButtonsMode_taskbarHeight() {
         assertThat(stashController.contentHeightToReportToApps)
-            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
+            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
     }
 
     @Test
     @TaskbarMode(PINNED)
     fun testGetContentHeightToReportToApps_pinnedMode_taskbarHeight() {
         assertThat(stashController.contentHeightToReportToApps)
-            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
+            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
     }
 
     @Test
     @TaskbarMode(PINNED)
     @UserSetupMode
     fun testGetContentHeightToReportToApps_pinnedInSetupMode_setupWizardInsets() {
-        stashController.mNavbarHiddenOverrideForTest = false
         assertThat(stashController.contentHeightToReportToApps)
             .isEqualTo(context.resources.getDimensionPixelSize(R.dimen.taskbar_suw_insets))
-        stashController.mNavbarHiddenOverrideForTest = null
-    }
-
-    @Test
-    @UserSetupMode
-    fun testGetContentHeightToReportToApps_inExpressiveTheme_setupWizardInsets() {
-        stashController.mNavbarHiddenOverrideForTest = true
-        assertThat(stashController.contentHeightToReportToApps)
-            .isEqualTo(stashController.stashedHeight)
-        stashController.mNavbarHiddenOverrideForTest = null
     }
 
     @Test
@@ -408,7 +365,7 @@ class TaskbarStashControllerTest {
     @TaskbarMode(PINNED)
     fun testGetTappableHeightToReportToApps_pinnedMode_taskbarHeight() {
         assertThat(stashController.tappableHeightToReportToApps)
-            .isEqualTo(activityContext.deviceProfile.taskbarProfile.height)
+            .isEqualTo(activityContext.deviceProfile.taskbarHeight)
     }
 
     @Test
@@ -428,41 +385,6 @@ class TaskbarStashControllerTest {
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
         }
         assertThat(stashController.timeoutAlarm.alarmPending()).isTrue()
-    }
-
-    @Test
-    @TaskbarMode(PINNED)
-    fun testUpdateTaskbarTimeout_unPinnedTaskbarInDesktopMode_startsTaskbarTimeout() {
-        LauncherPrefs.get(context).put(TASKBAR_PINNING_IN_DESKTOP_MODE, false)
-        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-        stashController.updateTaskbarTimeout(false)
-        assertThat(stashController.timeoutAlarm.alarmPending()).isTrue()
-    }
-
-    @Test
-    @TaskbarMode(PINNED)
-    fun testUpdateTaskbarTimeout_pinnedTaskbarInDesktopMode_shouldNotStartsTaskbarTimeout() {
-        LauncherPrefs.get(context).put(TASKBAR_PINNING_IN_DESKTOP_MODE, true)
-        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-        stashController.updateTaskbarTimeout(false)
-        assertThat(stashController.timeoutAlarm.alarmPending()).isFalse()
-    }
-
-    @Test
-    @TaskbarMode(TRANSIENT)
-    fun shouldAllowTaskbarToAutoStash_transientTaskbar() {
-        assertThat(stashController.shouldAllowTaskbarToAutoStash()).isTrue()
-    }
-
-    @Test
-    @TaskbarMode(PINNED)
-    fun toggleTaskbarStash_autoStashedDesktopModeTaskbar() {
-        LauncherPrefs.get(context).put(TASKBAR_PINNING_IN_DESKTOP_MODE, false)
-        whenever(desktopVisibilityController.isInDesktopMode(context.displayId)).thenReturn(true)
-
-        getInstrumentation().runOnMainSync { stashController.toggleTaskbarStash() }
-
-        assertThat(stashController.isStashed).isTrue()
     }
 
     @Test
@@ -546,7 +468,7 @@ class TaskbarStashControllerTest {
     fun testUpdateAndAnimateTransientTaskbar_bubbleBarExpandedBeforeTimeout_expandedAfterwards() {
         getInstrumentation().runOnMainSync {
             bubbleBarViewController.setHiddenForBubbles(false)
-            bubbleBarViewController.animateExpanded(true)
+            bubbleBarViewController.isExpanded = true
             stashController.updateAndAnimateTransientTaskbar(false)
             animatorTestRule.advanceTimeBy(stashController.stashDuration)
         }

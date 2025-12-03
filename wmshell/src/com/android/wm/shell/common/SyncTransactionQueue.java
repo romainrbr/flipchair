@@ -20,14 +20,16 @@ import static com.android.wm.shell.protolog.ShellProtoLogGroup.WM_SHELL;
 
 import android.annotation.BinderThread;
 import android.annotation.NonNull;
+import android.os.RemoteException;
 import android.util.Slog;
 import android.view.SurfaceControl;
+import android.view.WindowManager;
 import android.window.WindowContainerTransaction;
 import android.window.WindowContainerTransactionCallback;
 import android.window.WindowOrganizer;
 
-import com.android.internal.protolog.ProtoLog;
-import com.android.wm.shell.shared.TransactionPool;
+import com.android.internal.protolog.common.ProtoLog;
+import com.android.wm.shell.transition.LegacyTransitions;
 
 import java.util.ArrayList;
 
@@ -76,6 +78,25 @@ public final class SyncTransactionQueue {
         SyncCallback cb = new SyncCallback(wct);
         synchronized (mQueue) {
             if (DEBUG) Slog.d(TAG, "Queueing up " + wct);
+            mQueue.add(cb);
+            if (mQueue.size() == 1) {
+                cb.send();
+            }
+        }
+    }
+
+    /**
+     * Queues a legacy transition to be sent serially to WM
+     */
+    public void queue(LegacyTransitions.ILegacyTransition transition,
+            @WindowManager.TransitionType int type, WindowContainerTransaction wct) {
+        if (wct.isEmpty()) {
+            if (DEBUG) Slog.d(TAG, "Skip queue due to transaction change is empty");
+            return;
+        }
+        SyncCallback cb = new SyncCallback(transition, type, wct);
+        synchronized (mQueue) {
+            if (DEBUG) Slog.d(TAG, "Queueing up legacy transition " + wct);
             mQueue.add(cb);
             if (mQueue.size() == 1) {
                 cb.send();
@@ -146,9 +167,17 @@ public final class SyncTransactionQueue {
     private class SyncCallback extends WindowContainerTransactionCallback {
         int mId = -1;
         final WindowContainerTransaction mWCT;
+        final LegacyTransitions.LegacyTransition mLegacyTransition;
 
         SyncCallback(WindowContainerTransaction wct) {
             mWCT = wct;
+            mLegacyTransition = null;
+        }
+
+        SyncCallback(LegacyTransitions.ILegacyTransition legacyTransition,
+                @WindowManager.TransitionType int type, WindowContainerTransaction wct) {
+            mWCT = wct;
+            mLegacyTransition = new LegacyTransitions.LegacyTransition(type, legacyTransition);
         }
 
         // Must be sychronized on mQueue
@@ -162,17 +191,15 @@ public final class SyncTransactionQueue {
                 throw new IllegalStateException("Sync Transactions must be serialized. In Flight: "
                         + mInFlight.mId + " - " + mInFlight.mWCT);
             }
+            mInFlight = this;
             if (DEBUG) Slog.d(TAG, "Sending sync transaction: " + mWCT);
-            try {
+            if (mLegacyTransition != null) {
+                mId = new WindowOrganizer().startLegacyTransition(mLegacyTransition.getType(),
+                        mLegacyTransition.getAdapter(), this, mWCT);
+            } else {
                 mId = new WindowOrganizer().applySyncTransaction(mWCT, this);
-            } catch (RuntimeException e) {
-                Slog.e(TAG, "Send failed", e);
-                // Finish current sync callback immediately.
-                onTransactionReady(mId, new SurfaceControl.Transaction());
-                return;
             }
             if (DEBUG) Slog.d(TAG, " Sent sync transaction. Got id=" + mId);
-            mInFlight = this;
             mMainExecutor.executeDelayed(mOnReplyTimeout, REPLY_TIMEOUT);
         }
 
@@ -193,10 +220,18 @@ public final class SyncTransactionQueue {
                     if (DEBUG) Slog.d(TAG, "onTransactionReady id=" + mId);
                     mQueue.remove(this);
                     onTransactionReceived(t);
-                    ProtoLog.v(WM_SHELL,
-                            "SyncTransactionQueue.onTransactionReady(): syncId=%d apply", id);
-                    t.apply();
-                    t.close();
+                    if (mLegacyTransition != null) {
+                        try {
+                            mLegacyTransition.getSyncCallback().onTransactionReady(mId, t);
+                        } catch (RemoteException e) {
+                            Slog.e(TAG, "Error sending callback to legacy transition: " + mId, e);
+                        }
+                    } else {
+                        ProtoLog.v(WM_SHELL,
+                                "SyncTransactionQueue.onTransactionReady(): syncId=%d apply", id);
+                        t.apply();
+                        t.close();
+                    }
                     if (!mQueue.isEmpty()) {
                         mQueue.get(0).send();
                     }

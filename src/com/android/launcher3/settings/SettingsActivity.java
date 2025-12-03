@@ -211,7 +211,8 @@ public class SettingsActivity extends FragmentActivity
             // If the target preference is not in the current preference screen, find the parent
             // preference screen that contains the target preference and set it as the preference
             // screen.
-            if (mHighLightKey != null
+            if (Flags.navigateToChildPreference()
+                    && mHighLightKey != null
                     && !isKeyInPreferenceGroup(mHighLightKey, screen)) {
                 final PreferenceScreen parentPreferenceScreen =
                         findParentPreference(screen, mHighLightKey);

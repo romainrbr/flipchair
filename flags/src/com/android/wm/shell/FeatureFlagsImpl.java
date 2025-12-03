@@ -1,7 +1,15 @@
 package com.android.wm.shell;
+// TODO(b/303773055): Remove the annotation after access issue is resolved.
 
 /** @hide */
 public final class FeatureFlagsImpl implements FeatureFlags {
+    @Override
+
+
+    public boolean bubbleViewInfoExecutors() {
+        return true;
+    }
+
     @Override
 
 
@@ -14,13 +22,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     public boolean enableBubbleAnything() {
         return false;
-    }
-
-    @Override
-
-
-    public boolean enableBubbleAppCompatFixes() {
-        return true;
     }
 
     @Override
@@ -42,13 +43,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     public boolean enableBubbleStashing() {
         return false;
-    }
-
-    @Override
-
-
-    public boolean enableBubbleSwipeUpCleanup() {
-        return true;
     }
 
     @Override
@@ -83,13 +77,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableDynamicInsetsForAppLaunch() {
-        return true;
-    }
-
-    @Override
-
-
-    public boolean enableEnterSplitRemoveBubble() {
         return false;
     }
 
@@ -145,13 +132,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enablePipBoxShadows() {
-        return false;
-    }
-
-    @Override
-
-
     public boolean enablePipUmoExperience() {
         return false;
     }
@@ -160,7 +140,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean enableRecentsBookendTransition() {
-        return true;
+        return false;
     }
 
     @Override
@@ -175,6 +155,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
     public boolean enableShellTopTaskTracking() {
         return false;
+    }
+
+    @Override
+
+
+    public boolean enableTaskViewControllerCleanup() {
+        return true;
     }
 
     @Override
@@ -202,7 +189,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean fixMissingUserChangeCallbacks() {
-        return true;
+        return false;
     }
 
     @Override
@@ -216,13 +203,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean taskViewRepository() {
-        return true;
-    }
-
-    @Override
-
-
-    public boolean taskViewTransitionsRefactor() {
         return false;
     }
 

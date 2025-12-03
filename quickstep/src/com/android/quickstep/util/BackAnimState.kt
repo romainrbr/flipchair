@@ -19,11 +19,8 @@ package com.android.quickstep.util
 import android.animation.AnimatorSet
 import android.content.Context
 import com.android.launcher3.Flags
-import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAnimationRunner.AnimationResult
-import com.android.launcher3.LauncherState
 import com.android.launcher3.anim.AnimatorListeners.forEndCallback
-import com.android.launcher3.statemanager.StateManager
 import com.android.launcher3.util.RunnableList
 
 /** Interface to represent animation for back to Launcher transition */
@@ -33,7 +30,7 @@ interface BackAnimState {
 
     fun applyToAnimationResult(result: AnimationResult, c: Context)
 
-    fun start(stateManager: StateManager<LauncherState, Launcher>)
+    fun start()
 }
 
 class AnimatorBackState(private val springAnim: RectFSpringAnim?, private val anim: AnimatorSet?) :
@@ -61,10 +58,7 @@ class AnimatorBackState(private val springAnim: RectFSpringAnim?, private val an
         result.setAnimation(anim, c)
     }
 
-    override fun start(stateManager: StateManager<LauncherState, Launcher>) {
-        if (anim != null) {
-            stateManager.setCurrentAnimation(anim)
-        }
+    override fun start() {
         anim?.start()
     }
 }
@@ -79,5 +73,5 @@ class AlreadyStartedBackAnimState(private val onEndCallback: RunnableList) : Bac
         addOnAnimCompleteCallback(result::onAnimationFinished)
     }
 
-    override fun start(stateManager: StateManager<LauncherState, Launcher>) {}
+    override fun start() {}
 }

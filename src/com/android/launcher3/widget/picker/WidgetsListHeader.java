@@ -17,8 +17,6 @@ package com.android.launcher3.widget.picker;
 
 import static android.animation.ValueAnimator.areAnimatorsEnabled;
 
-import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
@@ -258,7 +256,7 @@ public final class WidgetsListHeader extends LinearLayout implements ItemInfoUpd
         }
         if (getTag() instanceof ItemInfoWithIcon info && info.getMatchingLookupFlag().useLowRes()) {
             mIconLoadRequest = LauncherAppState.getInstance(getContext()).getIconCache()
-                    .updateIconInBackground(this, info, DEFAULT_LOOKUP_FLAG);
+                    .updateIconInBackground(this, info);
         }
     }
 }

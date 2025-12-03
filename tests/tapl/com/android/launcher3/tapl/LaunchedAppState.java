@@ -36,9 +36,7 @@ import android.view.ViewConfiguration;
 import androidx.annotation.NonNull;
 import androidx.test.uiautomator.Condition;
 import androidx.test.uiautomator.UiDevice;
-import androidx.test.uiautomator.UiObject2;
 
-import com.android.launcher3.tapl.Taskbar.TaskbarLocation;
 import com.android.launcher3.testing.shared.ResourceUtils;
 import com.android.launcher3.testing.shared.TestProtocol;
 
@@ -48,7 +46,7 @@ import com.android.launcher3.testing.shared.TestProtocol;
 public final class LaunchedAppState extends Background {
 
     // More drag steps than Launchables to give the window manager time to register the drag.
-    static final int DEFAULT_DRAG_STEPS = 35;
+    private static final int DEFAULT_DRAG_STEPS = 35;
 
     // UNSTASHED_TASKBAR_HANDLE_HINT_SCALE value from TaskbarStashController.
     private static final float UNSTASHED_TASKBAR_HANDLE_HINT_SCALE = 1.1f;
@@ -100,18 +98,7 @@ public final class LaunchedAppState extends Background {
     public Taskbar getTaskbar() {
         try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
                 "want to get the taskbar")) {
-            return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
-        }
-    }
-
-    /**
-     * Returns the bubble bar.
-     * The bubble bar must already be visible when calling this method.
-     */
-    public BubbleBar getBubbleBar() {
-        try (LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
-                "want to get the bubble bar")) {
-            return new BubbleBar(mLauncher);
+            return new Taskbar(mLauncher);
         }
     }
 
@@ -165,7 +152,7 @@ public final class LaunchedAppState extends Background {
                     "swiping");
             LauncherInstrumentation.log("swipeUpToUnstashTaskbar: sent linear swipe up gesture");
 
-            return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
+            return new Taskbar(mLauncher);
         } finally {
             mLauncher.getTestInfo(REQUEST_DISABLE_BLOCK_TIMEOUT);
         }
@@ -241,56 +228,26 @@ public final class LaunchedAppState extends Background {
      * <p>This unstashing occurs when not actively hovering the taskbar.
      */
     public Taskbar hoverScreenBottomEdgeToUnstashTaskbar() {
-        return hoverScreenBottomEdgeToTryUnstashTaskbar(/* leftEdge= */
-                (mLauncher.getRealDisplaySize().x - mLauncher.getTaskbarUnstashInputArea()) / 2
-                        - 1);
-    }
-
-    /**
-     * Emulate the cursor hovering the screen edge outside of action corner area to unstash the
-     * taskbar.
-     */
-    public Taskbar hoverScreenBottomEdgeOutsideActionCornerToUnstashTaskbar() {
-        return hoverScreenBottomEdgeToTryUnstashTaskbar(/* leftEdge= */
-                getLauncher().getActionCornerPadding());
-    }
-
-    /**
-     * Emulate the cursor hovering the screen edge in action corner padding to try unstashing the
-     * taskbar.
-     */
-    public Taskbar hoverScreenBottomCornerToTryUnstashTaskbar() {
-        // Add 1 pixel to avoid triggering action corner which will affect test result
-        return hoverScreenBottomEdgeToTryUnstashTaskbar(
-                mLauncher.getDisplayBottomCornerRadius() + 1);
-    }
-
-    private Taskbar hoverScreenBottomEdgeToTryUnstashTaskbar(int leftEdge) {
         try (LauncherInstrumentation.Closable e = mLauncher.eventsCheck();
              LauncherInstrumentation.Closable c = mLauncher.addContextLayer(
-                     "cursor hover entering screen edge to try unstashing taskbar")) {
+                     "cursor hover entering screen edge to unstash taskbar")) {
             mLauncher.getDevice().wait(mStashedTaskbarDefaultScaleCondition,
                     ViewConfiguration.DEFAULT_LONG_PRESS_TIMEOUT);
 
             long downTime = SystemClock.uptimeMillis();
+            int leftEdge = 10;
             Point taskbarUnstashArea = new Point(leftEdge, mLauncher.getRealDisplaySize().y - 1);
             mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_HOVER_ENTER,
                     new Point(taskbarUnstashArea.x, taskbarUnstashArea.y), null,
                     InputDevice.SOURCE_MOUSE);
 
-            UiObject2 taskbar = mLauncher.tryWaitForLauncherObject(
-                    mLauncher.getLauncherObjectSelector(TASKBAR_RES_ID),
-                    WAIT_TIME_MS);
+            mLauncher.waitForSystemLauncherObject(TASKBAR_RES_ID);
 
             mLauncher.sendPointer(downTime, downTime, MotionEvent.ACTION_HOVER_EXIT,
                     new Point(taskbarUnstashArea.x, taskbarUnstashArea.y), null,
                     InputDevice.SOURCE_MOUSE);
 
-            if (taskbar == null) {
-                return null;
-            } else {
-                return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
-            }
+            return new Taskbar(mLauncher);
         }
     }
 
@@ -321,7 +278,7 @@ public final class LaunchedAppState extends Background {
                         InputDevice.SOURCE_MOUSE);
 
                 mLauncher.waitForSystemLauncherObject(TASKBAR_RES_ID);
-                return new Taskbar(mLauncher, TaskbarLocation.LAUNCHED_APP);
+                return new Taskbar(mLauncher);
             }
         }
     }

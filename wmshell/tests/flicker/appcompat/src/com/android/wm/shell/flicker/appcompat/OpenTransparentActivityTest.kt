@@ -17,6 +17,7 @@
 package com.android.wm.shell.flicker.appcompat
 
 import android.platform.test.annotations.Postsubmit
+import android.tools.Rotation
 import android.tools.flicker.assertions.FlickerTest
 import android.tools.flicker.junit.FlickerParametersRunnerFactory
 import android.tools.flicker.legacy.FlickerBuilder
@@ -31,7 +32,7 @@ import org.junit.runners.Parameterized
 /**
  * Test launching app in size compat mode.
  *
- * To run this test: `atest WMShellFlickerTestsAppCompat:OpenTransparentActivityTest`
+ * To run this test: `atest WMShellFlickerTestsOther:OpenTransparentActivityTest`
  *
  * Actions:
  * ```
@@ -108,7 +109,9 @@ class OpenTransparentActivityTest(flicker: LegacyFlickerTest) : TransparentBaseA
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
         fun getParams(): Collection<FlickerTest> {
-            return LegacyFlickerTestFactory.nonRotationTests()
+            return LegacyFlickerTestFactory.nonRotationTests(
+                supportedRotations = listOf(Rotation.ROTATION_90)
+            )
         }
     }
 }

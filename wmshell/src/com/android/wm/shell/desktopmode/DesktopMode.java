@@ -16,12 +16,10 @@
 
 package com.android.wm.shell.desktopmode;
 
-import android.annotation.NonNull;
 import android.graphics.Region;
 
-import com.android.wm.shell.shared.annotations.ExternalThread;
-import com.android.wm.shell.shared.desktopmode.DesktopFirstListener;
 import com.android.wm.shell.shared.desktopmode.DesktopModeTransitionSource;
+import com.android.wm.shell.shared.annotations.ExternalThread;
 
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -38,7 +36,7 @@ public interface DesktopMode {
      * @param listener the listener to add.
      * @param callbackExecutor the executor to call the listener on.
      */
-    void addVisibleTasksListener(DesktopRepository.VisibleTasksListener listener,
+    void addVisibleTasksListener(DesktopModeTaskRepository.VisibleTasksListener listener,
             Executor callbackExecutor);
 
     /**
@@ -59,15 +57,4 @@ public interface DesktopMode {
 
     /** Called when requested to go to split screen from the current focused desktop app. */
     void moveFocusedTaskToStageSplit(int displayId, boolean leftOrTop);
-
-    /**
-     * Register a listener that will receive callbacks about desktop-first state. Once it's
-     * registered, the listener immediately receives the current state.
-     */
-    void registerDesktopFirstListener(@NonNull DesktopFirstListener listener);
-
-    /**
-     * Unregister a registered desktop-first listener
-     */
-    void unregisterDesktopFirstListener(@NonNull DesktopFirstListener listener);
 }

@@ -38,6 +38,7 @@ import android.view.IWindow;
 import android.view.LayoutInflater;
 import android.view.SurfaceControl;
 import android.view.SurfaceControlViewHost;
+import android.view.SurfaceSession;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowlessWindowManager;
@@ -104,7 +105,7 @@ public final class BackgroundWindowManager extends WindowlessWindowManager {
 
     @Override
     protected SurfaceControl getParentSurface(IWindow window, WindowManager.LayoutParams attrs) {
-        final SurfaceControl.Builder builder = new SurfaceControl.Builder()
+        final SurfaceControl.Builder builder = new SurfaceControl.Builder(new SurfaceSession())
                 .setColorLayer()
                 .setBufferSize(mDisplayBounds.width(), mDisplayBounds.height())
                 .setFormat(PixelFormat.RGB_888)

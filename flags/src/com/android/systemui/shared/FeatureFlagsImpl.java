@@ -1,4 +1,5 @@
 package com.android.systemui.shared;
+// TODO(b/303773055): Remove the annotation after access issue is resolved.
 
 /** @hide */
 public final class FeatureFlagsImpl implements FeatureFlags {
@@ -6,7 +7,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean ambientAod() {
-        return true;
+        return false;
     }
 
     @Override
@@ -20,14 +21,14 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean clockReactiveSmartspaceLayout() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean clockReactiveVariants() {
-        return true;
+        return false;
     }
 
     @Override
@@ -47,15 +48,8 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
-    public boolean enableLppAssistInvocationEffect() {
-        return true;
-    }
-
-    @Override
-
-
-    public boolean enableLppAssistInvocationHapticEffect() {
-        return true;
+    public boolean enableLppSqueezeEffect() {
+        return false;
     }
 
     @Override
@@ -69,13 +63,6 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean extendedWallpaperEffects() {
-        return true;
-    }
-
-    @Override
-
-
-    public boolean extendibleThemeManager() {
         return false;
     }
 
@@ -83,14 +70,14 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean lockscreenCustomClocks() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean newCustomizationPickerUi() {
-        return true;
+        return false;
     }
 
     @Override
@@ -138,6 +125,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
     @Override
 
 
+    public boolean smartspaceRemoteviewsIntentHandler() {
+        return true;
+    }
+
+    @Override
+
+
     public boolean smartspaceSportsCardBackground() {
         return false;
     }
@@ -146,20 +140,13 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean smartspaceUiUpdate() {
-        return true;
+        return false;
     }
 
     @Override
 
 
     public boolean smartspaceUiUpdateResources() {
-        return true;
-    }
-
-    @Override
-
-
-    public boolean smartspaceWeatherUseMonochromeFontIcons() {
         return false;
     }
 
@@ -181,7 +168,7 @@ public final class FeatureFlagsImpl implements FeatureFlags {
 
 
     public boolean usePreferredImageEditor() {
-        return true;
+        return false;
     }
 
 }

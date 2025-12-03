@@ -43,7 +43,6 @@ import com.android.launcher3.keyboard.ViewGroupFocusHelper;
 import com.android.launcher3.logging.InstanceId;
 import com.android.launcher3.logging.InstanceIdSequence;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.model.data.LauncherAppWidgetInfo;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.views.ArrowTipView;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
@@ -300,27 +299,17 @@ public class AppWidgetResizeFrame extends AbstractFloatingView implements View.O
             mMaxVSpan = info.maxSpanY;
         }
 
-        LauncherAppWidgetInfo widgetInfoOnView = (LauncherAppWidgetInfo) mWidgetView.getTag();
         // Only show resize handles for the directions in which resizing is possible.
-
-        // on font / display change, the dp/px size of a cell changes, which means, existing spans
-        // may be invalid. User should be able to resize to the correct widget size.
-        boolean isWidgetVSpanInvalid = widgetInfoOnView.spanY < mMinVSpan;
-        mVerticalResizeActive = (info.resizeMode & AppWidgetProviderInfo.RESIZE_VERTICAL) != 0 && (
-                (mMinVSpan < idp.numRows && mMaxVSpan > 1 && mMinVSpan < mMaxVSpan)
-                        || isWidgetVSpanInvalid);
+        mVerticalResizeActive = (resizeMode & AppWidgetProviderInfo.RESIZE_VERTICAL) != 0
+                && mMinVSpan < idp.numRows && mMaxVSpan > 1
+                && mMinVSpan < mMaxVSpan;
         if (!mVerticalResizeActive) {
             mDragHandles[INDEX_TOP].setVisibility(GONE);
             mDragHandles[INDEX_BOTTOM].setVisibility(GONE);
         }
-
-        // on font / display change, the dp/px size of a cell changes, which means, existing spans
-        // may be invalid. User should be able to resize to the correct widget size.
-        boolean isWidgetHSpanInvalid = widgetInfoOnView.spanX < mMinHSpan;
-        mHorizontalResizeActive =
-                (info.resizeMode & AppWidgetProviderInfo.RESIZE_HORIZONTAL) != 0 && (
-                        (mMinHSpan < idp.numColumns && mMaxHSpan > 1 && mMinHSpan < mMaxHSpan)
-                                || isWidgetHSpanInvalid);
+        mHorizontalResizeActive = (resizeMode & AppWidgetProviderInfo.RESIZE_HORIZONTAL) != 0
+                && mMinHSpan < idp.numColumns && mMaxHSpan > 1
+                && mMinHSpan < mMaxHSpan;
         if (!mHorizontalResizeActive) {
             mDragHandles[INDEX_LEFT].setVisibility(GONE);
             mDragHandles[INDEX_RIGHT].setVisibility(GONE);

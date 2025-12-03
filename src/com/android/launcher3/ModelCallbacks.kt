@@ -1,58 +1,49 @@
 package com.android.launcher3
 
-import android.animation.AnimatorSet
-import android.os.CancellationSignal
+import android.annotation.TargetApi
+import android.os.Build
 import android.os.Trace
 import android.util.Log
-import android.util.Pair
-import androidx.annotation.AnyThread
 import androidx.annotation.UiThread
-import androidx.annotation.VisibleForTesting
-import com.android.launcher3.LauncherConstants.TraceEvents.DISPLAY_WORKSPACE_TRACE_METHOD_NAME
-import com.android.launcher3.LauncherConstants.TraceEvents.SINGLE_TRACE_COOKIE
-import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP
-import com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT
+import com.android.launcher3.Flags.enableSmartspaceRemovalToggle
+import com.android.launcher3.LauncherConstants.TraceEvents
+import com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET
 import com.android.launcher3.WorkspaceLayoutManager.FIRST_SCREEN_ID
 import com.android.launcher3.allapps.AllAppsStore
 import com.android.launcher3.config.FeatureFlags
+import com.android.launcher3.debug.TestEventEmitter
+import com.android.launcher3.debug.TestEventEmitter.TestEvent
 import com.android.launcher3.model.BgDataModel
-import com.android.launcher3.model.ItemInstallQueue
-import com.android.launcher3.model.ItemInstallQueue.FLAG_LOADER_RUNNING
-import com.android.launcher3.model.ModelUtils.WIDGET_FILTER
-import com.android.launcher3.model.ModelUtils.currentScreenContentFilter
 import com.android.launcher3.model.StringCache
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.ItemInfo
-import com.android.launcher3.model.data.PredictedContainerInfo
-import com.android.launcher3.model.data.WorkspaceData
 import com.android.launcher3.popup.PopupContainerWithArrow
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.Executors
-import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.IntArray as LIntArray
-import com.android.launcher3.util.IntArray
 import com.android.launcher3.util.IntSet as LIntSet
-import com.android.launcher3.util.IntSet
-import com.android.launcher3.util.ItemInfoMatcher
 import com.android.launcher3.util.PackageUserKey
 import com.android.launcher3.util.Preconditions
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.TraceHelper
 import com.android.launcher3.util.ViewOnDrawExecutor
+import com.android.launcher3.widget.PendingAddWidgetInfo
 import com.android.launcher3.widget.model.WidgetsListBaseEntry
-import java.util.concurrent.Executor
-import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Predicate
+
+private const val TAG = "ModelCallbacks"
 
 class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
-    private var activeBindTask = AtomicReference(CancellationSignal())
+    var synchronouslyBoundPages = LIntSet()
+    var pagesToBindSynchronously = LIntSet()
 
-    var synchronouslyBoundPages = IntSet()
-    var pagesToBindSynchronously = IntSet()
+    private var isFirstPagePinnedItemEnabled =
+        (!enableSmartspaceRemovalToggle())
+
     var stringCache: StringCache? = null
 
     var pendingExecutor: ViewOnDrawExecutor? = null
+
     var workspaceLoading = true
 
     /**
@@ -60,7 +51,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
      *
      * Implementation of the method from LauncherModel.Callbacks.
      */
-    private fun startBinding() {
+    override fun startBinding() {
         TraceHelper.INSTANCE.beginSection("startBinding")
         // Floating panels (except the full widget sheet) are associated with individual icons. If
         // we are starting a fresh bind, close all such panels as all the icons are about
@@ -86,18 +77,21 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
                 " and is setting to ${launcher.deviceProfile.isVerticalBarLayout}",
         )
         launcher.hotseat?.resetLayout(launcher.deviceProfile.isVerticalBarLayout)
-        launcher.startBinding()
         TraceHelper.INSTANCE.endSection()
     }
 
-    private fun onInitialBindComplete(
+    @TargetApi(Build.VERSION_CODES.S)
+    override fun onInitialBindComplete(
         boundPages: LIntSet,
         pendingTasks: RunnableList,
         onCompleteSignal: RunnableList,
         workspaceItemCount: Int,
         isBindSync: Boolean,
     ) {
-        Trace.endAsyncSection(DISPLAY_WORKSPACE_TRACE_METHOD_NAME, SINGLE_TRACE_COOKIE)
+        Trace.endAsyncSection(
+            TraceEvents.DISPLAY_WORKSPACE_TRACE_METHOD_NAME,
+            TraceEvents.DISPLAY_WORKSPACE_TRACE_COOKIE,
+        )
         synchronouslyBoundPages = boundPages
         pagesToBindSynchronously = LIntSet()
         clearPendingBinds()
@@ -132,7 +126,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
      *
      * Implementation of the method from LauncherModel.Callbacks.
      */
-    private fun finishBindingItems(pagesBoundFirst: IntSet?) {
+    override fun finishBindingItems(pagesBoundFirst: LIntSet?) {
         TraceHelper.INSTANCE.beginSection("finishBindingItems")
         val deviceProfile = launcher.deviceProfile
         launcher.workspace.restoreInstanceStateForRemainingPages()
@@ -146,7 +140,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         // Since we are just resetting the current page without user interaction,
         // override the previous page so we don't log the page switch.
         launcher.workspace.setCurrentPage(currentPage, currentPage /* overridePrevPage */)
-        pagesToBindSynchronously = IntSet()
+        pagesToBindSynchronously = LIntSet()
 
         // Cache one page worth of icons
         launcher.viewCache.setCacheSize(
@@ -158,16 +152,16 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         launcher.workspace.removeExtraEmptyScreen(/* stripEmptyScreens= */ true)
         launcher.workspace.pageIndicator.setPauseScroll(
             /*pause=*/ false,
-            deviceProfile.deviceProperties.isTwoPanels,
+            deviceProfile.isTwoPanels,
         )
-        launcher.finishBindingItems(pagesBoundFirst)
+        TestEventEmitter.sendEvent(TestEvent.WORKSPACE_FINISH_LOADING)
     }
 
     /**
      * Clear any pending bind callbacks. This is called when is loader is planning to perform a full
      * rebind from scratch.
      */
-    fun clearPendingBinds() {
+    override fun clearPendingBinds() {
         pendingExecutor?.cancel() ?: return
         pendingExecutor = null
 
@@ -177,11 +171,23 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         )
     }
 
+    override fun preAddApps() {
+        // If there's an undo snackbar, force it to complete to ensure empty screens are removed
+        // before trying to add new items.
+        launcher.modelWriter.commitDelete()
+        val snackbar =
+            AbstractFloatingView.getOpenView<AbstractFloatingView>(
+                launcher,
+                AbstractFloatingView.TYPE_SNACKBAR,
+            )
+        snackbar?.post { snackbar.close(true) }
+    }
+
     @UiThread
     override fun bindAllApplications(
-        apps: Array<AppInfo>,
+        apps: Array<AppInfo?>?,
         flags: Int,
-        packageUserKeytoUidMap: Map<PackageUserKey, Int>,
+        packageUserKeytoUidMap: Map<PackageUserKey?, Int?>?,
     ) {
         Preconditions.assertUIThread()
         val hadWorkApps = launcher.appsView.shouldShowTabs()
@@ -199,11 +205,11 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
      * Copies LauncherModel's map of activities to shortcut counts to Launcher's. This is necessary
      * because LauncherModel's map is updated in the background, while Launcher runs on the UI.
      */
-    override fun bindDeepShortcutMap(deepShortcutMapCopy: HashMap<ComponentKey, Int>) {
+    override fun bindDeepShortcutMap(deepShortcutMapCopy: HashMap<ComponentKey?, Int?>?) {
         launcher.popupDataProvider.setDeepShortcutMap(deepShortcutMapCopy)
     }
 
-    override fun bindIncrementalDownloadProgressUpdated(app: AppInfo) {
+    override fun bindIncrementalDownloadProgressUpdated(app: AppInfo?) {
         launcher.appsView.appsStore.updateProgressBar(app)
     }
 
@@ -212,24 +218,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
      * method from LauncherModel.Callbacks.
      */
     override fun bindItemsUpdated(updates: Set<ItemInfo>) {
-        val workspace = launcher.workspace
-        val itemsToRebind = workspace.updateContainerItems(updates, launcher)
+        launcher.workspace.updateContainerItems(updates, launcher)
         PopupContainerWithArrow.dismissInvalidPopup(launcher)
-
-        updates
-            .mapNotNull { if (it is PredictedContainerInfo) it else null }
-            .forEach { launcher.bindPredictedContainerInfo(it) }
-
-        if (itemsToRebind.isEmpty()) return
-        workspace.removeItemsByMatcher(ItemInfoMatcher.ofItems(itemsToRebind), false)
-        itemsToRebind
-            .filter { workspace.isContainerSupported(it.container) }
-            .let {
-                if (it.isNotEmpty()) {
-                    bindItems(it, false)
-                }
-            }
-        workspace.stripEmptyScreens()
     }
 
     /**
@@ -238,8 +228,8 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
      * updated as well. In that scenario, we only remove specific components from the workspace and
      * hotseat, where as package-removal should clear all items by package name.
      */
-    override fun bindWorkspaceComponentsRemoved(matcher: Predicate<ItemInfo?>) {
-        launcher.workspace.removeItemsByMatcher(matcher, true)
+    override fun bindWorkspaceComponentsRemoved(matcher: Predicate<ItemInfo?>?) {
+        launcher.workspace.removeItemsByMatcher(matcher)
         launcher.dragController.onAppsRemoved(matcher)
         PopupContainerWithArrow.dismissInvalidPopup(launcher)
     }
@@ -249,7 +239,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
     }
 
     /** Returns the ids of the workspaces to bind. */
-    private fun getPagesToBindSynchronously(orderedScreenIds: IntArray): IntSet {
+    override fun getPagesToBindSynchronously(orderedScreenIds: LIntArray): LIntSet {
         // If workspace binding is still in progress, getCurrentPageScreenIds won't be
         // accurate, and we should use mSynchronouslyBoundPages that's set during initial binding.
         val visibleIds =
@@ -259,7 +249,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
                 else -> synchronouslyBoundPages
             }
         // Launcher IntArray has the same name as Kotlin IntArray
-        val result = IntSet()
+        val result = LIntSet()
         if (visibleIds.isEmpty) {
             return result
         }
@@ -270,13 +260,12 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         // in single panel.
         if (actualIds.contains(firstId)) {
             result.add(firstId)
-            if (launcher.deviceProfile.deviceProperties.isTwoPanels && actualIds.contains(pairId)) {
+            if (launcher.deviceProfile.isTwoPanels && actualIds.contains(pairId)) {
                 result.add(pairId)
             }
         } else if (
-            LauncherAppState.getIDP(launcher).supportedProfiles.any {
-                it.deviceProperties.isTwoPanels
-            } && actualIds.contains(pairId)
+            LauncherAppState.getIDP(launcher).supportedProfiles.any(DeviceProfile::isTwoPanels) &&
+                actualIds.contains(pairId)
         ) {
             // Add the right panel if left panel is hidden when switching display, due to empty
             // pages being hidden in single panel.
@@ -285,16 +274,52 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         return result
     }
 
-    private fun bindScreens(orderedScreenIds: LIntArray) {
+    override fun bindSmartspaceWidget() {
+        val cl: CellLayout? =
+            launcher.workspace.getScreenWithId(WorkspaceLayoutManager.FIRST_SCREEN_ID)
+        val spanX = InvariantDeviceProfile.INSTANCE.get(launcher).numSearchContainerColumns
+
+        if (cl?.isRegionVacant(0, 0, spanX, 1) != true) {
+            return
+        }
+
+        val widgetsListBaseEntry: WidgetsListBaseEntry =
+            launcher.widgetPickerDataProvider.get().allWidgets.firstOrNull {
+                item: WidgetsListBaseEntry ->
+                item.mPkgItem.packageName == BuildConfig.APPLICATION_ID
+            } ?: return
+
+        val info =
+            PendingAddWidgetInfo(
+                widgetsListBaseEntry.mWidgets[0].widgetInfo,
+                LauncherSettings.Favorites.CONTAINER_DESKTOP,
+            )
+        launcher.addPendingItem(
+            info,
+            info.container,
+            WorkspaceLayoutManager.FIRST_SCREEN_ID,
+            intArrayOf(0, 0),
+            info.spanX,
+            info.spanY,
+        )
+    }
+
+    override fun bindScreens(orderedScreenIds: LIntArray) {
         launcher.workspace.pageIndicator.setPauseScroll(
             /*pause=*/ true,
-            launcher.deviceProfile.deviceProperties.isTwoPanels,
+            launcher.deviceProfile.isTwoPanels,
         )
         val firstScreenPosition = 0
-        if (orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition) {
+        if (
+            (isFirstPagePinnedItemEnabled && !SHOULD_SHOW_FIRST_PAGE_WIDGET) &&
+                orderedScreenIds.indexOf(FIRST_SCREEN_ID) != firstScreenPosition
+        ) {
             orderedScreenIds.removeValue(FIRST_SCREEN_ID)
             orderedScreenIds.add(firstScreenPosition, FIRST_SCREEN_ID)
-        } else if (orderedScreenIds.isEmpty) {
+        } else if (
+            (!isFirstPagePinnedItemEnabled || SHOULD_SHOW_FIRST_PAGE_WIDGET) &&
+                orderedScreenIds.isEmpty
+        ) {
             // If there are no screens, we need to have an empty screen
             launcher.workspace.addExtraEmptyScreens()
         }
@@ -306,38 +331,26 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         launcher.workspace.unlockWallpaperFromDefaultPageOnNextLayout()
     }
 
-    override fun bindItemsAdded(items: List<ItemInfo>) {
-        val newScreens = LIntSet()
-        val nonAnimatedItems = mutableListOf<ItemInfo>()
-        val animatedItems = mutableListOf<ItemInfo>()
-        val folderItems = mutableListOf<ItemInfo>()
-        val lastScreen =
-            items
-                .maxByOrNull { if (it.container == CONTAINER_DESKTOP) it.screenId else 0 }
-                ?.screenId ?: 0
-
-        items.forEach {
-            when (it.container) {
-                CONTAINER_HOTSEAT -> nonAnimatedItems.add(it)
-                CONTAINER_DESKTOP -> {
-                    newScreens.add(it.screenId)
-                    if (it.screenId == lastScreen) animatedItems.add(it)
-                    else nonAnimatedItems.add(it)
-                }
-                else -> folderItems.add(it)
-            }
+    override fun bindAppsAdded(
+        newScreens: LIntArray?,
+        addNotAnimated: java.util.ArrayList<ItemInfo?>?,
+        addAnimated: java.util.ArrayList<ItemInfo?>?,
+    ) {
+        // Add the new screens
+        if (newScreens != null) {
+            // newScreens can contain an empty right panel that is already bound, but not known
+            // by BgDataModel.
+            newScreens.removeAllValues(launcher.workspace.mScreenOrder)
+            bindAddScreens(newScreens)
         }
-
-        launcher.workspace.mScreenOrder.forEach { newScreens.remove(it) }
-        if (!newScreens.isEmpty) bindAddScreens(newScreens.array)
 
         // We add the items without animation on non-visible pages, and with
         // animations on the new page (which we will try and snap to).
-        if (nonAnimatedItems.isNotEmpty()) {
-            bindItems(nonAnimatedItems, false)
+        if (!addNotAnimated.isNullOrEmpty()) {
+            launcher.bindItems(addNotAnimated, false)
         }
-        if (animatedItems.isNotEmpty()) {
-            bindItems(animatedItems, true)
+        if (!addAnimated.isNullOrEmpty()) {
+            launcher.bindItems(addAnimated, true)
         }
 
         // Remove the extra empty screen
@@ -346,7 +359,7 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
 
     private fun bindAddScreens(orderedScreenIdsArg: LIntArray) {
         var orderedScreenIds = orderedScreenIdsArg
-        if (launcher.deviceProfile.deviceProperties.isTwoPanels) {
+        if (launcher.deviceProfile.isTwoPanels) {
             if (FeatureFlags.FOLDABLE_SINGLE_PAGE.get()) {
                 orderedScreenIds = filterTwoPanelScreenIds(orderedScreenIds)
             } else {
@@ -360,7 +373,11 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
             }
         }
         orderedScreenIds
-            .filter { screenId -> screenId != FIRST_SCREEN_ID }
+            .filterNot { screenId ->
+                isFirstPagePinnedItemEnabled &&
+                    !SHOULD_SHOW_FIRST_PAGE_WIDGET &&
+                    screenId == WorkspaceLayoutManager.FIRST_SCREEN_ID
+            }
             .forEach { screenId ->
                 launcher.workspace.insertNewWorkspaceScreenBeforeEmptyScreen(screenId)
             }
@@ -384,186 +401,17 @@ class ModelCallbacks(private var launcher: Launcher) : BgDataModel.Callbacks {
         return screenIds.array
     }
 
+    override fun setIsFirstPagePinnedItemEnabled(isFirstPagePinnedItemEnabled: Boolean) {
+        this.isFirstPagePinnedItemEnabled = isFirstPagePinnedItemEnabled
+        launcher.workspace.bindAndInitFirstWorkspaceScreen()
+    }
+
     override fun bindStringCache(cache: StringCache) {
         stringCache = cache
         launcher.appsView.updateWorkUI()
     }
 
-    /** Bind the items start-end from the list. */
-    @VisibleForTesting
-    fun bindItems(items: List<ItemInfo>, forceAnimateIcons: Boolean) {
-        launcher.bindInflatedItems(
-            items.map { Pair.create(it, launcher.itemInflater.inflateItem(it)) },
-            if (forceAnimateIcons) AnimatorSet() else null,
-        )
-    }
+    fun getIsFirstPagePinnedItemEnabled(): Boolean = isFirstPagePinnedItemEnabled
 
-    @AnyThread
-    override fun bindCompleteModelAsync(itemIdMap: WorkspaceData, isBindingSync: Boolean) {
-        val taskTracker = CancellationSignal()
-        activeBindTask.getAndSet(taskTracker).cancel()
-
-        val inflater = launcher.itemInflater
-
-        fun executeCallbacksTask(executor: Executor = MAIN_EXECUTOR, task: () -> Unit) {
-            executor.execute {
-                if (taskTracker.isCanceled) {
-                    Log.d(TAG, "Too many consecutive reloads, skipping obsolete data-bind")
-                } else {
-                    task.invoke()
-                }
-            }
-        }
-
-        // Tries to inflate the items asynchronously and bind. Returns true on success or false if
-        // async-binding is not supported in this case
-        fun inflateAsyncAndBind(items: List<ItemInfo>, executor: Executor) {
-            if (taskTracker.isCanceled) {
-                Log.d(TAG, "Too many consecutive reloads, skipping obsolete view inflation")
-                return
-            }
-
-            val bindItems = items.map { Pair.create(it, inflater.inflateItem(it, null)) }
-            if (bindItems.isNotEmpty())
-                executeCallbacksTask(executor) { launcher.bindInflatedItems(bindItems, null) }
-        }
-
-        fun bindItemsInChunks(items: List<ItemInfo>, chuckSize: Int, executor: Executor) {
-            // Bind the workspace items
-            val itemCount = items.size
-            var i = 0
-            while (i < itemCount) {
-                val start = i
-                val end = (start + chuckSize).coerceAtMost(itemCount)
-                executeCallbacksTask(executor) { bindItems(items.subList(start, end), false) }
-                i = end
-            }
-        }
-
-        MAIN_EXECUTOR.execute { clearPendingBinds() }
-
-        val orderedScreenIds = itemIdMap.collectWorkspaceScreens(launcher)
-        val currentScreenIds = getPagesToBindSynchronously(orderedScreenIds)
-
-        fun setupPendingBind(pendingExecutor: Executor) {
-            executeCallbacksTask(pendingExecutor) { finishBindingItems(currentScreenIds) }
-            pendingExecutor.execute {
-                ItemInstallQueue.INSTANCE[launcher].resumeModelPush(FLAG_LOADER_RUNNING)
-            }
-        }
-
-        // Separate the items that are on the current screen, and all the other remaining items
-        val currentWorkspaceItems = ArrayList<ItemInfo>()
-        val otherWorkspaceItems = ArrayList<ItemInfo>()
-        val currentAppWidgets = ArrayList<ItemInfo>()
-        val otherAppWidgets = ArrayList<ItemInfo>()
-
-        val currentScreenCheck = currentScreenContentFilter(currentScreenIds)
-        itemIdMap.forEach { item: ItemInfo ->
-            if (currentScreenCheck.test(item)) {
-                (if (WIDGET_FILTER.test(item)) currentAppWidgets else currentWorkspaceItems).add(
-                    item
-                )
-            } else if (item.container == CONTAINER_DESKTOP) {
-                (if (WIDGET_FILTER.test(item)) otherAppWidgets else otherWorkspaceItems).add(item)
-            }
-        }
-
-        sortWorkspaceItemsSpatially(currentWorkspaceItems)
-        sortWorkspaceItemsSpatially(otherWorkspaceItems)
-
-        // Tell the workspace that we're about to start binding items
-        executeCallbacksTask {
-            clearPendingBinds()
-            startBinding()
-        }
-
-        // Bind workspace screens
-        executeCallbacksTask { bindScreens(orderedScreenIds) }
-
-        // Load items on the current page.
-        if (Flags.enableWorkspaceInflation()) {
-            inflateAsyncAndBind(currentWorkspaceItems, MAIN_EXECUTOR)
-            inflateAsyncAndBind(currentAppWidgets, MAIN_EXECUTOR)
-        } else {
-            bindItemsInChunks(currentWorkspaceItems, ITEMS_CHUNK, MAIN_EXECUTOR)
-            bindItemsInChunks(currentAppWidgets, 1, MAIN_EXECUTOR)
-        }
-
-        itemIdMap
-            .mapNotNull { if (it is PredictedContainerInfo) it else null }
-            .forEach { executeCallbacksTask { launcher.bindPredictedContainerInfo(it) } }
-
-        val pendingTasks = RunnableList()
-        val pendingExecutor = Executor { pendingTasks.add(it) }
-
-        val onCompleteSignal = RunnableList()
-        onCompleteSignal.add { Log.d(TAG, "Calling onCompleteSignal") }
-
-        if (Flags.enableWorkspaceInflation()) {
-            Log.d(TAG, "Starting async inflation")
-            Executors.MODEL_EXECUTOR.execute {
-                inflateAsyncAndBind(otherWorkspaceItems, pendingExecutor)
-                inflateAsyncAndBind(otherAppWidgets, pendingExecutor)
-                setupPendingBind(pendingExecutor)
-
-                // Wait for the async inflation to complete and then notify the completion
-                // signal on UI thread.
-                MAIN_EXECUTOR.execute { onCompleteSignal.executeAllAndDestroy() }
-            }
-        } else {
-            Log.d(TAG, "Starting sync inflation")
-            bindItemsInChunks(otherWorkspaceItems, ITEMS_CHUNK, pendingExecutor)
-            bindItemsInChunks(otherAppWidgets, 1, pendingExecutor)
-            setupPendingBind(pendingExecutor)
-            onCompleteSignal.executeAllAndDestroy()
-        }
-
-        // Only include the first level items on desktop (excluding folder contents) for item count
-        val workspaceItemCount =
-            currentWorkspaceItems.size +
-                otherWorkspaceItems.size +
-                currentAppWidgets.size +
-                otherAppWidgets.size
-        executeCallbacksTask {
-            onInitialBindComplete(
-                currentScreenIds,
-                pendingTasks,
-                onCompleteSignal,
-                workspaceItemCount,
-                isBindingSync,
-            )
-        }
-    }
-
-    /**
-     * Sorts the set of items by hotseat, workspace (spatially from top to bottom, left to right)
-     */
-    private fun sortWorkspaceItemsSpatially(workspaceItems: MutableList<ItemInfo>) {
-        val idp = launcher.deviceProfile.inv
-        val screenCols = idp.numColumns
-        val screenCellCount = idp.numColumns * idp.numRows
-        workspaceItems.sortWith { lhs: ItemInfo, rhs: ItemInfo ->
-            when {
-                // Between containers, order by hotseat, desktop
-                lhs.container != rhs.container -> lhs.container.compareTo(rhs.container)
-
-                // Within workspace, order by their spatial position in that container
-                lhs.container == CONTAINER_DESKTOP ->
-                    compareValuesBy(lhs, rhs) {
-                        it.screenId * screenCellCount + it.cellY * screenCols + it.cellX
-                    }
-
-                // We currently use the screen id as the rank
-                lhs.container == CONTAINER_HOTSEAT -> lhs.screenId.compareTo(rhs.screenId)
-
-                else -> 0
-            }
-        }
-    }
-
-    companion object {
-        private const val TAG = "ModelCallbacks"
-        private const val ITEMS_CHUNK: Int = 6 // batch size for the workspace icons
-    }
+    override fun getItemInflater() = launcher.itemInflater
 }

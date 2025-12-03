@@ -105,7 +105,7 @@ public class AddItemWidgetsBottomSheet extends AbstractSlideInView<AddItemActivi
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         DeviceProfile deviceProfile = mActivityContext.getDeviceProfile();
         int widthUsed;
-        if (deviceProfile.getDeviceProperties().isTablet()) {
+        if (deviceProfile.isTablet) {
             int margin = deviceProfile.allAppsLeftRightMargin;
             widthUsed = Math.max(2 * margin, 2 * (mInsets.left + mInsets.right));
         } else if (mInsets.bottom > 0) {
@@ -117,8 +117,7 @@ public class AddItemWidgetsBottomSheet extends AbstractSlideInView<AddItemActivi
         }
 
         measureChildWithMargins(mContent, widthMeasureSpec,
-                widthUsed, heightMeasureSpec,
-                deviceProfile.getBottomSheetProfile().getBottomSheetTopPadding());
+                widthUsed, heightMeasureSpec, deviceProfile.bottomSheetTopPadding);
         setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec),
                 MeasureSpec.getSize(heightMeasureSpec));
     }

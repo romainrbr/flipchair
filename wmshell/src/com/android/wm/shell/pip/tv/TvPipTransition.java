@@ -23,6 +23,7 @@ import static android.view.WindowManager.TRANSIT_CLOSE;
 import static android.view.WindowManager.TRANSIT_OPEN;
 import static android.view.WindowManager.TRANSIT_PIP;
 import static android.view.WindowManager.TRANSIT_TO_BACK;
+import static android.view.WindowManager.transitTypeToString;
 
 import static com.android.wm.shell.common.pip.PipMenuController.ALPHA_NO_CHANGE;
 import static com.android.wm.shell.pip.PipAnimationController.TRANSITION_DIRECTION_LEAVE_PIP;
@@ -34,7 +35,6 @@ import static com.android.wm.shell.pip.PipTransitionState.EXITING_PIP;
 import static com.android.wm.shell.pip.PipTransitionState.UNDEFINED;
 import static com.android.wm.shell.transition.Transitions.TRANSIT_EXIT_PIP;
 import static com.android.wm.shell.transition.Transitions.TRANSIT_REMOVE_PIP;
-import static com.android.wm.shell.transition.Transitions.transitTypeToString;
 
 import android.animation.AnimationHandler;
 import android.animation.Animator;
@@ -62,7 +62,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.internal.graphics.SfVsyncFrameCallbackProvider;
-import com.android.internal.protolog.ProtoLog;
+import com.android.internal.protolog.common.ProtoLog;
 import com.android.wm.shell.R;
 import com.android.wm.shell.ShellTaskOrganizer;
 import com.android.wm.shell.common.pip.PipDisplayLayoutState;
@@ -338,13 +338,12 @@ public class TvPipTransition extends PipTransitionController {
         final Rect pipBounds = mPipBoundsState.getBounds();
         mSurfaceTransactionHelper
                 .resetScale(startTransaction, pipLeash, pipBounds)
-                .cropAndPosition(startTransaction, pipLeash, pipBounds)
+                .crop(startTransaction, pipLeash, pipBounds)
                 .shadow(startTransaction, pipLeash, false);
 
         final SurfaceControl.Transaction transaction = mTransactionFactory.getTransaction();
         for (SurfaceControl leash : closeLeashes) {
-            mSurfaceTransactionHelper.shadow(startTransaction, leash,
-                    false /* applyShadowRadius */);
+            startTransaction.setShadowRadius(leash, 0f);
         }
 
         ValueAnimator closeFadeOutAnimator = createAnimator();
@@ -362,8 +361,7 @@ public class TvPipTransition extends PipTransitionController {
                 ProtoLog.v(ShellProtoLogGroup.WM_SHELL_PICTURE_IN_PICTURE,
                         "%s: close animation: start", TAG);
                 for (SurfaceControl leash : closeLeashes) {
-                    mSurfaceTransactionHelper.shadow(startTransaction, leash,
-                            false /* applyShadowRadius */);
+                    startTransaction.setShadowRadius(leash, 0f);
                 }
                 startTransaction.apply();
 
@@ -422,7 +420,7 @@ public class TvPipTransition extends PipTransitionController {
 
         mSurfaceTransactionHelper
                 .resetScale(finishTransaction, leash, pipBounds)
-                .cropAndPosition(finishTransaction, leash, pipBounds)
+                .crop(finishTransaction, leash, pipBounds)
                 .shadow(finishTransaction, leash, false);
 
         final Rect currentBounds = pipChange.getStartAbsBounds();
@@ -445,7 +443,7 @@ public class TvPipTransition extends PipTransitionController {
                 SurfaceControl.Transaction tx = mTransactionFactory.getTransaction();
                 mSurfaceTransactionHelper
                         .resetScale(tx, leash, pipBounds)
-                        .cropAndPosition(tx, leash, pipBounds)
+                        .crop(tx, leash, pipBounds)
                         .shadow(tx, leash, false);
                 mShellTaskOrganizer.applyTransaction(resizePipWct);
                 tx.apply();
@@ -655,9 +653,7 @@ public class TvPipTransition extends PipTransitionController {
 
     @Override
     public void mergeAnimation(@NonNull IBinder transition, @NonNull TransitionInfo info,
-            @NonNull SurfaceControl.Transaction startT,
-            @NonNull SurfaceControl.Transaction finishT,
-            @NonNull IBinder mergeTarget,
+            @NonNull SurfaceControl.Transaction t, @NonNull IBinder mergeTarget,
             @NonNull Transitions.TransitionFinishCallback finishCallback) {
         ProtoLog.v(ShellProtoLogGroup.WM_SHELL_PICTURE_IN_PICTURE, "%s: merge animation", TAG);
         if (mCurrentAnimator != null && mCurrentAnimator.isRunning()) {

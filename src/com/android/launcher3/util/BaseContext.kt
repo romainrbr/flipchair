@@ -34,8 +34,6 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener
 import com.android.launcher3.Utilities
-import com.android.launcher3.dagger.ActivityContextComponent
-import com.android.launcher3.dagger.LauncherComponentProvider.appComponent
 import com.android.launcher3.views.ActivityContext
 
 /**
@@ -60,13 +58,6 @@ constructor(base: Context, themeResId: Int, private val destroyOnDetach: Boolean
         get() = lifecycleRegistry
 
     private val viewCache = ViewCache()
-
-    private val activityComponentLazy: ActivityContextComponent by lazy {
-        appComponent.activityContextComponentBuilder.activityContext(this).build()
-            as ActivityContextComponent
-    }
-
-    override fun getActivityComponent(): ActivityContextComponent = activityComponentLazy
 
     init {
         Executors.MAIN_EXECUTOR.execute {

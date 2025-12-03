@@ -36,7 +36,6 @@ import androidx.test.filters.SmallTest;
 
 import com.android.wm.shell.R;
 import com.android.wm.shell.ShellTestCase;
-import com.android.wm.shell.common.DisplayController;
 import com.android.wm.shell.common.FloatingContentCoordinator;
 import com.android.wm.shell.common.ShellExecutor;
 import com.android.wm.shell.common.pip.PhoneSizeSpecSource;
@@ -49,7 +48,6 @@ import com.android.wm.shell.common.pip.PipUiEventLogger;
 import com.android.wm.shell.common.pip.SizeSpecSource;
 import com.android.wm.shell.pip.PipTaskOrganizer;
 import com.android.wm.shell.pip.PipTransitionController;
-import com.android.wm.shell.sysui.ShellInit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -91,12 +89,6 @@ public class PipResizeGestureHandlerTest extends ShellTestCase {
     @Mock
     private ShellExecutor mMainExecutor;
 
-    @Mock
-    private DisplayController mDisplayController;
-
-    @Mock
-    private ShellInit mShellInit;
-
     private PipResizeGestureHandler mPipResizeGestureHandler;
 
     private PipBoundsState mPipBoundsState;
@@ -113,10 +105,7 @@ public class PipResizeGestureHandlerTest extends ShellTestCase {
         final TestableResources res = mContext.getOrCreateTestableResources();
         res.addOverride(R.bool.config_pipEnablePinchResize, true);
 
-        mPipDisplayLayoutState = new PipDisplayLayoutState(mContext, mDisplayController,
-                mShellInit);
-        // Directly call onInit instead of using ShellInit
-        mPipDisplayLayoutState.onInit();
+        mPipDisplayLayoutState = new PipDisplayLayoutState(mContext);
         mSizeSpecSource = new PhoneSizeSpecSource(mContext, mPipDisplayLayoutState);
         mPipBoundsState = new PipBoundsState(mContext, mSizeSpecSource, mPipDisplayLayoutState);
         final PipSnapAlgorithm pipSnapAlgorithm = new PipSnapAlgorithm();
@@ -125,8 +114,8 @@ public class PipResizeGestureHandlerTest extends ShellTestCase {
         final PipBoundsAlgorithm pipBoundsAlgorithm = new PipBoundsAlgorithm(mContext,
                 mPipBoundsState, pipSnapAlgorithm, pipKeepClearAlgorithm, mPipDisplayLayoutState,
                 mSizeSpecSource);
-        final PipMotionHelper motionHelper = new PipMotionHelper(mContext, mMainExecutor,
-                mPipBoundsState, mPipTaskOrganizer, mPhonePipMenuController, pipSnapAlgorithm,
+        final PipMotionHelper motionHelper = new PipMotionHelper(mContext, mPipBoundsState,
+                mPipTaskOrganizer, mPhonePipMenuController, pipSnapAlgorithm,
                 mMockPipTransitionController, mFloatingContentCoordinator,
                 Optional.empty() /* pipPerfHintControllerOptional */);
 
@@ -135,7 +124,7 @@ public class PipResizeGestureHandlerTest extends ShellTestCase {
         mPipResizeGestureHandler = new PipResizeGestureHandler(mContext, pipBoundsAlgorithm,
                 mPipBoundsState, motionHelper, mPipTouchState, mPipTaskOrganizer,
                 mPipDismissTargetHandler,
-                (Rect bounds) -> new Rect(), () -> {}, mPipUiEventLogger, mPhonePipMenuController,
+                () -> {}, mPipUiEventLogger, mPhonePipMenuController,
                 mMainExecutor, null /* pipPerfHintController */) {
             @Override
             public void pilferPointers() {

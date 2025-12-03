@@ -33,12 +33,12 @@ import android.view.ViewTreeObserver;
 import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.BaseActivity;
+import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.statemanager.StateManager.StateHandler;
 import com.android.launcher3.states.StateAnimationConfig;
-import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.quickstep.util.BaseDepthController;
 
 import java.io.PrintWriter;
@@ -68,13 +68,12 @@ public class DepthController extends BaseDepthController implements StateHandler
     // Ensure {@link mOnDrawListener} is added only once to avoid spamming DragLayer's mRunQueue
     // via {@link View#post(Runnable)}
     private boolean mIsOnDrawListenerAdded = false;
-    private boolean mRemoveOnDrawListenerCancelled = false;
 
     private final boolean mEnableDepth;
 
-    public DepthController(QuickstepLauncher launcher) {
-        super(launcher);
-        var pref = PreferenceManager2.getInstance(launcher).getWallpaperDepthEffect();
+    public DepthController(Launcher l) {
+        super(l);
+        var pref = PreferenceManager2.getInstance(l).getWallpaperDepthEffect();
         mEnableDepth = PreferenceExtensionsKt.firstBlocking(pref);
     }
 
@@ -88,12 +87,7 @@ public class DepthController extends BaseDepthController implements StateHandler
         } catch (Throwable t) {
             // LC-Ignored
         }
-        mRemoveOnDrawListenerCancelled = false;
-        view.post(() -> {
-            if (!mRemoveOnDrawListenerCancelled) {
-                removeOnDrawListener();
-            }
-        });
+        view.post(this::removeOnDrawListener);
     }
 
     private void ensureDependencies() {
@@ -165,7 +159,6 @@ public class DepthController extends BaseDepthController implements StateHandler
         } else {
             removeOnDrawListener();
             setBaseSurface(null);
-            setEarlyWakeup(false);
         }
     }
 
@@ -213,7 +206,6 @@ public class DepthController extends BaseDepthController implements StateHandler
     }
 
     private void addOnDrawListener() {
-        mRemoveOnDrawListenerCancelled = true;
         if (mIsOnDrawListenerAdded) {
             return;
         }
@@ -222,7 +214,6 @@ public class DepthController extends BaseDepthController implements StateHandler
     }
 
     private void removeOnDrawListener() {
-        mRemoveOnDrawListenerCancelled = true;
         if (!mIsOnDrawListenerAdded) {
             return;
         }

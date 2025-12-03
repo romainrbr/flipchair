@@ -17,7 +17,6 @@
 package com.android.wm.shell.flicker.pip
 
 import android.platform.test.annotations.Presubmit
-import android.platform.test.annotations.RequiresFlagsDisabled
 import android.tools.Rotation
 import android.tools.flicker.assertions.FlickerTest
 import android.tools.flicker.junit.FlickerParametersRunnerFactory
@@ -28,7 +27,6 @@ import android.tools.helpers.WindowUtils
 import android.tools.traces.component.ComponentNameMatcher
 import com.android.server.wm.flicker.helpers.ImeAppHelper
 import com.android.server.wm.flicker.helpers.setRotation
-import com.android.wm.shell.Flags
 import com.android.wm.shell.flicker.pip.common.PipTransition
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -43,7 +41,6 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 @Parameterized.UseParametersRunnerFactory(FlickerParametersRunnerFactory::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RequiresFlagsDisabled(Flags.FLAG_ENABLE_PIP2)
 class MovePipOnImeVisibilityChangeTest(flicker: LegacyFlickerTest) : PipTransition(flicker) {
     private val imeApp = ImeAppHelper(instrumentation)
 

@@ -22,14 +22,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import android.content.Context;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
-import com.android.wm.shell.ShellTestCase;
 import com.android.wm.shell.sysui.ShellInit;
 
 import org.junit.Before;
@@ -42,7 +41,7 @@ import org.mockito.MockitoAnnotations;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)
-public class DevicePostureControllerTest extends ShellTestCase {
+public class DevicePostureControllerTest {
     @Mock
     private Context mContext;
 
@@ -105,6 +104,6 @@ public class DevicePostureControllerTest extends ShellTestCase {
         int sameDevicePosture = mDevicePostureCaptor.getValue();
         mDevicePostureController.onDevicePostureChanged(sameDevicePosture);
 
-        verifyNoMoreInteractions(mOnDevicePostureChangedListener);
+        verifyZeroInteractions(mOnDevicePostureChangedListener);
     }
 }

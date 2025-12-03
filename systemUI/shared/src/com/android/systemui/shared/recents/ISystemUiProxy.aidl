@@ -178,10 +178,5 @@ interface ISystemUiProxy {
      */
     oneway void updateContextualEduStats(boolean isTrackpadGesture, String gestureType) = 58;
 
-    /**
-     * Sent after layout is performed for the "recents" button and it is visible on screen.
-     */
-    oneway void notifyRecentsButtonPositionChanged(in Rect position) = 59;
-
-    // Next id = 60
+    // Next id = 59
 }

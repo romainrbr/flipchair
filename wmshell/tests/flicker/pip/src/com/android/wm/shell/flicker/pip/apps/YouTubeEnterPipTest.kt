@@ -34,7 +34,7 @@ import org.junit.runners.Parameterized
 /**
  * Test entering pip from YouTube app by interacting with the app UI
  *
- * To run this test: `atest WMShellFlickerTestsPipAppsCSuite:YouTubeEnterPipTest`
+ * To run this test: `atest WMShellFlickerTests:YouTubeEnterPipTest`
  *
  * Actions:
  * ```
@@ -57,23 +57,23 @@ import org.junit.runners.Parameterized
 @Parameterized.UseParametersRunnerFactory(FlickerParametersRunnerFactory::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 open class YouTubeEnterPipTest(flicker: LegacyFlickerTest) : AppsEnterPipTransition(flicker) {
-    override val pipApp: YouTubeAppHelper = YouTubeAppHelper(instrumentation)
+    override val standardAppHelper: YouTubeAppHelper = YouTubeAppHelper(instrumentation)
 
     override val permissions: Array<String> = arrayOf(Manifest.permission.POST_NOTIFICATIONS)
 
     override val defaultEnterPip: FlickerBuilder.() -> Unit = {
         setup {
-            pipApp.launchViaIntent(
+            standardAppHelper.launchViaIntent(
                 wmHelper,
-                YouTubeAppHelper.getYoutubeVideoIntent("3KtWfp0UopM"),
+                YouTubeAppHelper.getYoutubeVideoIntent("HPcEAtoXXLA"),
                 ComponentNameMatcher(YouTubeAppHelper.PACKAGE_NAME, "")
             )
-            pipApp.waitForVideoPlaying()
+            standardAppHelper.waitForVideoPlaying()
         }
     }
 
     override val defaultTeardown: FlickerBuilder.() -> Unit = {
-        teardown { pipApp.exit(wmHelper) }
+        teardown { standardAppHelper.exit(wmHelper) }
     }
 
     override val thisTransition: FlickerBuilder.() -> Unit = { transitions { tapl.goHome() } }

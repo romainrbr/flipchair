@@ -27,7 +27,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-/** Test Pip Menu on TV. To run this test: `atest WMShellFlickerTestsPip:TvPipMenuTests` */
+/** Test Pip Menu on TV. To run this test: `atest WMShellFlickerTests:TvPipMenuTests` */
 @RequiresDevice
 class TvPipMenuTests : TvPipTestBase() {
 

@@ -21,20 +21,31 @@ import android.os.UserHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
-import com.android.launcher3.util.SandboxApplication
+import com.android.launcher3.util.LauncherModelHelper
 import com.android.launcher3.util.TestUtil
 import com.android.launcher3.util.UserIconInfo
 import com.google.common.truth.Truth.assertThat
-import org.junit.Rule
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class UserCacheTest {
 
-    @get:Rule val sandboxContext = SandboxApplication()
+    private val launcherModelHelper = LauncherModelHelper()
+    private val sandboxContext = launcherModelHelper.sandboxContext
+    private lateinit var userCache: UserCache
 
-    private val userCache: UserCache by lazy { UserCache.getInstance(sandboxContext) }
+    @Before
+    fun setup() {
+        userCache = UserCache.getInstance(sandboxContext)
+    }
+
+    @After
+    fun teardown() {
+        launcherModelHelper.destroy()
+    }
 
     @Test
     fun `getBadgeDrawable only returns a UserBadgeDrawable given a user in the cache`() {

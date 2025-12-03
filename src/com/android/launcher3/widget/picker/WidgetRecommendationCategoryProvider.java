@@ -26,10 +26,13 @@ import com.android.launcher3.R;
 import com.android.launcher3.model.WidgetItem;
 import com.android.launcher3.util.ApplicationInfoWrapper;
 import com.android.launcher3.util.Preconditions;
+import com.android.launcher3.util.ResourceBasedOverride;
 
 /**
- * To categorize widget recommendations.
- * Method {@code getWidgetRecommendationCategory} is called per widget to get
+ * A {@link ResourceBasedOverride} that categorizes widget recommendations.
+ *
+ * <p>Override the {@code widget_recommendation_category_provider_class} resource to provide your
+ * own implementation. Method {@code getWidgetRecommendationCategory} is called per widget to get
  * the category.</p>
  */
 public class WidgetRecommendationCategoryProvider {

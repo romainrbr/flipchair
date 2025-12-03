@@ -1,5 +1,4 @@
 # What is the WindowManager Shell
-[Back to home](README.md)
 
 ---
 

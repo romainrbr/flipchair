@@ -335,7 +335,7 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
         }
         FastBitmapDrawable drawable = bitmap.newIcon(
                 context, creationFlags, Utilities.getIconShapeOrNull(context));
-        drawable.setDisabled(isDisabled());
+        drawable.setIsDisabled(isDisabled());
         return drawable;
     }
 

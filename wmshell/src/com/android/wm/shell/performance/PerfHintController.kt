@@ -45,15 +45,9 @@ class PerfHintController(private val mContext: Context,
     private fun onInit() {
         mShellCommandHandler.addDumpCallback(this::dump, this)
         val perfHintMgr = mContext.getSystemService(PerformanceHintManager::class.java)
-        if (perfHintMgr != null) {
-            val adpfSession = perfHintMgr.createHintSession(
-                intArrayOf(Process.myTid()),
-                TimeUnit.SECONDS.toNanos(1)
-            )
-            if (adpfSession != null) {
-                hinter.setAdpfSession(adpfSession)
-            }
-        }
+        val adpfSession = perfHintMgr!!.createHintSession(intArrayOf(Process.myTid()),
+                TimeUnit.SECONDS.toNanos(1))
+        hinter.setAdpfSession(adpfSession)
     }
 
     fun dump(pw: PrintWriter, prefix: String?) {

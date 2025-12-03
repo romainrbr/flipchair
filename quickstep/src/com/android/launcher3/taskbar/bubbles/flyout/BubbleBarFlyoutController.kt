@@ -64,7 +64,6 @@ constructor(
         }
 
     fun setUpAndShowFlyout(message: BubbleBarFlyoutMessage, onInit: () -> Unit, onEnd: () -> Unit) {
-        animator?.cancel()
         flyout?.let(container::removeView)
         val flyout = BubbleBarFlyoutView(container.context, positioner, flyoutScheduler)
 

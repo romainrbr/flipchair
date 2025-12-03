@@ -60,7 +60,6 @@ abstract class TaskbarBaseTestCase {
     @Mock lateinit var optionalBubbleControllers: Optional<BubbleControllers>
     @Mock lateinit var taskbarDesktopModeController: TaskbarDesktopModeController
     @Mock lateinit var nudgeController: NudgeController
-    @Mock lateinit var nudgeViewController: NudgeViewController
 
     lateinit var taskbarControllers: TaskbarControllers
 
@@ -104,7 +103,6 @@ abstract class TaskbarBaseTestCase {
                 optionalBubbleControllers,
                 taskbarDesktopModeController,
                 nudgeController,
-                nudgeViewController
             )
     }
 }

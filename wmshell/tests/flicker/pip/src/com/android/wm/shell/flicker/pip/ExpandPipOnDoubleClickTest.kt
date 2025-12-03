@@ -17,14 +17,12 @@
 package com.android.wm.shell.flicker.pip
 
 import android.platform.test.annotations.Presubmit
-import android.platform.test.annotations.RequiresFlagsDisabled
 import android.tools.Rotation
 import android.tools.flicker.junit.FlickerParametersRunnerFactory
 import android.tools.flicker.legacy.FlickerBuilder
 import android.tools.flicker.legacy.LegacyFlickerTest
 import android.tools.flicker.legacy.LegacyFlickerTestFactory
 import android.tools.traces.component.ComponentNameMatcher
-import com.android.wm.shell.Flags
 import com.android.wm.shell.flicker.pip.common.PipTransition
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -35,7 +33,7 @@ import org.junit.runners.Parameterized
 /**
  * Test expanding a pip window by double-clicking it
  *
- * To run this test: `atest WMShellFlickerTestsPip:ExpandPipOnDoubleClickTest`
+ * To run this test: `atest WMShellFlickerTestsPip2:ExpandPipOnDoubleClickTest`
  *
  * Actions:
  * ```
@@ -56,7 +54,6 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 @Parameterized.UseParametersRunnerFactory(FlickerParametersRunnerFactory::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@RequiresFlagsDisabled(Flags.FLAG_ENABLE_PIP2)
 class ExpandPipOnDoubleClickTest(flicker: LegacyFlickerTest) : PipTransition(flicker) {
     override val thisTransition: FlickerBuilder.() -> Unit = {
         transitions { pipApp.doubleClickPipWindow(wmHelper) }

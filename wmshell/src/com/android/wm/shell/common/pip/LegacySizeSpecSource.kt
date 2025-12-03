@@ -23,9 +23,9 @@ import android.util.Size
 import com.android.wm.shell.R
 
 class LegacySizeSpecSource(
-        private var context: Context,
+        private val context: Context,
         private val pipDisplayLayoutState: PipDisplayLayoutState
-) : SizeSpecSource, PipDisplayLayoutState.DisplayIdListener {
+) : SizeSpecSource {
 
     private var mDefaultMinSize = 0
     /** The absolute minimum an overridden size's edge can be */
@@ -39,7 +39,6 @@ class LegacySizeSpecSource(
     private var mMinAspectRatioForMinSize = 0f
 
     init {
-        pipDisplayLayoutState.addDisplayIdListener(this)
         reloadResources()
     }
 
@@ -57,11 +56,6 @@ class LegacySizeSpecSource(
         mMaxAspectRatioForMinSize = res.getFloat(
                 R.dimen.config_pictureInPictureAspectRatioLimitForMinSize)
         mMinAspectRatioForMinSize = 1f / mMaxAspectRatioForMinSize
-    }
-
-    override fun onDisplayIdChanged(newContext: Context) {
-        context = newContext
-        reloadResources()
     }
 
     override fun onConfigurationChanged() {

@@ -16,7 +16,6 @@
 package com.android.launcher3.model;
 
 import static com.android.launcher3.util.LauncherModelHelper.TEST_PACKAGE;
-import static com.android.launcher3.util.ModelTestExtensions.nonPredictedItemCount;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,24 +29,24 @@ import android.os.Process;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
-import com.android.launcher3.LauncherAppState;
-import com.android.launcher3.LauncherModel;
 import com.android.launcher3.model.BgDataModel.Callbacks;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
-import com.android.launcher3.model.data.WorkspaceData;
 import com.android.launcher3.util.Executors;
+import com.android.launcher3.util.IntArray;
+import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.LauncherLayoutBuilder;
+import com.android.launcher3.util.LauncherModelHelper;
 import com.android.launcher3.util.PackageUserKey;
-import com.android.launcher3.util.SandboxApplication;
+import com.android.launcher3.util.RunnableList;
 import com.android.launcher3.util.TestUtil;
-import com.android.launcher3.util.rule.LayoutProviderRule;
 
 import org.junit.After;
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,16 +60,21 @@ import java.util.stream.Collectors;
 @RunWith(AndroidJUnit4.class)
 public class ModelMultiCallbacksTest {
 
-    @Rule public SandboxApplication mContext = new SandboxApplication().withModelDependency();
-    @Rule public LayoutProviderRule mLayoutProvider = new LayoutProviderRule(mContext);
+    private LauncherModelHelper mModelHelper;
+
+    @Before
+    public void setUp() {
+        mModelHelper = new LauncherModelHelper();
+    }
 
     @After
     public void tearDown() throws Exception {
+        mModelHelper.destroy();
         TestUtil.uninstallDummyApp();
     }
 
     private ModelLauncherCallbacks getCallbacks() {
-        return getModel().newModelCallbacks();
+        return mModelHelper.getModel().newModelCallbacks();
     }
 
     @Test
@@ -78,35 +82,36 @@ public class ModelMultiCallbacksTest {
         setupWorkspacePages(3);
 
         MyCallbacks cb1 = spy(MyCallbacks.class);
-        Executors.MAIN_EXECUTOR.execute(() -> getModel().addCallbacksAndLoad(cb1));
+        Executors.MAIN_EXECUTOR.execute(() -> mModelHelper.getModel().addCallbacksAndLoad(cb1));
 
         waitForLoaderAndTempMainThread();
-        cb1.verifyItemsBound(3);
+        cb1.verifySynchronouslyBound(3);
 
         // Add a new callback
         cb1.reset();
         MyCallbacks cb2 = spy(MyCallbacks.class);
-        Executors.MAIN_EXECUTOR.execute(() -> getModel().addCallbacksAndLoad(cb2));
+        cb2.mPageToBindSync = IntSet.wrap(2);
+        Executors.MAIN_EXECUTOR.execute(() -> mModelHelper.getModel().addCallbacksAndLoad(cb2));
 
         waitForLoaderAndTempMainThread();
-        assertNull(cb1.mItems);
-        cb2.verifyItemsBound(3);
+        assertFalse(cb1.bindStarted);
+        cb2.verifySynchronouslyBound(3);
 
         // Remove callbacks
         cb1.reset();
         cb2.reset();
 
         // No effect on callbacks when removing an callback
-        Executors.MAIN_EXECUTOR.execute(() -> getModel().removeCallbacks(cb2));
+        Executors.MAIN_EXECUTOR.execute(() -> mModelHelper.getModel().removeCallbacks(cb2));
         waitForLoaderAndTempMainThread();
-        assertNull(cb1.mItems);
-        assertNull(cb2.mItems);
+        assertNull(cb1.mPendingTasks);
+        assertNull(cb2.mPendingTasks);
 
         // Reloading only loads registered callbacks
-        getModel().startLoader();
+        mModelHelper.getModel().startLoader();
         waitForLoaderAndTempMainThread();
-        cb1.verifyItemsBound(3);
-        assertNull(cb2.mItems);
+        cb1.verifySynchronouslyBound(3);
+        assertNull(cb2.mPendingTasks);
     }
 
     @Test
@@ -117,8 +122,8 @@ public class ModelMultiCallbacksTest {
 
         MyCallbacks cb1 = spy(MyCallbacks.class);
         MyCallbacks cb2 = spy(MyCallbacks.class);
-        Executors.MAIN_EXECUTOR.execute(() -> getModel().addCallbacksAndLoad(cb1));
-        Executors.MAIN_EXECUTOR.execute(() -> getModel().addCallbacksAndLoad(cb2));
+        Executors.MAIN_EXECUTOR.execute(() -> mModelHelper.getModel().addCallbacksAndLoad(cb1));
+        Executors.MAIN_EXECUTOR.execute(() -> mModelHelper.getModel().addCallbacksAndLoad(cb2));
         waitForLoaderAndTempMainThread();
 
         assertTrue(cb1.allApps().contains(TEST_PACKAGE));
@@ -139,7 +144,7 @@ public class ModelMultiCallbacksTest {
         assertFalse(cb2.allApps().contains(TestUtil.DUMMY_PACKAGE));
 
         // Unregister a callback and verify updates no longer received
-        Executors.MAIN_EXECUTOR.execute(() -> getModel().removeCallbacks(cb2));
+        Executors.MAIN_EXECUTOR.execute(() -> mModelHelper.getModel().removeCallbacks(cb2));
         TestUtil.installDummyApp();
         getCallbacks().onPackageAdded(TestUtil.DUMMY_PACKAGE, Process.myUserHandle());
         waitForLoaderAndTempMainThread();
@@ -161,23 +166,35 @@ public class ModelMultiCallbacksTest {
         for (int i = 0; i < pageCount; i++) {
             builder.atWorkspace(1, 1, i).putApp(TEST_PACKAGE, TEST_PACKAGE);
         }
-        mLayoutProvider.setupDefaultLayoutProvider(builder);
-    }
-
-    private LauncherModel getModel() {
-        return LauncherAppState.getInstance(mContext).getModel();
+        mModelHelper.setupDefaultLayoutProvider(builder);
     }
 
     private abstract static class MyCallbacks implements Callbacks {
 
-        List<ItemInfo> mItems = null;
+        final List<ItemInfo> mItems = new ArrayList<>();
+        IntSet mPageToBindSync = IntSet.wrap(0);
+        IntSet mPageBoundSync = new IntSet();
+        RunnableList mPendingTasks;
         AppInfo[] mAppInfos;
+        boolean bindStarted;
 
         MyCallbacks() { }
 
         @Override
-        public void bindCompleteModel(WorkspaceData itemIdMap, boolean isBindingSync) {
-            mItems = itemIdMap.stream().toList();
+        public void startBinding() {
+            bindStarted = true;
+        }
+
+        @Override
+        public void onInitialBindComplete(IntSet boundPages, RunnableList pendingTasks,
+                RunnableList onCompleteSignal, int workspaceItemCount, boolean isBindSync) {
+            mPageBoundSync = boundPages;
+            mPendingTasks = pendingTasks;
+        }
+
+        @Override
+        public void bindItems(List<ItemInfo> shortcuts, boolean forceAnimateIcons) {
+            mItems.addAll(shortcuts);
         }
 
         @Override
@@ -186,20 +203,40 @@ public class ModelMultiCallbacksTest {
             mAppInfos = apps;
         }
 
-        public void reset() {
-            mItems = null;
-            mAppInfos = null;
+        @Override
+        public IntSet getPagesToBindSynchronously(IntArray orderedScreenIds) {
+            return mPageToBindSync;
         }
 
-        public void verifyItemsBound(int totalItems) {
-            assertNotNull(mItems);
-            assertEquals(totalItems, nonPredictedItemCount(mItems));
+        public void reset() {
+            mItems.clear();
+            mPageBoundSync = new IntSet();
+            mPendingTasks = null;
+            mAppInfos = null;
+            bindStarted = false;
+        }
+
+        public void verifySynchronouslyBound(int totalItems) {
+            // Verify that the requested page is bound synchronously
+            assertTrue(bindStarted);
+            assertEquals(mPageToBindSync, mPageBoundSync);
+            assertEquals(mItems.size(), 1);
+            assertEquals(IntSet.wrap(mItems.get(0).screenId), mPageBoundSync);
+            assertNotNull(mPendingTasks);
+
+            // Verify that all other pages are bound properly
+            mPendingTasks.executeAllAndDestroy();
+            assertEquals(mItems.size(), totalItems);
         }
 
         public Set<String> allApps() {
             return Arrays.stream(mAppInfos)
                     .map(ai -> ai.getTargetComponent().getPackageName())
                     .collect(Collectors.toSet());
+        }
+
+        public void verifyApps(String... apps) {
+            assertTrue(allApps().containsAll(Arrays.asList(apps)));
         }
     }
 }

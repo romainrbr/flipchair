@@ -40,6 +40,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.window.flags.Flags;
 import com.android.wm.shell.shared.TransitionUtil;
 import com.android.wm.shell.sysui.ShellInit;
 import com.android.wm.shell.transition.Transitions;
@@ -80,7 +81,9 @@ public class ActivityEmbeddingController implements Transitions.TransitionHandle
     @Nullable
     public static ActivityEmbeddingController create(@NonNull Context context,
             @NonNull ShellInit shellInit, @NonNull Transitions transitions) {
-        return new ActivityEmbeddingController(context, shellInit, transitions);
+        return Transitions.ENABLE_SHELL_TRANSITIONS
+                ? new ActivityEmbeddingController(context, shellInit, transitions)
+                : null;
     }
 
     /** Registers to handle transitions. */
@@ -120,6 +123,9 @@ public class ActivityEmbeddingController implements Transitions.TransitionHandle
     }
 
     private boolean shouldAnimateAnimationOptions(@NonNull TransitionInfo info) {
+        if (!Flags.moveAnimationOptionsToChange()) {
+            return shouldAnimateAnimationOptions(info.getAnimationOptions());
+        }
         for (TransitionInfo.Change change : info.getChanges()) {
             if (!shouldAnimateAnimationOptions(change.getAnimationOptions())) {
                 // If any of override animation is not supported, don't animate the transition.
@@ -162,8 +168,7 @@ public class ActivityEmbeddingController implements Transitions.TransitionHandle
 
     @Override
     public void mergeAnimation(@NonNull IBinder transition, @NonNull TransitionInfo info,
-            @NonNull SurfaceControl.Transaction startT, @NonNull SurfaceControl.Transaction finishT,
-            @NonNull IBinder mergeTarget,
+            @NonNull SurfaceControl.Transaction t, @NonNull IBinder mergeTarget,
             @NonNull Transitions.TransitionFinishCallback finishCallback) {
         mAnimationRunner.cancelAnimationFromMerge();
     }

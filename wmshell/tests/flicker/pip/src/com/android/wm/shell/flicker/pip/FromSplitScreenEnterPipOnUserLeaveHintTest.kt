@@ -16,9 +16,7 @@
 
 package com.android.wm.shell.flicker.pip
 
-import android.platform.test.annotations.FlakyTest
 import android.platform.test.annotations.Presubmit
-import android.platform.test.annotations.RequiresDevice
 import android.tools.Rotation
 import android.tools.flicker.junit.FlickerParametersRunnerFactory
 import android.tools.flicker.legacy.FlickerBuilder
@@ -26,7 +24,8 @@ import android.tools.flicker.legacy.LegacyFlickerTest
 import android.tools.flicker.legacy.LegacyFlickerTestFactory
 import android.tools.helpers.WindowUtils
 import android.tools.traces.parsers.toFlickerComponent
-import com.android.server.wm.flicker.helpers.PipAppHelper
+import androidx.test.filters.FlakyTest
+import androidx.test.filters.RequiresDevice
 import com.android.server.wm.flicker.helpers.SimpleAppHelper
 import com.android.server.wm.flicker.testapp.ActivityOptions
 import com.android.wm.shell.flicker.pip.common.EnterPipTransition
@@ -41,7 +40,7 @@ import org.junit.runners.Parameterized
 /**
  * Test entering pip from an app via auto-enter property when navigating to home from split screen.
  *
- * To run this test: `atest WMShellFlickerTestsPip:FromSplitScreenEnterPipOnUserLeaveHintTest`
+ * To run this test: `atest WMShellFlickerTestsPip1:FromSplitScreenEnterPipOnUserLeaveHintTest`
  *
  * Actions:
  * ```
@@ -64,13 +63,11 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 @Parameterized.UseParametersRunnerFactory(FlickerParametersRunnerFactory::class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@FlakyTest(bugId = 386333280)
-open class FromSplitScreenEnterPipOnUserLeaveHintTest(flicker: LegacyFlickerTest) :
+class FromSplitScreenEnterPipOnUserLeaveHintTest(flicker: LegacyFlickerTest) :
     EnterPipTransition(flicker) {
-    override val pipApp: PipAppHelper = PipAppHelper(instrumentation)
     private val portraitDisplayBounds = WindowUtils.getDisplayBounds(Rotation.ROTATION_0)
     /** Second app used to enter split screen mode */
-    internal val secondAppForSplitScreen =
+    private val secondAppForSplitScreen =
         SimpleAppHelper(
             instrumentation,
             ActivityOptions.SplitScreen.Primary.LABEL,
@@ -184,6 +181,12 @@ open class FromSplitScreenEnterPipOnUserLeaveHintTest(flicker: LegacyFlickerTest
             }
         }
     }
+
+    /** {@inheritDoc} */
+    @FlakyTest(bugId = 312446524)
+    @Test
+    override fun visibleLayersShownMoreThanOneConsecutiveEntry() =
+        super.visibleLayersShownMoreThanOneConsecutiveEntry()
 
     /** {@inheritDoc} */
     @Test

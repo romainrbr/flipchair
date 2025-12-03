@@ -19,8 +19,8 @@ package com.android.wm.shell.bubbles;
 import static android.graphics.Paint.ANTI_ALIAS_FLAG;
 import static android.graphics.Paint.FILTER_BITMAP_FLAG;
 
-import static com.android.wm.shell.shared.animation.Interpolators.ALPHA_IN;
-import static com.android.wm.shell.shared.animation.Interpolators.ALPHA_OUT;
+import static com.android.wm.shell.animation.Interpolators.ALPHA_IN;
+import static com.android.wm.shell.animation.Interpolators.ALPHA_OUT;
 
 import android.animation.ArgbEvaluator;
 import android.content.Context;
@@ -28,6 +28,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Outline;
 import android.graphics.Paint;
@@ -49,8 +50,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.android.wm.shell.R;
-import com.android.wm.shell.shared.TriangleShape;
-import com.android.wm.shell.shared.TypefaceUtils;
+import com.android.wm.shell.common.TriangleShape;
 
 /**
  * Flyout view that appears as a 'chat bubble' alongside the bubble stack. The flyout can visually
@@ -166,10 +166,8 @@ public class BubbleFlyoutView extends FrameLayout {
         LayoutInflater.from(context).inflate(R.layout.bubble_flyout, this, true);
         mFlyoutTextContainer = findViewById(R.id.bubble_flyout_text_container);
         mSenderText = findViewById(R.id.bubble_flyout_name);
-        TypefaceUtils.setTypeface(mSenderText, TypefaceUtils.FontFamily.GSF_LABEL_LARGE);
         mSenderAvatar = findViewById(R.id.bubble_flyout_avatar);
         mMessageText = mFlyoutTextContainer.findViewById(R.id.bubble_flyout_text);
-        TypefaceUtils.setTypeface(mMessageText, TypefaceUtils.FontFamily.GSF_BODY_MEDIUM);
 
         final Resources res = getResources();
         mFlyoutPadding = res.getDimensionPixelSize(R.dimen.bubble_flyout_padding_x);
@@ -211,7 +209,7 @@ public class BubbleFlyoutView extends FrameLayout {
                         mPointerSize, mPointerSize, false /* isPointingLeft */));
         mRightTriangleShape.setBounds(0, 0, mPointerSize, mPointerSize);
 
-        applyConfigurationColors();
+        applyConfigurationColors(getResources().getConfiguration());
     }
 
     @Override
@@ -442,23 +440,29 @@ public class BubbleFlyoutView extends FrameLayout {
         boolean flagsChanged = nightModeFlags != mNightModeFlags;
         if (flagsChanged) {
             mNightModeFlags = nightModeFlags;
-            applyConfigurationColors();
+            applyConfigurationColors(configuration);
         }
         return flagsChanged;
     }
 
-    private void applyConfigurationColors() {
-        mFloatingBackgroundColor = mContext.getColor(
-                com.android.internal.R.color.materialColorSurfaceContainer);
-        mSenderText.setTextColor(
-                mContext.getColor(com.android.internal.R.color.materialColorOnSurface));
-        mMessageText.setTextColor(
-                mContext.getColor(com.android.internal.R.color.materialColorOnSurfaceVariant));
-
-        mBgPaint.setColor(mFloatingBackgroundColor);
-        mLeftTriangleShape.getPaint().setColor(mFloatingBackgroundColor);
-        mRightTriangleShape.getPaint().setColor(mFloatingBackgroundColor);
-
+    private void applyConfigurationColors(Configuration configuration) {
+        int nightModeFlags = configuration.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        boolean isNightModeOn = nightModeFlags == Configuration.UI_MODE_NIGHT_YES;
+        try (TypedArray ta = mContext.obtainStyledAttributes(
+                new int[]{
+                        com.android.internal.R.attr.materialColorSurfaceContainer,
+                        com.android.internal.R.attr.materialColorOnSurface,
+                        com.android.internal.R.attr.materialColorOnSurfaceVariant})) {
+            mFloatingBackgroundColor = ta.getColor(0,
+                    isNightModeOn ? Color.BLACK : Color.WHITE);
+            mSenderText.setTextColor(ta.getColor(1,
+                    isNightModeOn ? Color.WHITE : Color.BLACK));
+            mMessageText.setTextColor(ta.getColor(2,
+                    isNightModeOn ? Color.WHITE : Color.BLACK));
+            mBgPaint.setColor(mFloatingBackgroundColor);
+            mLeftTriangleShape.getPaint().setColor(mFloatingBackgroundColor);
+            mRightTriangleShape.getPaint().setColor(mFloatingBackgroundColor);
+        }
     }
 
     /**

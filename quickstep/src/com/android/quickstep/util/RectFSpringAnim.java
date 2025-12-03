@@ -346,7 +346,7 @@ public class RectFSpringAnim extends ReleaseCheck {
             // Increase the stiffness for devices where we want the window size to transform
             // quicker.
             boolean shouldUseHigherStiffness = profile != null
-                    && (profile.getDeviceProperties().isLandscape() || profile.getDeviceProperties().isTablet());
+                    && (profile.isLandscape || profile.isTablet);
             float stiffness = shouldUseHigherStiffness
                     ? rp.getFloat(R.dimen.swipe_up_rect_scale_higher_stiffness)
                     : rp.getFloat(R.dimen.swipe_up_rect_scale_stiffness);
@@ -549,7 +549,7 @@ public class RectFSpringAnim extends ReleaseCheck {
             // Increase the stiffness for devices where we want the window size to transform
             // quicker.
             boolean shouldUseHigherStiffness = deviceProfile != null
-                    && (deviceProfile.getDeviceProperties().isLandscape() || deviceProfile.getDeviceProperties().isTablet());
+                    && (deviceProfile.isLandscape || deviceProfile.isTablet);
             rectStiffness = shouldUseHigherStiffness
                     ? rp.getFloat(R.dimen.swipe_up_rect_scale_higher_stiffness)
                     : rp.getFloat(R.dimen.swipe_up_rect_scale_stiffness);
@@ -562,11 +562,11 @@ public class RectFSpringAnim extends ReleaseCheck {
                         ? TRACKING_BOTTOM
                         : TRACKING_TOP;
             } else {
-                int heightPx = deviceProfile.getDeviceProperties().getHeightPx();
+                int heightPx = deviceProfile.heightPx;
                 Rect padding = deviceProfile.workspacePadding;
 
                 final float topThreshold = heightPx / 3f;
-                final float bottomThreshold = deviceProfile.getDeviceProperties().getHeightPx() - padding.bottom;
+                final float bottomThreshold = deviceProfile.heightPx - padding.bottom;
 
                 if (targetRect.bottom > bottomThreshold) {
                     if (enableScalingRevealHomeAnimation()) {

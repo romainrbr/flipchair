@@ -202,8 +202,7 @@ public class InstallSessionHelper {
 
     @WorkerThread
     public boolean promiseIconAddedForId(final int sessionId) {
-        // Make sure the session id is valid.
-        return sessionId != -1 && getPromiseIconIds().contains(sessionId);
+        return getPromiseIconIds().contains(sessionId);
     }
 
     @WorkerThread
@@ -232,11 +231,8 @@ public class InstallSessionHelper {
             // not already present. For general app installations however, we do support it.
             if (ATLEAST_V && (!Flags.enableSupportForArchiving() || !sessionInfo.isUnarchival())) {
                 FileLog.d(LOG, "Adding package name to install queue: "
-                        + sessionInfo.getAppPackageName()
-                        + "Package installer: "
-                        + sessionInfo.getInstallerPackageName()
-                        + "Session id: "
-                        + sessionInfo.getSessionId());
+                        + sessionInfo.getAppPackageName());
+
                 ItemInstallQueue.INSTANCE.get(mAppContext)
                         .queueItem(sessionInfo.getAppPackageName(), getUserHandle(sessionInfo));
             }

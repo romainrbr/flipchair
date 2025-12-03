@@ -224,20 +224,19 @@ public class GroupedTaskInfo implements Parcelable {
 
     /**
      * Get primary {@link TaskInfo}.
-     * Nullable only if the group if TYPE_DESK, non-null for TYPE_FULLSCREEN and TYPE_SPLIT.
      *
      * @throws IllegalStateException if the group is TYPE_MIXED.
      */
-    @Nullable
+    @NonNull
     public TaskInfo getTaskInfo1() {
         if (mType == TYPE_MIXED) {
             throw new IllegalStateException("No indexed tasks for a mixed task");
         }
-        return CollectionsKt.firstOrNull(mTasks);
+        return mTasks.getFirst();
     }
 
     /**
-     * Get secondary {@link TaskInfo}, used primarily for TYPE_SPLIT, not null for TYPE_SPLIT.
+     * Get secondary {@link TaskInfo}, used primarily for TYPE_SPLIT.
      *
      * @throws IllegalStateException if the group is TYPE_MIXED.
      */

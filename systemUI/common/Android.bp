@@ -22,17 +22,20 @@ package {
     default_applicable_licenses: ["frameworks_base_packages_SystemUI_license"],
 }
 
-java_library {
+android_library {
+
     name: "SystemUICommon",
+    use_resource_processor: true,
 
     srcs: [
         "src/**/*.java",
         "src/**/*.kt",
     ],
 
-    static_libs: ["SystemUI-shared-utils"],
+    static_libs: [
+        "androidx.core_core-ktx",
+    ],
 
-    libs: ["//frameworks/libs/systemui:tracinglib-platform"],
-
+    manifest: "AndroidManifest.xml",
     kotlincflags: ["-Xjvm-default=all"],
 }

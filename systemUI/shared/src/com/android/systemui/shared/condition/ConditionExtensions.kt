@@ -14,12 +14,12 @@ import kotlinx.coroutines.launch
 fun Flow<Boolean>.toCondition(
     scope: CoroutineScope,
     @StartStrategy strategy: Int,
-    initialValue: Boolean? = null,
+    initialValue: Boolean? = null
 ): Condition {
     return object : Condition(scope, initialValue, false) {
         var job: Job? = null
 
-        override suspend fun start() {
+        override fun start() {
             job = scope.launch { collect { updateCondition(it) } }
         }
 
@@ -28,8 +28,7 @@ fun Flow<Boolean>.toCondition(
             job = null
         }
 
-        override val startStrategy: Int
-            get() = strategy
+        override fun getStartStrategy() = strategy
     }
 }
 
@@ -37,16 +36,13 @@ fun Flow<Boolean>.toCondition(
 fun Condition.toFlow(): Flow<Boolean?> {
     return callbackFlow {
             val callback =
-                object : Condition.Callback {
-                    override fun onConditionChanged(condition: Condition) {
-                        if (condition.isConditionSet) {
-                            trySend(condition.isConditionMet)
-                        } else {
-                            trySend(null)
-                        }
+                Condition.Callback { condition ->
+                    if (condition.isConditionSet) {
+                        trySend(condition.isConditionMet)
+                    } else {
+                        trySend(null)
                     }
                 }
-
             addCallback(callback)
             callback.onConditionChanged(this@toFlow)
             awaitClose { removeCallback(callback) }

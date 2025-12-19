@@ -16,10 +16,9 @@
 package com.android.launcher3.uioverrides.states;
 
 import static com.android.app.animation.Interpolators.DECELERATE_2;
-import static com.android.launcher3.Flags.enableDesktopExplodedView;
-import static com.android.launcher3.Flags.enableOverviewBackgroundWallpaperBlur;
 import static com.android.launcher3.Flags.enableScalingRevealHomeAnimation;
 import static com.android.launcher3.logging.StatsLogManager.LAUNCHER_STATE_OVERVIEW;
+import static com.android.wm.shell.Flags.enableSplitContextual;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -31,12 +30,10 @@ import com.android.launcher3.LauncherState;
 import com.android.launcher3.R;
 import com.android.launcher3.util.DisplayController;
 import com.android.launcher3.util.Themes;
-import com.android.launcher3.views.ActivityContext;
 import com.android.quickstep.util.BaseDepthController;
 import com.android.quickstep.util.LayoutUtils;
 import com.android.quickstep.views.RecentsView;
 import com.android.quickstep.views.TaskView;
-import com.android.systemui.shared.system.BlurUtils;
 
 import app.lawnchair.preferences.PreferenceManager;
 import app.lawnchair.theme.color.tokens.ColorTokens;
@@ -69,10 +66,11 @@ public class OverviewState extends LauncherState {
     }
 
     @Override
-    public int getTransitionDuration(ActivityContext context, boolean isToState) {
+    public int getTransitionDuration(Context context, boolean isToState) {
         if (isToState) {
-            // In gesture modes, overview comes in all the way from the side, so give it more time.
-            return DisplayController.getNavigationMode(context.asContext()).hasGestures
+            // In gesture modes, overview comes in all the way from the side, so give it
+            // more time.
+            return DisplayController.getNavigationMode(context).hasGestures
                     ? OVERVIEW_SLIDE_IN_DURATION
                     : OVERVIEW_POP_IN_DURATION;
         } else {
@@ -88,7 +86,8 @@ public class OverviewState extends LauncherState {
         float scale;
         DeviceProfile deviceProfile = launcher.getDeviceProfile();
         if (deviceProfile.isTwoPanels) {
-            // In two panel layout, width does not include both panels or space between them, so
+            // In two panel layout, width does not include both panels or space between
+            // them, so
             // use height instead. We do not use height for handheld, as cell layout can be
             // shorter than a task and we want the workspace to scale down to task size.
             scale = (float) sTempRect.height() / deviceProfile.getCellLayoutHeight();
@@ -101,7 +100,7 @@ public class OverviewState extends LauncherState {
 
     @Override
     public float[] getOverviewScaleAndOffset(Launcher launcher) {
-        return new float[] {NO_SCALE, NO_OFFSET};
+        return new float[] { NO_SCALE, NO_OFFSET };
     }
 
     @Override
@@ -119,7 +118,7 @@ public class OverviewState extends LauncherState {
         if (PreferenceManager.getInstance(launcher).getRecentsActionClearAll().get()) {
             return OVERVIEW_ACTIONS;
         }
-        int elements = CLEAR_ALL_BUTTON | OVERVIEW_ACTIONS | ADD_DESK_BUTTON;
+        int elements = CLEAR_ALL_BUTTON | OVERVIEW_ACTIONS;
         DeviceProfile dp = launcher.getDeviceProfile();
         boolean showFloatingSearch;
         if (dp.isPhone) {
@@ -132,15 +131,15 @@ public class OverviewState extends LauncherState {
         if (showFloatingSearch) {
             elements |= FLOATING_SEARCH_BAR;
         }
-        if (launcher.isSplitSelectionActive()) {
-            elements &= ~CLEAR_ALL_BUTTON & ~ADD_DESK_BUTTON;
+        if (enableSplitContextual() && launcher.isSplitSelectionActive()) {
+            elements &= ~CLEAR_ALL_BUTTON;
         }
         return elements;
     }
 
     @Override
     public float getSplitSelectTranslation(Launcher launcher) {
-        if (!launcher.isSplitSelectionActive()) {
+        if (!enableSplitContextual() || !launcher.isSplitSelectionActive()) {
             return 0f;
         }
         RecentsView recentsView = launcher.getOverviewPanel();
@@ -166,24 +165,12 @@ public class OverviewState extends LauncherState {
 
     @Override
     public int getWorkspaceScrimColor(Launcher launcher) {
-        return enableOverviewBackgroundWallpaperBlur() && BlurUtils.supportsBlursOnWindows()
-                ? Themes.getAttrColor(launcher, ColorTokens.OverviewScrimOverBlur.resolveColor(launcher))
-                : Themes.getAttrColor(launcher, ColorTokens.OverviewScrim.resolveColor(launcher));
+        return ColorTokens.OverviewScrim.resolveColor(launcher);
     }
 
     @Override
     public boolean displayOverviewTasksAsGrid(DeviceProfile deviceProfile) {
         return deviceProfile.isTablet;
-    }
-
-    @Override
-    public boolean detachDesktopCarousel() {
-        return false;
-    }
-
-    @Override
-    public boolean showExplodedDesktopView() {
-        return enableDesktopExplodedView();
     }
 
     @Override
@@ -230,7 +217,7 @@ public class OverviewState extends LauncherState {
         TaskView taskView = recentsView.getRunningTaskView();
         if (taskView != null) {
             if (recentsView.isTaskViewFullyVisible(taskView)) {
-                taskView.launchWithAnimation();
+                taskView.launchTasks();
             } else {
                 recentsView.snapToPage(recentsView.indexOfChild(taskView));
             }
@@ -248,14 +235,16 @@ public class OverviewState extends LauncherState {
     }
 
     /**
-     *  New Overview substate that represents the overview in modal mode (one task shown on its own)
+     * New Overview substate that represents the overview in modal mode (one task
+     * shown on its own)
      */
     public static OverviewState newModalTaskState(int id) {
         return new OverviewModalTaskState(id);
     }
 
     /**
-     * New Overview substate representing state where 1 app for split screen has been selected and
+     * New Overview substate representing state where 1 app for split screen has
+     * been selected and
      * pinned and user is selecting the second one
      */
     public static OverviewState newSplitSelectState(int id) {

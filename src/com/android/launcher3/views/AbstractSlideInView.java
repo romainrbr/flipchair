@@ -305,7 +305,7 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
 //    @Override
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     public void onBackStarted(BackEvent backEvent) {
-        super.onBackStarted(backEvent);
+        super.onBackStarted();
         mViewToAnimateInSwipeToDismiss = shouldAnimateContentViewInBackSwipe() ? mContent : this;
     }
 
@@ -313,7 +313,8 @@ public abstract class AbstractSlideInView<T extends Context & ActivityContext>
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     public void onBackProgressed(BackEvent backEvent) {
         final float progress = backEvent.getProgress();
-        mSwipeToDismissProgress.updateValue(progress);
+        float deceleratedProgress = Interpolators.BACK_GESTURE.getInterpolation(progress);
+        mSwipeToDismissProgress.updateValue(deceleratedProgress);
     }
 
     /**

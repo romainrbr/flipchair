@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.UserHandle
 import android.util.Pair
-import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherModel
 import com.android.launcher3.LauncherSettings
@@ -28,36 +27,34 @@ class AddFoldersWithItemsTask(
     private val onComplete: (() -> Unit)? = null,
 ) : LauncherModel.ModelUpdateTask {
 
+    private val itemSpaceFinder = WorkspaceItemSpaceFinder()
+
     override fun execute(
         taskController: ModelTaskController,
         dataModel: BgDataModel,
         apps: AllAppsList,
     ) {
-        val context = taskController.context
-
-        val idp = InvariantDeviceProfile.INSTANCE.get(context)
-        val model = LauncherAppState.getInstance(context).model
-        val itemSpaceFinder = WorkspaceItemSpaceFinder(dataModel, idp, model)
-
         if (folders.isEmpty()) {
             return
         }
 
+        val context = taskController.app.context
         val addedItemsFinal = ArrayList<ItemInfo>()
         val addedWorkspaceScreensFinal = IntArray()
 
         synchronized(dataModel) {
-            val workspaceScreens = dataModel.collectWorkspaceScreens(context)
+            val workspaceScreens = dataModel.collectWorkspaceScreens()
             val modelWriter = taskController.getModelWriter()
 
             folders.forEach { folderInfo ->
                 // Find space for the folder
                 val coords = itemSpaceFinder.findSpaceForItem(
+                    taskController.app,
+                    dataModel,
                     workspaceScreens,
                     addedWorkspaceScreensFinal,
                     folderInfo.spanX,
                     folderInfo.spanY,
-                    context,
                 )
                 val screenId = coords[0]
                 val cellX = coords[1]

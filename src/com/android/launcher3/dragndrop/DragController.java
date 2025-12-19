@@ -16,7 +16,6 @@
 
 package com.android.launcher3.dragndrop;
 
-import static com.android.launcher3.Flags.removeAppsRefreshOnRightClick;
 import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_NOT_PINNABLE;
 
 import android.graphics.Point;
@@ -28,7 +27,6 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
 
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.DeleteDropTarget;
@@ -79,9 +77,8 @@ public abstract class DragController<T extends ActivityContext>
      */
     protected DragDriver mDragDriver = null;
 
-    @VisibleForTesting
     /** Options controlling the drag behavior. */
-    public DragOptions mOptions;
+    protected DragOptions mOptions;
 
     /** Coordinate for motion down event */
     protected final Point mMotionDown = new Point();
@@ -90,8 +87,7 @@ public abstract class DragController<T extends ActivityContext>
 
     protected final Point mTmpPoint = new Point();
 
-    @VisibleForTesting
-    public DropTarget.DragObject mDragObject;
+    protected DropTarget.DragObject mDragObject;
 
     /** Who can receive drop events */
     private final ArrayList<DropTarget> mDropTargets = new ArrayList<>();
@@ -537,21 +533,17 @@ public abstract class DragController<T extends ActivityContext>
 
         mDragObject.dragComplete = true;
         if (mIsInPreDrag) {
-            if (removeAppsRefreshOnRightClick()) {
-                mDragObject.cancelled = true;
-            } else {
-                if (dropTarget != null) {
-                    dropTarget.onDragExit(mDragObject);
-                }
-                return;
+            if (dropTarget != null) {
+                dropTarget.onDragExit(mDragObject);
             }
+            return;
         }
 
         // Drop onto the target.
         boolean accepted = false;
         if (dropTarget != null) {
             dropTarget.onDragExit(mDragObject);
-            if (!mIsInPreDrag && dropTarget.acceptDrop(mDragObject)) {
+            if (dropTarget.acceptDrop(mDragObject)) {
                 if (flingAnimation != null) {
                     flingAnimation.run();
                 } else {
@@ -563,10 +555,9 @@ public abstract class DragController<T extends ActivityContext>
                     cancelDrag();
                 }
             }
-
-            final View dropTargetAsView = dropTarget.getDropView();
-            dispatchDropComplete(dropTargetAsView, accepted);
         }
+        final View dropTargetAsView = dropTarget instanceof View ? (View) dropTarget : null;
+        dispatchDropComplete(dropTargetAsView, accepted);
     }
 
     private boolean isNeedCancelDrag(ItemInfo item){
@@ -588,7 +579,7 @@ public abstract class DragController<T extends ActivityContext>
 
             target.getHitRectRelativeToDragLayer(r);
             if (r.contains(x, y)) {
-                mActivity.getDragLayer().mapCoordInSelfToDescendant(target.getDropView(),
+                mActivity.getDragLayer().mapCoordInSelfToDescendant((View) target,
                         mCoordinatesTemp);
                 mDragObject.x = mCoordinatesTemp[0];
                 mDragObject.y = mCoordinatesTemp[1];

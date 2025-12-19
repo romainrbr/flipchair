@@ -21,7 +21,6 @@ import com.android.launcher3.icons.BaseIconFactory
 import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.icons.IconProvider
 import com.android.launcher3.icons.LauncherIcons
-import com.android.launcher3.icons.cache.CacheLookupFlag.Companion.DEFAULT_LOOKUP_FLAG
 import com.android.launcher3.model.data.ItemInfoWithIcon
 import com.android.launcher3.model.data.PackageItemInfo
 import com.android.launcher3.model.data.SearchActionItemInfo
@@ -163,7 +162,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
             isVisible = false
             return
         }
-        icon = appInfo.newIcon(context, 0)
+        icon = appInfo.newIcon(context, false)
     }
 
     private fun bindFromApp(componentName: ComponentName, user: UserHandle) {
@@ -213,7 +212,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
 
                 icon == null -> packageIcon
 
-                else -> icon.loadDrawable(context)?.let { li.createBadgedIconBitmap(it, BaseIconFactory.IconOptions().setUser(info.user)) } ?: packageIcon
+                else -> icon.loadDrawable(context)?.let { li.createBadgedIconBitmap(it, BaseIconFactory.IconOptions().setUser(info.user)) }
             }
             if (info.hasFlags(SearchActionItemInfo.FLAG_BADGE_WITH_COMPONENT_NAME) && target.extras.containsKey("class")) {
                 try {
@@ -224,12 +223,11 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
                     val activityIcon = iconProvider.getIcon(activityInfo)
                     val bitmap = li.createIconBitmap(activityIcon, 1f)
                     val bitmapInfo = BitmapInfo.of(bitmap, packageIcon.color)
-                    // Lawnchair-TODO-Postmerge: AOSP removed it -- 393bc59246f0f88f62b9879000d57fde36cdb214
-//                    info.bitmap = li.badgeBitmap(info.bitmap.icon, bitmapInfo)
+                    info.bitmap = li.badgeBitmap(info.bitmap.icon, bitmapInfo)
                 } catch (_: PackageManager.NameNotFoundException) {
                 }
             } else if (info.hasFlags(SearchActionItemInfo.FLAG_BADGE_WITH_PACKAGE) && info.bitmap != packageIcon) {
-//                info.bitmap = li.badgeBitmap(info.bitmap.icon, packageIcon)
+                info.bitmap = li.badgeBitmap(info.bitmap.icon, packageIcon)
             }
         }
     }
@@ -238,7 +236,7 @@ class SearchResultIcon(context: Context, attrs: AttributeSet?) :
         val las = LauncherAppState.getInstance(context)
         val info = PackageItemInfo(packageName, user)
         info.user = user
-        las.iconCache.getTitleAndIcon(info, DEFAULT_LOOKUP_FLAG)
+        las.iconCache.getTitleAndIcon(info, false)
         return info.bitmap
     }
 

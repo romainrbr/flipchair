@@ -27,19 +27,12 @@ import android.util.MathUtils
 import com.android.internal.graphics.ColorUtils
 import java.lang.Math.max
 
-interface TextInterpolatorListener {
-    fun onPaintModified() {}
-
-    fun onRebased() {}
-}
-
 /** Provide text style linear interpolation for plain text. */
 class TextInterpolator(
     layout: Layout,
     var typefaceCache: TypefaceVariantCache,
-    private val listener: TextInterpolatorListener? = null,
+    numberOfAnimationSteps: Int? = null,
 ) {
-
     /**
      * Returns base paint used for interpolation.
      *
@@ -73,7 +66,7 @@ class TextInterpolator(
         val start: Int, // inclusive
         val end: Int, // exclusive
         var baseFont: Font,
-        var targetFont: Font,
+        var targetFont: Font
     ) {
         val length: Int
             get() = end - start
@@ -86,14 +79,14 @@ class TextInterpolator(
         val baseY: FloatArray, // same length as glyphIds
         val targetX: FloatArray, // same length as glyphIds
         val targetY: FloatArray, // same length as glyphIds
-        val fontRuns: List<FontRun>,
+        val fontRuns: List<FontRun>
     )
 
     /** A class represents text layout of a single line. */
     private class Line(val runs: List<Run>)
 
     private var lines = listOf<Line>()
-    private val fontInterpolator = FontInterpolator(typefaceCache.fontCache)
+    private val fontInterpolator = FontInterpolator(numberOfAnimationSteps)
 
     // Recycling object for glyph drawing and tweaking.
     private val tmpPaint = TextPaint()
@@ -108,9 +101,6 @@ class TextInterpolator(
      * The 0f means the start state, 1f means the end state.
      */
     var progress: Float = 0f
-
-    /** Linear progress value (not interpolated) */
-    var linearProgress: Float = 0f
 
     /**
      * The layout used for drawing text.
@@ -147,7 +137,6 @@ class TextInterpolator(
      */
     fun onTargetPaintModified() {
         updatePositionsAndFonts(shapeText(layout, targetPaint), updateBase = false)
-        listener?.onPaintModified()
     }
 
     /**
@@ -158,7 +147,6 @@ class TextInterpolator(
      */
     fun onBasePaintModified() {
         updatePositionsAndFonts(shapeText(layout, basePaint), updateBase = true)
-        listener?.onPaintModified()
     }
 
     /**
@@ -217,7 +205,6 @@ class TextInterpolator(
      */
     fun rebase() {
         if (progress == 0f) {
-            listener?.onRebased()
             return
         } else if (progress == 1f) {
             basePaint.set(targetPaint)
@@ -234,12 +221,7 @@ class TextInterpolator(
                 }
                 run.fontRuns.forEach { fontRun ->
                     fontRun.baseFont =
-                        fontInterpolator.lerp(
-                            fontRun.baseFont,
-                            fontRun.targetFont,
-                            progress,
-                            linearProgress,
-                        )
+                        fontInterpolator.lerp(fontRun.baseFont, fontRun.targetFont, progress)
                     val fvar = FontVariationAxis.toFontVariationSettings(fontRun.baseFont.axes)
                     basePaint.typeface = typefaceCache.getTypefaceForVariant(fvar)
                 }
@@ -247,8 +229,6 @@ class TextInterpolator(
         }
 
         progress = 0f
-        linearProgress = 0f
-        listener?.onRebased()
     }
 
     /**
@@ -363,16 +343,12 @@ class TextInterpolator(
     private class MutablePositionedGlyph : TextAnimator.PositionedGlyph() {
         override var runStart: Int = 0
             public set
-
         override var runLength: Int = 0
             public set
-
         override var glyphIndex: Int = 0
             public set
-
         override lateinit var font: Font
             public set
-
         override var glyphId: Int = 0
             public set
     }
@@ -382,7 +358,7 @@ class TextInterpolator(
     // Draws single font run.
     private fun drawFontRun(c: Canvas, line: Run, run: FontRun, lineNo: Int, paint: Paint) {
         var arrayIndex = 0
-        val font = fontInterpolator.lerp(run.baseFont, run.targetFont, progress, linearProgress)
+        val font = fontInterpolator.lerp(run.baseFont, run.targetFont, progress)
 
         val glyphFilter = glyphFilter
         if (glyphFilter == null) {
@@ -425,7 +401,7 @@ class TextInterpolator(
                     0,
                     i - prevStart,
                     font,
-                    tmpPaintForGlyph,
+                    tmpPaintForGlyph
                 )
                 prevStart = i
                 arrayIndex = 0
@@ -442,13 +418,13 @@ class TextInterpolator(
             0,
             run.end - prevStart,
             font,
-            tmpPaintForGlyph,
+            tmpPaintForGlyph
         )
     }
 
     private fun updatePositionsAndFonts(
         layoutResult: List<List<PositionedGlyphs>>,
-        updateBase: Boolean,
+        updateBase: Boolean
     ) {
         // Update target positions with newly calculated text layout.
         check(layoutResult.size == lines.size) { "The new layout result has different line count." }
@@ -531,7 +507,7 @@ class TextInterpolator(
                 lineStart,
                 count,
                 layout.textDirectionHeuristic,
-                paint,
+                paint
             ) { _, _, glyphs, _ ->
                 runs.add(glyphs)
             }

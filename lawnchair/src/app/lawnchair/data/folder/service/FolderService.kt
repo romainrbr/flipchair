@@ -8,25 +8,18 @@ import app.lawnchair.data.Converters
 import app.lawnchair.data.folder.FolderInfoEntity
 import app.lawnchair.data.toEntity
 import com.android.launcher3.AppFilter
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppComponent
-import com.android.launcher3.dagger.LauncherAppSingleton
 import com.android.launcher3.model.data.AppInfo
 import com.android.launcher3.model.data.FolderInfo
 import com.android.launcher3.pm.UserCache
-import com.android.launcher3.util.DaggerSingletonObject
+import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
-@LauncherAppSingleton
-class FolderService @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : SafeCloseable {
+class FolderService(val context: Context) : SafeCloseable {
 
     private val folderDao = AppDatabase.INSTANCE.get(context).folderDao()
     private val launcherApps = context.getSystemService(LauncherApps::class.java)
@@ -81,7 +74,7 @@ class FolderService @Inject constructor(
                 // Consider caching toItemInfo results if componentKey lookups are slow
                 // and items don't change frequently without folder data changing
                 toItemInfo(itemEntity.componentKey)?.let { appInfo ->
-                    domainFolderInfo.add(appInfo)
+                    domainFolderInfo.add(appInfo, false)
                 }
             }
             domainFolderInfo
@@ -121,6 +114,6 @@ class FolderService @Inject constructor(
 
     companion object {
         @JvmField
-        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getFolderService)
+        val INSTANCE = MainThreadInitializedObject(::FolderService)
     }
 }

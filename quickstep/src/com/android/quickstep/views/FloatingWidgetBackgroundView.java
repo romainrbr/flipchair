@@ -33,6 +33,7 @@ import androidx.annotation.Nullable;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.widget.LauncherAppWidgetHostView;
+import com.android.launcher3.widget.RoundedCornerEnforcement;
 
 import java.util.stream.IntStream;
 
@@ -179,7 +180,8 @@ final class FloatingWidgetBackgroundView extends View {
 
     /** Corner radius from source view's outline, or enforced view. */
     private static float getOutlineRadius(LauncherAppWidgetHostView hostView, View v) {
-        if (hostView.hasEnforcedCornerRadius()) {
+        if (RoundedCornerEnforcement.isRoundedCornerEnabled()
+                && hostView.hasEnforcedCornerRadius()) {
             return hostView.getEnforcedCornerRadius();
         } else if (Utilities.ATLEAST_S
                 && v.getOutlineProvider() instanceof RemoteViewOutlineProvider

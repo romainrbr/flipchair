@@ -30,6 +30,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import app.lawnchair.theme.color.tokens.ColorTokens
+import com.android.launcher3.BaseDraggingActivity
 import com.android.launcher3.DeviceProfile
 import com.android.launcher3.InsettableFrameLayout
 import com.android.launcher3.R
@@ -38,16 +39,13 @@ import com.android.launcher3.popup.RoundedArrowDrawable
 import com.android.launcher3.popup.SystemShortcut
 import com.android.launcher3.util.Themes
 import com.android.quickstep.TaskOverlayFactory
+import com.android.quickstep.views.TaskView.TaskContainer
 
 class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T : Context {
     companion object {
         const val TAG = "TaskMenuViewWithArrow"
 
-        fun showForTask(
-            taskContainer: TaskContainer,
-            alignedOptionIndex: Int = 0,
-            onClosedCallback: Runnable? = null
-        ): Boolean {
+        fun showForTask(taskContainer: TaskContainer, alignedOptionIndex: Int = 0): Boolean {
             val container: RecentsViewContainer =
                 RecentsViewContainer.containerFromContext(taskContainer.taskView.context)
             val taskMenuViewWithArrow =
@@ -57,18 +55,12 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
                     false
                 ) as TaskMenuViewWithArrow<*>
 
-            return taskMenuViewWithArrow.populateAndShowForTask(
-                taskContainer,
-                alignedOptionIndex,
-                onClosedCallback
-            )
+            return taskMenuViewWithArrow.populateAndShowForTask(taskContainer, alignedOptionIndex)
         }
     }
 
     constructor(context: Context) : super(context)
-
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
-
     constructor(
         context: Context,
         attrs: AttributeSet,
@@ -90,7 +82,6 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
     private var alignedOptionIndex: Int = 0
     private val extraSpaceForRowAlignment: Int
         get() = optionMeasuredHeight * alignedOptionIndex
-
     private val menuPaddingEnd = context.resources.getDimensionPixelSize(R.dimen.task_card_margin)
 
     private lateinit var taskView: TaskView
@@ -100,14 +91,13 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
     private var optionMeasuredHeight = 0
     private val arrowHorizontalPadding: Int
         get() =
-            if (taskView.isLargeTile)
+            if (taskView.isFocusedTask)
                 resources.getDimensionPixelSize(R.dimen.task_menu_horizontal_padding)
             else 0
 
     private var iconView: IconView? = null
     private var scrim: View? = null
     private val scrimAlpha = 0.8f
-    private var onClosedCallback: Runnable? = null
 
     override fun isOfType(type: Int): Boolean = type and TYPE_TASK_MENU != 0
 
@@ -151,8 +141,7 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
 
     private fun populateAndShowForTask(
         taskContainer: TaskContainer,
-        alignedOptionIndex: Int,
-        onClosedCallback: Runnable?
+        alignedOptionIndex: Int
     ): Boolean {
         if (isAttachedToWindow) {
             return false
@@ -161,7 +150,6 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
         taskView = taskContainer.taskView
         this.taskContainer = taskContainer
         this.alignedOptionIndex = alignedOptionIndex
-        this.onClosedCallback = onClosedCallback
         if (!populateMenu()) return false
         addScrim()
         show()
@@ -264,7 +252,6 @@ class TaskMenuViewWithArrow<T> : ArrowPopup<T> where T : RecentsViewContainer, T
         super.closeComplete()
         popupContainer.removeView(scrim)
         popupContainer.removeView(iconView)
-        onClosedCallback?.run()
     }
 
     /**

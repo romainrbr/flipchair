@@ -8,7 +8,4 @@
 -keep interface com.android.systemui.plugins.annotations.** {
     *;
 }
-# TODO(b/373579455): Evaluate if <init> needs to be kept.
--keep,allowshrinking,allowoptimization,allowobfuscation,allowaccessmodification @com.android.systemui.plugins.annotations.** class * {
-    void <init>();
-}
+-keep,allowshrinking,allowoptimization,allowobfuscation,allowaccessmodification @com.android.systemui.plugins.annotations.** class *

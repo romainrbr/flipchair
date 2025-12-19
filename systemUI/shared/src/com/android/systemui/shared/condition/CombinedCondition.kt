@@ -37,43 +37,51 @@ import kotlinx.coroutines.launch
  * @param operand The [Evaluator.ConditionOperand] to apply to the conditions.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class CombinedCondition(
+class CombinedCondition
+constructor(
     private val scope: CoroutineScope,
     private val conditions: Collection<Condition>,
-    @Evaluator.ConditionOperand private val operand: Int,
+    @Evaluator.ConditionOperand private val operand: Int
 ) : Condition(scope, null, false) {
 
+    private var job: Job? = null
     private val _startStrategy by lazy { calculateStartStrategy() }
 
-    override suspend fun start() {
-        val groupedConditions = conditions.groupBy { it.isOverridingCondition }
+    override fun start() {
+        job =
+            scope.launch {
+                val groupedConditions = conditions.groupBy { it.isOverridingCondition }
 
-        lazilyEvaluate(
-                conditions = groupedConditions.getOrDefault(true, emptyList()),
-                filterUnknown = true,
-            )
-            .distinctUntilChanged()
-            .flatMapLatest { overriddenValue ->
-                // If there are overriding conditions with values set, they take precedence.
-                if (overriddenValue == null) {
-                    lazilyEvaluate(
-                        conditions = groupedConditions.getOrDefault(false, emptyList()),
-                        filterUnknown = false,
+                lazilyEvaluate(
+                        conditions = groupedConditions.getOrDefault(true, emptyList()),
+                        filterUnknown = true
                     )
-                } else {
-                    flowOf(overriddenValue)
-                }
-            }
-            .collect { conditionMet ->
-                if (conditionMet == null) {
-                    clearCondition()
-                } else {
-                    updateCondition(conditionMet)
-                }
+                    .distinctUntilChanged()
+                    .flatMapLatest { overriddenValue ->
+                        // If there are overriding conditions with values set, they take precedence.
+                        if (overriddenValue == null) {
+                            lazilyEvaluate(
+                                conditions = groupedConditions.getOrDefault(false, emptyList()),
+                                filterUnknown = false
+                            )
+                        } else {
+                            flowOf(overriddenValue)
+                        }
+                    }
+                    .collect { conditionMet ->
+                        if (conditionMet == null) {
+                            clearCondition()
+                        } else {
+                            updateCondition(conditionMet)
+                        }
+                    }
             }
     }
 
-    override fun stop() {}
+    override fun stop() {
+        job?.cancel()
+        job = null
+    }
 
     /**
      * Evaluates a list of conditions lazily with support for short-circuiting. Conditions are
@@ -180,6 +188,7 @@ class CombinedCondition(
         return startStrategy
     }
 
-    override val startStrategy: Int
-        get() = _startStrategy
+    override fun getStartStrategy(): Int {
+        return _startStrategy
+    }
 }

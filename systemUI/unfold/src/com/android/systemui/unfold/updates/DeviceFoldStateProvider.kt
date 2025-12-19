@@ -128,11 +128,7 @@ constructor(
 
         val currentDirection =
             if (angle < lastHingeAngle) FOLD_UPDATE_START_CLOSING else FOLD_UPDATE_START_OPENING
-        val changedDirectionWhileInTransition =
-            isTransitionInProgress && currentDirection != lastFoldUpdate
-        val unfoldedPastThresholdSinceLastTransition =
-            angle - lastHingeAngleBeforeTransition > HINGE_ANGLE_CHANGE_THRESHOLD_DEGREES
-        if (changedDirectionWhileInTransition || unfoldedPastThresholdSinceLastTransition) {
+        if (isTransitionInProgress && currentDirection != lastFoldUpdate) {
             lastHingeAngleBeforeTransition = lastHingeAngle
         }
 
@@ -157,7 +153,7 @@ constructor(
                 isOnLargeScreen // Avoids sending closing event when on small screen.
         // Start event is sent regardless due to hall sensor.
         ) {
-            notifyFoldUpdate(transitionUpdate, angle)
+            notifyFoldUpdate(transitionUpdate, lastHingeAngle)
         }
 
         if (isTransitionInProgress) {
@@ -306,7 +302,7 @@ constructor(
     }
 
     private fun isOnLargeScreen(): Boolean {
-        return context.applicationContext.resources.configuration.smallestScreenWidthDp >
+        return context.resources.configuration.smallestScreenWidthDp >
             INNER_SCREEN_SMALLEST_SCREEN_WIDTH_THRESHOLD_DP
     }
 

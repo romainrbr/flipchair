@@ -21,9 +21,9 @@ import static com.android.launcher3.tapl.TestHelpers.getLauncherInMyProcess;
 
 import android.content.ComponentName;
 import android.content.pm.ActivityInfo;
-import android.os.Process;
 
 import androidx.annotation.Nullable;
+import androidx.test.InstrumentationRegistry;
 import androidx.test.uiautomator.UiDevice;
 
 import com.android.systemui.shared.system.PackageManagerWrapper;
@@ -91,9 +91,8 @@ public class ShellCommandRule implements TestRule {
      * Grants the launcher permission to bind widgets.
      */
     public static ShellCommandRule grantWidgetBind() {
-        return new ShellCommandRule(String.format("appwidget grantbind --package %s --user %d",
-                getInstrumentation().getTargetContext().getPackageName(),
-                Process.myUserHandle().getIdentifier()), null);
+        return new ShellCommandRule("appwidget grantbind --package "
+                + InstrumentationRegistry.getTargetContext().getPackageName(), null);
     }
 
     /**
@@ -110,9 +109,8 @@ public class ShellCommandRule implements TestRule {
     }
 
     public static String getLauncherCommand(ActivityInfo launcher) {
-        return String.format("cmd package set-home-activity --user %d %s",
-                Process.myUserHandle().getIdentifier(),
-                new ComponentName(launcher.packageName, launcher.name).flattenToString());
+        return "cmd package set-home-activity " +
+                new ComponentName(launcher.packageName, launcher.name).flattenToString();
     }
 
     /**

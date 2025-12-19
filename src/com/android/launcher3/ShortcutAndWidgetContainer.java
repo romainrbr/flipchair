@@ -69,7 +69,6 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
 
     private final ActivityContext mActivity;
     private boolean mInvertIfRtl = false;
-    public boolean mHasOnLayoutBeenCalled = false;
 
     private final PreferenceManager2 mPreferenceManager2;
     @Nullable
@@ -218,7 +217,6 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         Trace.beginSection("ShortcutAndWidgetConteiner#onLayout");
-        mHasOnLayoutBeenCalled = true; // b/349929393 - is the required call to onLayout not done?
         int count = getChildCount();
         for (int i = 0; i < count; i++) {
             final View child = getChildAt(i);
@@ -267,7 +265,7 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
         }
         child.layout(childLeft, childTop, childLeft + lp.width, childTop + lp.height);
         if (mTranslationProvider != null) {
-            final float tx = mTranslationProvider.getTranslationX(lp.getCellX());
+            final float tx = mTranslationProvider.getTranslationX(child);
             if (child instanceof Reorderable) {
                 ((Reorderable) child).getTranslateDelegate()
                         .getTranslationX(INDEX_BUBBLE_ADJUSTMENT_ANIM)
@@ -349,13 +347,8 @@ public class ShortcutAndWidgetContainer extends ViewGroup implements FolderIcon.
         mTranslationProvider = provider;
     }
 
-    /** Returns the current {@link TranslationProvider translation provider}. */
-    public @Nullable TranslationProvider getTranslationProvider() {
-        return mTranslationProvider;
-    }
-
     /** Provides translation values to apply when laying out child views. */
-    public interface TranslationProvider {
-        float getTranslationX(int cellX);
+    interface TranslationProvider {
+        float getTranslationX(View child);
     }
 }

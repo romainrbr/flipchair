@@ -15,9 +15,8 @@
  */
 package com.android.launcher3.taskbar.allapps;
 
-import static com.android.app.animation.Interpolators.DECELERATED_EASE;
 import static com.android.app.animation.Interpolators.EMPHASIZED;
-import static com.android.app.animation.Interpolators.LINEAR;
+import static com.android.launcher3.Flags.enablePredictiveBackGesture;
 import static com.android.launcher3.touch.AllAppsSwipeController.ALL_APPS_FADE_MANUAL;
 import static com.android.launcher3.touch.AllAppsSwipeController.SCRIM_FADE_MANUAL;
 
@@ -35,16 +34,14 @@ import android.window.OnBackInvokedDispatcher;
 
 import androidx.annotation.Nullable;
 
-import app.lawnchair.theme.color.tokens.ColorTokens;
-import app.lawnchair.util.LawnchairUtilsKt;
 import com.android.app.animation.Interpolators;
 import com.android.launcher3.DeviceProfile;
-import com.android.launcher3.Flags;
 import com.android.launcher3.Insettable;
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.anim.AnimatorListeners;
 import com.android.launcher3.anim.PendingAnimation;
+import com.android.launcher3.config.FeatureFlags;
 import com.android.launcher3.taskbar.allapps.TaskbarAllAppsViewController.TaskbarAllAppsCallbacks;
 import com.android.launcher3.taskbar.overlay.TaskbarOverlayContext;
 import com.android.launcher3.util.Themes;
@@ -54,11 +51,9 @@ import com.android.launcher3.views.AbstractSlideInView;
 public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverlayContext>
         implements Insettable, DeviceProfile.OnDeviceProfileChangeListener {
     private final Handler mHandler;
-    private final int mMaxBlurRadius;
 
     private TaskbarAllAppsContainerView mAppsView;
     private float mShiftRange;
-    private int mBlurRadius;
     private @Nullable Runnable mShowOnFullyAttachedToWindowRunnable;
 
     // Initialized in init.
@@ -72,8 +67,6 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
             int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mHandler = new Handler(Looper.myLooper());
-        mMaxBlurRadius = getResources().getDimensionPixelSize(
-                R.dimen.max_depth_blur_radius_enhanced);
     }
 
     void init(TaskbarAllAppsCallbacks callbacks) {
@@ -109,7 +102,6 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
         if (!animate) {
             mAllAppsCallbacks.onAllAppsTransitionEnd(true);
             setTranslationShift(TRANSLATION_SHIFT_OPENED);
-            mBlurRadius = mMaxBlurRadius;
             return;
         }
 
@@ -129,19 +121,9 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
         final boolean isOpening = mToTranslationShift == TRANSLATION_SHIFT_OPENED;
 
         if (mActivityContext.getDeviceProfile().isPhone) {
-            final Interpolator allAppsFadeInterpolator =
-                    isOpening ? ALL_APPS_FADE_MANUAL : Interpolators.reverse(ALL_APPS_FADE_MANUAL);
+            final Interpolator allAppsFadeInterpolator = isOpening ? ALL_APPS_FADE_MANUAL
+                    : Interpolators.reverse(ALL_APPS_FADE_MANUAL);
             animation.setViewAlpha(mAppsView, 1 - mToTranslationShift, allAppsFadeInterpolator);
-        }
-
-        if (Flags.allAppsBlur()) {
-            Interpolator blurInterpolator = isOpening ? LINEAR : DECELERATED_EASE;
-            animation.addOnFrameListener(a -> {
-                float blurProgress =
-                        isOpening ? a.getAnimatedFraction() : 1 - a.getAnimatedFraction();
-                mBlurRadius =
-                        (int) (mMaxBlurRadius * blurInterpolator.getInterpolation(blurProgress));
-            });
         }
 
         mAllAppsCallbacks.onAllAppsAnimationPending(animation, isOpening);
@@ -200,7 +182,9 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
         mContent = mAppsView;
 
         // Setup header protection for search bar, if enabled.
-        mAppsView.setOnInvalidateHeaderListener(this::invalidate);
+        if (FeatureFlags.ENABLE_ALL_APPS_SEARCH_IN_TASKBAR.get()) {
+            mAppsView.setOnInvalidateHeaderListener(this::invalidate);
+        }
 
         DeviceProfile dp = mActivityContext.getDeviceProfile();
         setShiftRange(dp.allAppsShiftRange);
@@ -210,13 +194,16 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         mActivityContext.addOnDeviceProfileChangeListener(this);
-        mAppsView.getAppsRecyclerViewContainer().setOutlineProvider(mViewOutlineProvider);
-        mAppsView.getAppsRecyclerViewContainer().setClipToOutline(true);
-        if (!Utilities.ATLEAST_U) return;
-        OnBackInvokedDispatcher dispatcher = findOnBackInvokedDispatcher();
-        if (dispatcher != null) {
-            dispatcher.registerOnBackInvokedCallback(
-                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, this);
+        if (enablePredictiveBackGesture()) {
+            mAppsView.getAppsRecyclerViewContainer().setOutlineProvider(mViewOutlineProvider);
+            mAppsView.getAppsRecyclerViewContainer().setClipToOutline(true);
+            OnBackInvokedDispatcher dispatcher;
+            if (!Utilities.ATLEAST_U) return;
+                dispatcher = findOnBackInvokedDispatcher();
+            if (dispatcher != null) {
+                dispatcher.registerOnBackInvokedCallback(
+                        OnBackInvokedDispatcher.PRIORITY_DEFAULT, null);
+            }
         }
     }
 
@@ -224,25 +211,32 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         mActivityContext.removeOnDeviceProfileChangeListener(this);
-        mAppsView.getAppsRecyclerViewContainer().setOutlineProvider(null);
-        mAppsView.getAppsRecyclerViewContainer().setClipToOutline(false);
-        if (!Utilities.ATLEAST_U) return;
-        OnBackInvokedDispatcher dispatcher = findOnBackInvokedDispatcher();
-        if (dispatcher != null) {
-            dispatcher.unregisterOnBackInvokedCallback(this);
+        if (enablePredictiveBackGesture()) {
+            mAppsView.getAppsRecyclerViewContainer().setOutlineProvider(null);
+            mAppsView.getAppsRecyclerViewContainer().setClipToOutline(false);
+            OnBackInvokedDispatcher dispatcher;
+            if (!Utilities.ATLEAST_U) return;
+            dispatcher = findOnBackInvokedDispatcher();
+            if (dispatcher != null && Utilities.ATLEAST_T) {
+                dispatcher.unregisterOnBackInvokedCallback(null);
+            }
         }
     }
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
-        // We should call drawOnScrimWithBottomOffset() rather than drawOnScrimWithScale(). Because
-        // for taskbar all apps, the scrim view is a child view of AbstractSlideInView. Thus scaling
-        // down in AbstractSlideInView#onScaleProgressChanged() with SCALE_PROPERTY has already
-        // done the job - there is no need to re-apply scale effect here. But it also means we need
-        // to pass extra bottom offset to background scrim to fill the bottom gap during predictive
+        // We should call drawOnScrimWithBottomOffset() rather than
+        // drawOnScrimWithScale(). Because
+        // for taskbar all apps, the scrim view is a child view of AbstractSlideInView.
+        // Thus scaling
+        // down in AbstractSlideInView#onScaleProgressChanged() with SCALE_PROPERTY has
+        // already
+        // done the job - there is no need to re-apply scale effect here. But it also
+        // means we need
+        // to pass extra bottom offset to background scrim to fill the bottom gap during
+        // predictive
         // back swipe.
         mAppsView.drawOnScrimWithBottomOffset(canvas, getBottomOffsetPx());
-        mActivityContext.getOverlayController().setBackgroundBlurRadius(mBlurRadius);
         super.dispatchDraw(canvas);
     }
 
@@ -254,13 +248,9 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
 
     @Override
     protected int getScrimColor(Context context) {
-        if (!mActivityContext.getDeviceProfile().shouldShowAllAppsOnSheet()) {
-            return LawnchairUtilsKt.getAllAppsScrimColor(context);
-        }
-        if (Flags.allAppsBlur()) {
-            return LawnchairUtilsKt.getAllAppsScrimColorOverBlur(context);
-        }
-        return ColorTokens.WidgetsPickerScrim.resolveColor(context);
+        return mActivityContext.getDeviceProfile().isPhone
+                ? Themes.getAttrColor(context, R.attr.allAppsScrimColor)
+                : context.getColor(R.color.widgets_picker_scrim);
     }
 
     @Override
@@ -282,7 +272,6 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     public void onDeviceProfileChanged(DeviceProfile dp) {
         setShiftRange(dp.allAppsShiftRange);
         setTranslationShift(TRANSLATION_SHIFT_OPENED);
-        mBlurRadius = mMaxBlurRadius;
     }
 
     private void setShiftRange(float shiftRange) {
@@ -300,8 +289,10 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     }
 
     /**
-     * In taskbar all apps search mode, we should scale down content inside all apps, rather
-     * than the whole all apps bottom sheet, to indicate we will navigate back within the all apps.
+     * In taskbar all apps search mode, we should scale down content inside all
+     * apps, rather
+     * than the whole all apps bottom sheet, to indicate we will navigate back
+     * within the all apps.
      */
     @Override
     public boolean shouldAnimateContentViewInBackSwipe() {
@@ -318,7 +309,8 @@ public class TaskbarAllAppsSlideInView extends AbstractSlideInView<TaskbarOverla
     @Override
     public void onBackInvoked() {
         if (mAllAppsCallbacks.handleSearchBackInvoked()) {
-            // We need to scale back taskbar all apps if we navigate back within search inside all
+            // We need to scale back taskbar all apps if we navigate back within search
+            // inside all
             // apps
             post(this::animateSwipeToDismissProgressToStart);
         } else {

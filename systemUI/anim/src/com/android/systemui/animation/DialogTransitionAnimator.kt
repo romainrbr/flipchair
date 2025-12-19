@@ -22,6 +22,7 @@ import android.animation.ValueAnimator
 import android.app.Dialog
 import android.graphics.Color
 import android.graphics.Rect
+import android.os.Build
 import android.os.Looper
 import android.util.Log
 import android.util.MathUtils
@@ -32,10 +33,10 @@ import android.view.ViewRootImpl
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+import androidx.annotation.RequiresApi
 import com.android.app.animation.Interpolators
 import com.android.internal.jank.Cuj.CujType
 import com.android.internal.jank.InteractionJankMonitor
-import com.android.systemui.Flags
 import com.android.systemui.util.maybeForceFullscreen
 import com.android.systemui.util.registerAnimationOnBackInvoked
 import java.util.concurrent.Executor
@@ -60,8 +61,13 @@ constructor(
     private val mainExecutor: Executor,
     private val callback: Callback,
     private val interactionJankMonitor: InteractionJankMonitor,
+    private val featureFlags: AnimationFeatureFlags,
     private val transitionAnimator: TransitionAnimator =
-        TransitionAnimator(mainExecutor, TIMINGS, INTERPOLATORS),
+        TransitionAnimator(
+            mainExecutor,
+            TIMINGS,
+            INTERPOLATORS,
+        ),
     private val isForTesting: Boolean = false,
 ) {
     private companion object {
@@ -215,7 +221,7 @@ constructor(
         dialog: Dialog,
         view: View,
         cuj: DialogCuj? = null,
-        animateBackgroundBoundsChange: Boolean = false,
+        animateBackgroundBoundsChange: Boolean = false
     ) {
         val controller = Controller.fromView(view, cuj)
         if (controller == null) {
@@ -241,7 +247,7 @@ constructor(
     fun show(
         dialog: Dialog,
         controller: Controller,
-        animateBackgroundBoundsChange: Boolean = false,
+        animateBackgroundBoundsChange: Boolean = false
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             throw IllegalStateException(
@@ -259,14 +265,15 @@ constructor(
         val controller =
             animatedParent?.dialogContentWithBackground?.let {
                 Controller.fromView(it, controller.cuj)
-            } ?: controller
+            }
+                ?: controller
 
         // Make sure we don't run the launch animation from the same source twice at the same time.
         if (openedDialogs.any { it.controller.sourceIdentity == controller.sourceIdentity }) {
             Log.e(
                 TAG,
                 "Not running dialog launch animation from source as it is already expanded into a" +
-                    " dialog",
+                    " dialog"
             )
             dialog.show()
             return
@@ -283,6 +290,7 @@ constructor(
                 animateBackgroundBoundsChange = animateBackgroundBoundsChange,
                 parentAnimatedDialog = animatedParent,
                 forceDisableSynchronization = isForTesting,
+                featureFlags = featureFlags,
             )
 
         openedDialogs.add(animatedDialog)
@@ -299,7 +307,7 @@ constructor(
         dialog: Dialog,
         animateFrom: Dialog,
         cuj: DialogCuj? = null,
-        animateBackgroundBoundsChange: Boolean = false,
+        animateBackgroundBoundsChange: Boolean = false
     ) {
         val view =
             openedDialogs.firstOrNull { it.dialog == animateFrom }?.dialogContentWithBackground
@@ -307,7 +315,7 @@ constructor(
             Log.w(
                 TAG,
                 "Showing dialog $dialog normally as the dialog it is shown from was not shown " +
-                    "using DialogTransitionAnimator",
+                    "using DialogTransitionAnimator"
             )
             dialog.show()
             return
@@ -317,7 +325,7 @@ constructor(
             dialog,
             view,
             animateBackgroundBoundsChange = animateBackgroundBoundsChange,
-            cuj = cuj,
+            cuj = cuj
         )
     }
 
@@ -340,7 +348,8 @@ constructor(
         val animatedDialog =
             openedDialogs.firstOrNull {
                 it.dialog.window?.decorView?.viewRootImpl == view.viewRootImpl
-            } ?: return null
+            }
+                ?: return null
         return createActivityTransitionController(animatedDialog, cujType)
     }
 
@@ -366,7 +375,7 @@ constructor(
 
     private fun createActivityTransitionController(
         animatedDialog: AnimatedDialog,
-        cujType: Int? = null,
+        cujType: Int? = null
     ): ActivityTransitionAnimator.Controller? {
         // At this point, we know that the intent of the caller is to dismiss the dialog to show
         // an app, so we disable the exit animation into the source because we will never want to
@@ -433,7 +442,7 @@ constructor(
             }
 
             private fun disableDialogDismiss() {
-                dialog.setDismissOverride { /* Do nothing */ }
+                dialog.setDismissOverride { /* Do nothing */}
             }
 
             private fun enableDialogDismiss() {
@@ -523,6 +532,7 @@ private class AnimatedDialog(
      * Whether synchronization should be disabled, which can be useful if we are running in a test.
      */
     private val forceDisableSynchronization: Boolean,
+    private val featureFlags: AnimationFeatureFlags,
 ) {
     /**
      * The DecorView of this dialog window.
@@ -574,6 +584,7 @@ private class AnimatedDialog(
 
     private var hasInstrumentedJank = false
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun start() {
         val cuj = controller.cuj
         if (cuj != null) {
@@ -635,7 +646,8 @@ private class AnimatedDialog(
         originalDialogBackgroundColor =
             GhostedViewTransitionAnimatorController.findGradientDrawable(background)
                 ?.color
-                ?.defaultColor ?: Color.BLACK
+                ?.defaultColor
+                ?: Color.BLACK
 
         // Make the background view invisible until we start the animation. We use the transition
         // visibility like GhostView does so that we don't mess up with the accessibility tree (see
@@ -691,7 +703,7 @@ private class AnimatedDialog(
                     oldLeft: Int,
                     oldTop: Int,
                     oldRight: Int,
-                    oldBottom: Int,
+                    oldBottom: Int
                 ) {
                     dialogContentWithBackground.removeOnLayoutChangeListener(this)
 
@@ -708,7 +720,9 @@ private class AnimatedDialog(
         // the dialog.
         dialog.setDismissOverride(this::onDialogDismissed)
 
-        dialog.registerAnimationOnBackInvoked(targetView = dialogContentWithBackground)
+        if (featureFlags.isPredictiveBackQsDialogAnim && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            dialog.registerAnimationOnBackInvoked(targetView = dialogContentWithBackground)
+        }
 
         // Show the dialog.
         dialog.show()
@@ -804,7 +818,7 @@ private class AnimatedDialog(
                 if (hasInstrumentedJank) {
                     interactionJankMonitor.end(controller.cuj!!.cujType)
                 }
-            },
+            }
         )
     }
 
@@ -877,14 +891,14 @@ private class AnimatedDialog(
                     onAnimationFinished(true /* instantDismiss */)
                     onDialogDismissed(this@AnimatedDialog)
                 }
-            },
+            }
         )
     }
 
     private fun startAnimation(
         isLaunching: Boolean,
         onLaunchAnimationStart: () -> Unit = {},
-        onLaunchAnimationEnd: () -> Unit = {},
+        onLaunchAnimationEnd: () -> Unit = {}
     ) {
         // Create 2 controllers to animate both the dialog and the source.
         val startController =
@@ -933,35 +947,32 @@ private class AnimatedDialog(
                 }
 
                 override fun onTransitionAnimationEnd(isExpandingFullyAbove: Boolean) {
-                    val onEnd = {
+                    // onLaunchAnimationEnd is called by an Animator at the end of the animation,
+                    // on a Choreographer animation tick. The following calls will move the animated
+                    // content from the dialog overlay back to its original position, and this
+                    // change must be reflected in the next frame given that we then sync the next
+                    // frame of both the content and dialog ViewRoots. However, in case that content
+                    // is rendered by Compose, whose compositions are also scheduled on a
+                    // Choreographer frame, any state change made *right now* won't be reflected in
+                    // the next frame given that a Choreographer frame can't schedule another and
+                    // have it happen in the same frame. So we post the forwarded calls to
+                    // [Controller.onLaunchAnimationEnd], leaving this Choreographer frame, ensuring
+                    // that the move of the content back to its original window will be reflected in
+                    // the next frame right after [onLaunchAnimationEnd] is called.
+                    //
+                    // TODO(b/330672236): Move this to TransitionAnimator.
+                    dialog.context.mainExecutor.execute {
                         startController.onTransitionAnimationEnd(isExpandingFullyAbove)
                         endController.onTransitionAnimationEnd(isExpandingFullyAbove)
+
                         onLaunchAnimationEnd()
-                    }
-                    if (Flags.sceneContainer()) {
-                        onEnd()
-                    } else {
-                        // onLaunchAnimationEnd is called by an Animator at the end of the
-                        // animation, on a Choreographer animation tick. The following calls will
-                        // move the animated content from the dialog overlay back to its original
-                        // position, and this change must be reflected in the next frame given that
-                        // we then sync the next frame of both the content and dialog ViewRoots.
-                        // However, in case that content is rendered by Compose, whose compositions
-                        // are also scheduled on a Choreographer frame, any state change made *right
-                        // now* won't be reflected in the next frame given that a Choreographer
-                        // frame can't schedule another and have it happen in the same frame. So we
-                        // post the forwarded calls to [Controller.onLaunchAnimationEnd], leaving
-                        // this Choreographer frame, ensuring that the move of the content back to
-                        // its original window will be reflected in the next frame right after
-                        // [onLaunchAnimationEnd] is called.
-                        dialog.context.mainExecutor.execute { onEnd() }
                     }
                 }
 
                 override fun onTransitionAnimationProgress(
                     state: TransitionAnimator.State,
                     progress: Float,
-                    linearProgress: Float,
+                    linearProgress: Float
                 ) {
                     startController.onTransitionAnimationProgress(state, progress, linearProgress)
 
@@ -1018,7 +1029,7 @@ private class AnimatedDialog(
             oldLeft: Int,
             oldTop: Int,
             oldRight: Int,
-            oldBottom: Int,
+            oldBottom: Int
         ) {
             // Don't animate if bounds didn't actually change.
             if (left == oldLeft && top == oldTop && right == oldRight && bottom == oldBottom) {

@@ -3,6 +3,7 @@ package app.lawnchair.allapps
 import android.content.Context
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import app.lawnchair.data.folder.model.FolderOrderUtils
@@ -38,9 +39,7 @@ class LawnchairAlphabeticalAppsList<T>(
     private val prefs2 = PreferenceManager2.getInstance(context)
     private val prefs = PreferenceManager.getInstance(context)
 
-    private val viewModel = FolderViewModel(
-        (context as? ComponentActivity)?.application ?: context.launcher.application,
-    )
+    private val viewModel: FolderViewModel by (context as ComponentActivity).viewModels()
     private var folderList = mutableListOf<FolderInfo>()
     private val filteredList = mutableListOf<AppInfo>()
 

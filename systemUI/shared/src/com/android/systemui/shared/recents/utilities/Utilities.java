@@ -16,28 +16,22 @@
 
 package com.android.systemui.shared.recents.utilities;
 
-import static android.app.StatusBarManager.NAVBAR_BACK_DISMISS_IME;
-import static android.app.StatusBarManager.NAVBAR_IME_SWITCHER_BUTTON_VISIBLE;
-import static android.app.StatusBarManager.NAVBAR_IME_VISIBLE;
-import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
+import static android.app.StatusBarManager.NAVIGATION_HINT_BACK_ALT;
+import static android.app.StatusBarManager.NAVIGATION_HINT_IME_SHOWN;
+import static android.app.StatusBarManager.NAVIGATION_HINT_IME_SWITCHER_SHOWN;
 
 import android.annotation.TargetApi;
-import android.app.StatusBarManager.NavbarFlags;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.inputmethodservice.InputMethodService;
-import android.inputmethodservice.InputMethodService.BackDispositionMode;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.WindowManager;
-
-import com.android.systemui.shared.recents.model.Task;
-import com.android.systemui.utils.windowmanager.WindowManagerUtils;
 
 /* Common code */
 public class Utilities {
@@ -108,52 +102,44 @@ public class Utilities {
     }
 
     /**
-     * Updates the navigation bar state flags with the given IME state.
-     *
-     * @param oldFlags        current navigation bar state flags.
-     * @param backDisposition the IME back disposition mode. Only takes effect if
-     *                        {@code isImeVisible} is {@code true}.
-     * @param isImeVisible    whether the IME is currently visible.
-     * @param showImeSwitcher whether the IME Switcher button should be shown. Only takes effect if
-     *                        {@code isImeVisible} is {@code true}.
+     * @return updated set of flags from InputMethodService based off {@param oldHints}
+     *          Leaves original hints unmodified
      */
-    @NavbarFlags
-    public static int updateNavbarFlagsFromIme(@NavbarFlags int oldFlags,
-            @BackDispositionMode int backDisposition, boolean isImeVisible,
-            boolean showImeSwitcher) {
-        int flags = oldFlags;
+    public static int calculateBackDispositionHints(int oldHints, int backDisposition,
+            boolean imeShown, boolean showImeSwitcher) {
+        int hints = oldHints;
         switch (backDisposition) {
             case InputMethodService.BACK_DISPOSITION_DEFAULT:
             case InputMethodService.BACK_DISPOSITION_WILL_NOT_DISMISS:
             case InputMethodService.BACK_DISPOSITION_WILL_DISMISS:
-                if (isImeVisible) {
-                    flags |= NAVBAR_BACK_DISMISS_IME;
+                if (imeShown) {
+                    hints |= NAVIGATION_HINT_BACK_ALT;
                 } else {
-                    flags &= ~NAVBAR_BACK_DISMISS_IME;
+                    hints &= ~NAVIGATION_HINT_BACK_ALT;
                 }
                 break;
             case InputMethodService.BACK_DISPOSITION_ADJUST_NOTHING:
-                flags &= ~NAVBAR_BACK_DISMISS_IME;
+                hints &= ~NAVIGATION_HINT_BACK_ALT;
                 break;
         }
-        if (isImeVisible) {
-            flags |= NAVBAR_IME_VISIBLE;
+        if (imeShown) {
+            hints |= NAVIGATION_HINT_IME_SHOWN;
         } else {
-            flags &= ~NAVBAR_IME_VISIBLE;
+            hints &= ~NAVIGATION_HINT_IME_SHOWN;
         }
-        if (showImeSwitcher && isImeVisible) {
-            flags |= NAVBAR_IME_SWITCHER_BUTTON_VISIBLE;
+        if (showImeSwitcher) {
+            hints |= NAVIGATION_HINT_IME_SWITCHER_SHOWN;
         } else {
-            flags &= ~NAVBAR_IME_SWITCHER_BUTTON_VISIBLE;
+            hints &= ~NAVIGATION_HINT_IME_SWITCHER_SHOWN;
         }
 
-        return flags;
+        return hints;
     }
 
     /** @return whether or not {@param context} represents that of a large screen device or not */
     @TargetApi(Build.VERSION_CODES.R)
     public static boolean isLargeScreen(Context context) {
-        return isLargeScreen(WindowManagerUtils.getWindowManager(context), context.getResources());
+        return isLargeScreen(context.getSystemService(WindowManager.class), context.getResources());
     }
 
     /** @return whether or not {@param context} represents that of a large screen device or not */
@@ -168,11 +154,5 @@ public class Utilities {
     public static float dpiFromPx(float size, int densityDpi) {
         float densityRatio = (float) densityDpi / DisplayMetrics.DENSITY_DEFAULT;
         return (size / densityRatio);
-    }
-
-    /** Whether a task is in freeform mode. */
-    public static boolean isFreeformTask(Task task) {
-        return task != null && task.getKey() != null
-                && task.getKey().windowingMode == WINDOWING_MODE_FREEFORM;
     }
 }

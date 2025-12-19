@@ -32,15 +32,11 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.annotation.WorkerThread;
 
-import com.android.launcher3.dagger.ApplicationContext;
-import com.android.launcher3.dagger.LauncherAppSingleton;
-import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.icons.BitmapInfo;
 import com.android.launcher3.icons.UserBadgeDrawable;
 import com.android.launcher3.util.ApiWrapper;
-import com.android.launcher3.util.DaggerSingletonObject;
-import com.android.launcher3.util.DaggerSingletonTracker;
 import com.android.launcher3.util.FlagOp;
+import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.SimpleBroadcastReceiver;
 import com.android.launcher3.util.UserIconInfo;
@@ -51,29 +47,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-import javax.inject.Inject;
-
 /**
  * Class which manages a local cache of user handles to avoid system rpc
  */
-@LauncherAppSingleton
-public class UserCache {
-
-    public static DaggerSingletonObject<UserCache> INSTANCE =
-            new DaggerSingletonObject<>(LauncherBaseAppComponent::getUserCache);
+public class UserCache implements SafeCloseable {
 
     public static final String ACTION_PROFILE_ADDED = ATLEAST_U
-            ? Intent.ACTION_PROFILE_ADDED : Intent.ACTION_MANAGED_PROFILE_ADDED;
+            ? Intent.ACTION_PROFILE_ADDED
+            : Intent.ACTION_MANAGED_PROFILE_ADDED;
     public static final String ACTION_PROFILE_REMOVED = ATLEAST_U
-            ? Intent.ACTION_PROFILE_REMOVED : Intent.ACTION_MANAGED_PROFILE_REMOVED;
+            ? Intent.ACTION_PROFILE_REMOVED
+            : Intent.ACTION_MANAGED_PROFILE_REMOVED;
 
     public static final String ACTION_PROFILE_UNLOCKED = ATLEAST_U
-            ? Intent.ACTION_PROFILE_ACCESSIBLE : Intent.ACTION_MANAGED_PROFILE_UNLOCKED;
+            ? Intent.ACTION_PROFILE_ACCESSIBLE
+            : Intent.ACTION_MANAGED_PROFILE_UNLOCKED;
     public static final String ACTION_PROFILE_LOCKED = ATLEAST_U
-            ? Intent.ACTION_PROFILE_INACCESSIBLE : Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE;
+            ? Intent.ACTION_PROFILE_INACCESSIBLE
+            : Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE;
     public static final String ACTION_PROFILE_AVAILABLE = "android.intent.action.PROFILE_AVAILABLE";
-    public static final String ACTION_PROFILE_UNAVAILABLE =
-            "android.intent.action.PROFILE_UNAVAILABLE";
+    public static final String ACTION_PROFILE_UNAVAILABLE = "android.intent.action.PROFILE_UNAVAILABLE";
+
+    public static final MainThreadInitializedObject<UserCache> INSTANCE = new MainThreadInitializedObject<>(
+            UserCache::new);
 
     /** Returns an instance of UserCache bound to the context provided. */
     public static UserCache getInstance(Context context) {
@@ -81,8 +77,9 @@ public class UserCache {
     }
 
     private final List<BiConsumer<UserHandle, String>> mUserEventListeners = new ArrayList<>();
-    private final SimpleBroadcastReceiver mUserChangeReceiver;
-    private final ApiWrapper mApiWrapper;
+    private final SimpleBroadcastReceiver mUserChangeReceiver = new SimpleBroadcastReceiver(this::onUsersChanged);
+
+    private final Context mContext;
 
     @NonNull
     private Map<UserHandle, UserIconInfo> mUserToSerialMap;
@@ -90,23 +87,20 @@ public class UserCache {
     @NonNull
     private Map<UserHandle, List<String>> mUserToPreInstallAppMap;
 
-    @Inject
-    public UserCache(
-            @ApplicationContext Context context,
-            DaggerSingletonTracker tracker,
-            ApiWrapper apiWrapper
-    ) {
-        mApiWrapper = apiWrapper;
-        mUserChangeReceiver = new SimpleBroadcastReceiver(context,
-                MODEL_EXECUTOR, this::onUsersChanged);
+    private UserCache(Context context) {
+        mContext = context;
         mUserToSerialMap = Collections.emptyMap();
         MODEL_EXECUTOR.execute(this::initAsync);
-        tracker.addCloseable(() -> mUserChangeReceiver.unregisterReceiverSafely());
+    }
+
+    @Override
+    public void close() {
+        MODEL_EXECUTOR.execute(() -> mUserChangeReceiver.unregisterReceiverSafely(mContext));
     }
 
     @WorkerThread
     private void initAsync() {
-        mUserChangeReceiver.register(
+        mUserChangeReceiver.register(mContext,
                 Intent.ACTION_MANAGED_PROFILE_AVAILABLE,
                 Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE,
                 Intent.ACTION_MANAGED_PROFILE_REMOVED,
@@ -132,7 +126,7 @@ public class UserCache {
 
     @WorkerThread
     private void updateCache() {
-        mUserToSerialMap = mApiWrapper.queryAllUsers();
+        mUserToSerialMap = ApiWrapper.INSTANCE.get(mContext).queryAllUsers();
         mUserToPreInstallAppMap = fetchPreInstallApps();
     }
 
@@ -142,7 +136,7 @@ public class UserCache {
         mUserToSerialMap.forEach((userHandle, userIconInfo) -> {
             // Fetch only for private profile, as other profiles have no usages yet.
             List<String> preInstallApp = userIconInfo.isPrivate()
-                    ? mApiWrapper.getPreInstalledSystemPackages(userHandle)
+                    ? ApiWrapper.INSTANCE.get(mContext).getPreInstalledSystemPackages(userHandle)
                     : new ArrayList<>();
             userToPreInstallApp.put(userHandle, preInstallApp);
         });
@@ -191,11 +185,6 @@ public class UserCache {
         mUserToSerialMap.put(userHandle, info);
     }
 
-    @VisibleForTesting
-    public void putToPreInstallCache(UserHandle userHandle, List<String> preInstalledApps) {
-        mUserToPreInstallAppMap.put(userHandle, preInstalledApps);
-    }
-
     /**
      * @see UserManager#getUserProfiles()
      */
@@ -213,12 +202,13 @@ public class UserCache {
     }
 
     /**
-     * Get a non-themed {@link UserBadgeDrawable} based on the provided {@link UserHandle}.
+     * Get a non-themed {@link UserBadgeDrawable} based on the provided
+     * {@link UserHandle}.
      */
     @Nullable
     public static UserBadgeDrawable getBadgeDrawable(Context context, UserHandle userHandle) {
         return (UserBadgeDrawable) BitmapInfo.LOW_RES_INFO.withFlags(UserCache.getInstance(context)
-                        .getUserInfo(userHandle).applyBitmapInfoFlags(FlagOp.NO_OP))
-                .getBadgeDrawable(context, false /* isThemed */, null);
+                .getUserInfo(userHandle).applyBitmapInfoFlags(FlagOp.NO_OP))
+                .getBadgeDrawable(context, false /* isThemed */);
     }
 }

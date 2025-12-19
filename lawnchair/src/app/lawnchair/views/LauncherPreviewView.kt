@@ -8,7 +8,6 @@ import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.annotation.UiThread
 import androidx.annotation.WorkerThread
@@ -22,7 +21,6 @@ import com.android.launcher3.util.Executors.MAIN_EXECUTOR
 import com.android.launcher3.util.Executors.MODEL_EXECUTOR
 import com.android.launcher3.util.RunnableList
 import com.android.launcher3.util.Themes
-import com.android.launcher3.widget.LauncherWidgetHolder
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlin.math.min
 
@@ -78,15 +76,11 @@ class LauncherPreviewView(
 
     @WorkerThread
     private fun loadModelData() {
-        val widgetHostId = LauncherWidgetHolder.APPWIDGET_HOST_ID
-        LauncherAppState.getInstance(appContext).model.loadAsync { dataModel ->
+        val inflationContext = ContextThemeWrapper(appContext, Themes.getActivityThemeRes(context))
+        LauncherAppState.getInstance(inflationContext).model.loadAsync { dataModel ->
             if (dataModel != null) {
                 MAIN_EXECUTOR.execute {
-                    val display = appContext.getSystemService(WindowManager::class.java).defaultDisplay
-                    val themeContext = ContextThemeWrapper(context, Themes.getActivityThemeRes(context))
-
-                    val inflationContext = themeContext.createDisplayContext(display)
-                    renderView(inflationContext, dataModel, widgetHostId, null)
+                    renderView(inflationContext, dataModel, null)
                 }
             } else {
                 onReadyCallbacks.executeAllAndDestroy()
@@ -99,14 +93,13 @@ class LauncherPreviewView(
     private fun renderView(
         inflationContext: Context,
         dataModel: BgDataModel,
-        widgetHostId: Int,
         widgetProviderInfoMap: Map<ComponentKey, AppWidgetProviderInfo>?,
     ) {
         if (destroyed) {
             return
         }
 
-        val renderer = LauncherPreviewRenderer(inflationContext, idp, widgetHostId, null, null)
+        val renderer = LauncherPreviewRenderer(inflationContext, idp, null, null)
         if (dummySmartspace) {
             renderer.setWorkspaceSearchContainer(R.layout.smartspace_widget_placeholder)
         }

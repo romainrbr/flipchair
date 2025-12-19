@@ -22,6 +22,7 @@ import app.lawnchair.override.CustomizeAppDialog
 import app.lawnchair.preferences2.PreferenceManager2
 import app.lawnchair.views.ComposeBottomSheet
 import com.android.launcher3.AbstractFloatingView
+import com.android.launcher3.BaseDraggingActivity
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION
 import com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_TASK
 import com.android.launcher3.R
@@ -30,9 +31,8 @@ import com.android.launcher3.icons.BitmapInfo
 import com.android.launcher3.model.data.AppInfo as ModelAppInfo
 import com.android.launcher3.model.data.ItemInfo
 import com.android.launcher3.popup.SystemShortcut
-import com.android.launcher3.util.ApplicationInfoWrapper
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.views.ActivityContext
+import com.android.launcher3.util.PackageManagerHelper
 import com.patrykmichalik.opto.core.firstBlocking
 import java.net.URISyntaxException
 
@@ -57,15 +57,14 @@ class LawnchairShortcut {
         }
 
         val UNINSTALL =
-            SystemShortcut.Factory { activity: ActivityContext, itemInfo: ItemInfo, view: View ->
+            SystemShortcut.Factory { activity: BaseDraggingActivity, itemInfo: ItemInfo, view: View ->
                 if (itemInfo.targetComponent == null) {
                     return@Factory null
                 }
-                if (ApplicationInfoWrapper(
-                        activity.asContext(),
+                if (PackageManagerHelper.isSystemApp(
+                        activity,
                         itemInfo.targetComponent!!.packageName,
-                        itemInfo.user,
-                    ).isSystem()
+                    )
                 ) {
                     return@Factory null
                 }
@@ -76,14 +75,7 @@ class LawnchairShortcut {
             val targetCmp = itemInfo.targetComponent
             val packageName = targetCmp?.packageName ?: return@Factory null
 
-            if (ApplicationInfoWrapper(
-                    activity.asContext(),
-                    packageName,
-                    itemInfo.user,
-                ).isSuspended()
-            ) {
-                return@Factory null
-            }
+            if (PackageManagerHelper(activity).isAppSuspended(packageName, itemInfo.user)) return@Factory null
 
             PauseApps(activity, itemInfo, originalView)
         }
@@ -100,8 +92,7 @@ class LawnchairShortcut {
             val outObj = Array<Any?>(1) { null }
             var icon = Utilities.loadFullDrawableWithoutTheme(launcher, appInfo, 0, 0, outObj)
             if (mItemInfo.screenId != NO_ID && icon is BitmapInfo.Extender) {
-                // Lawnchair-TODO-BubbleTea: Fix getThemedDrawable
-                // icon = icon.getThemedDrawable(launcher)
+                icon = icon.getThemedDrawable(launcher)
             }
             val launcherActivityInfo = outObj[0] as LauncherActivityInfo?
             if (launcherActivityInfo != null) {
@@ -139,11 +130,15 @@ class LawnchairShortcut {
         @SuppressLint("NewApi")
         override fun onClick(view: View) {
             val context = view.context
-            val appLabel = ApplicationInfoWrapper(
-                context,
+            val appLabel = PackageManagerHelper(context).getApplicationInfo(
                 mItemInfo.targetComponent?.packageName ?: "",
                 mItemInfo.user,
-            ).toString()
+                0,
+            )?.let {
+                context.packageManager.getApplicationLabel(
+                    it,
+                )
+            }
             AlertDialog.Builder(context)
                 .setIcon(R.drawable.ic_hourglass_top)
                 .setTitle(context.getString(R.string.pause_apps_dialog_title, appLabel))
@@ -174,8 +169,8 @@ class LawnchairShortcut {
         }
     }
 
-    class UnInstall(private var target: ActivityContext?, private var itemInfo: ItemInfo?, originalView: View?) :
-        SystemShortcut<ActivityContext>(
+    class UnInstall(private var target: BaseDraggingActivity?, private var itemInfo: ItemInfo?, originalView: View?) :
+        SystemShortcut<BaseDraggingActivity>(
             R.drawable.ic_uninstall_no_shadow,
             R.string.uninstall_drop_target_label,
             target,

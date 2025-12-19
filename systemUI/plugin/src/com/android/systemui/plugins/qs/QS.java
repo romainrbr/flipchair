@@ -14,7 +14,6 @@
 
 package com.android.systemui.plugins.qs;
 
-import android.graphics.Rect;
 import android.view.View;
 
 import androidx.annotation.FloatRange;
@@ -36,7 +35,7 @@ public interface QS extends FragmentBase {
 
     String ACTION = "com.android.systemui.action.PLUGIN_QS";
 
-    int VERSION = 16;
+    int VERSION = 15;
 
     String TAG = "QS";
 
@@ -90,44 +89,7 @@ public interface QS extends FragmentBase {
      */
     int getHeightDiff();
 
-    /**
-     * Returns the header view that contains QQS. This might return null (or throw) if there's no
-     * actual header view.
-     */
     View getHeader();
-
-    /**
-     * Returns the top of the header view that contains QQS wrt to the container view
-     */
-    int getHeaderTop();
-
-    /**
-     * Returns the bottom of the header view that contains QQS wrt to the container view
-     */
-    int getHeaderBottom();
-
-    /**
-     * Returns the left bound of the header view that contains QQS wrt to the container view
-     */
-    int getHeaderLeft();
-
-    /**
-     * Fills outBounds with the bounds of the header view (container of QQS) on the screen
-     */
-    void getHeaderBoundsOnScreen(Rect outBounds);
-
-    /**
-     * Returns the height of the header view that contains QQS. It defaults to bottom - top.
-     */
-    default int getHeaderHeight() {
-        return getHeaderBottom() - getHeaderTop();
-    }
-
-    /**
-     * Returns whether the header view that contains QQS is shown on screen (similar semantics to
-     * View.isShown).
-     */
-    boolean isHeaderShown();
 
     default void setHasNotifications(boolean hasNotifications) {
     }

@@ -21,7 +21,6 @@ import static android.view.View.VISIBLE;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
-import android.annotation.Nullable;
 import android.content.res.Resources;
 import android.graphics.Outline;
 import android.graphics.Rect;
@@ -29,51 +28,47 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 
-import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.R;
 import com.android.launcher3.anim.RevealOutlineAnimation;
 import com.android.launcher3.anim.RoundedRectRevealOutlineProvider;
 import com.android.launcher3.taskbar.StashedHandleView;
 import com.android.launcher3.taskbar.TaskbarActivityContext;
-import com.android.launcher3.taskbar.bubbles.stashing.BubbleStashController;
+import com.android.launcher3.taskbar.TaskbarControllers;
 import com.android.launcher3.util.Executors;
 import com.android.launcher3.util.MultiPropertyFactory;
 import com.android.launcher3.util.MultiValueAlpha;
+import com.android.systemui.shared.navigationbar.RegionSamplingHelper;
+import com.android.wm.shell.common.bubbles.BubbleBarLocation;
 import com.android.wm.shell.shared.animation.PhysicsAnimator;
-import com.android.wm.shell.shared.bubbles.BubbleBarLocation;
-import com.android.wm.shell.shared.handles.RegionSamplingHelper;
 
 /**
- * Handles properties/data collection, then passes the results to our stashed handle View to render.
+ * Handles properties/data collection, then passes the results to our stashed
+ * handle View to render.
  */
 public class BubbleStashedHandleViewController {
 
     private final TaskbarActivityContext mActivity;
     private final StashedHandleView mStashedHandleView;
     private final MultiValueAlpha mStashedHandleAlpha;
-    private float mTranslationForSwipeY;
-    private float mTranslationForStashY;
 
     // Initialized in init.
     private BubbleBarViewController mBarViewController;
     private BubbleStashController mBubbleStashController;
     private RegionSamplingHelper mRegionSamplingHelper;
-    // Height of the area for the stash handle. Handle will be drawn in the center of this.
-    // This is also the area where touch is handled on the handle.
-    private int mStashedBubbleBarHeight;
+    private int mBarSize;
+    private int mStashedTaskbarHeight;
     private int mStashedHandleWidth;
     private int mStashedHandleHeight;
 
-    // The bounds of the stashed handle in settled state.
+    // The bounds we want to clip to in the settled state when showing the stashed
+    // handle.
     private final Rect mStashedHandleBounds = new Rect();
-    private float mStashedHandleRadius;
 
-    // When the reveal animation is cancelled, we can assume it's about to create a new animation,
+    // When the reveal animation is cancelled, we can assume it's about to create a
+    // new animation,
     // which should start off at the same point the cancelled one left off.
     private float mStartProgressForNextRevealAnim;
-    // Use a nullable boolean to handle initial case where the last animation direction is not known
-    @Nullable
-    private Boolean mWasLastRevealAnimReversed = null;
+    private boolean mWasLastRevealAnimReversed;
 
     // XXX: if there are more of these maybe do state flags instead
     private boolean mHiddenForSysui;
@@ -85,39 +80,32 @@ public class BubbleStashedHandleViewController {
         mActivity = activity;
         mStashedHandleView = stashedHandleView;
         mStashedHandleAlpha = new MultiValueAlpha(mStashedHandleView, 1);
-        mStashedHandleAlpha.setUpdateVisibility(true);
     }
 
-    /** Initialize controller. */
-    public void init(BubbleControllers bubbleControllers) {
+    public void init(TaskbarControllers controllers, BubbleControllers bubbleControllers) {
         mBarViewController = bubbleControllers.bubbleBarViewController;
         mBubbleStashController = bubbleControllers.bubbleStashController;
 
-        DeviceProfile deviceProfile = mActivity.getDeviceProfile();
         Resources resources = mActivity.getResources();
         mStashedHandleHeight = resources.getDimensionPixelSize(
                 R.dimen.bubblebar_stashed_handle_height);
         mStashedHandleWidth = resources.getDimensionPixelSize(
                 R.dimen.bubblebar_stashed_handle_width);
+        mBarSize = resources.getDimensionPixelSize(R.dimen.bubblebar_size);
 
-        int barSize = resources.getDimensionPixelSize(R.dimen.bubblebar_size);
-        // Use the max translation for bubble bar whether it is on the home screen or in app.
-        // Use values directly from device profile to avoid referencing other bubble controllers
-        // during init flow.
-        int maxTy = Math.max(deviceProfile.hotseatBarBottomSpacePx,
-                deviceProfile.taskbarBottomMargin);
-        // Adjust handle view size to accommodate the handle morphing into the bubble bar
-        mStashedHandleView.getLayoutParams().height = barSize + maxTy;
+        final int bottomMargin = resources.getDimensionPixelSize(
+                R.dimen.transient_taskbar_bottom_margin);
+        mStashedHandleView.getLayoutParams().height = mBarSize + bottomMargin;
 
         mStashedHandleAlpha.get(0).setValue(0);
 
-        mStashedBubbleBarHeight = resources.getDimensionPixelSize(
+        mStashedTaskbarHeight = resources.getDimensionPixelSize(
                 R.dimen.bubblebar_stashed_size);
         mStashedHandleView.setOutlineProvider(new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
-                mStashedHandleRadius = view.getHeight() / 2f;
-                outline.setRoundRect(mStashedHandleBounds, mStashedHandleRadius);
+                float stashedHandleRadius = view.getHeight() / 2f;
+                outline.setRoundRect(mStashedHandleBounds, stashedHandleRadius);
             }
         });
 
@@ -132,10 +120,10 @@ public class BubbleStashedHandleViewController {
                     public Rect getSampledRegion(View sampledView) {
                         return mStashedHandleView.getSampledRegion();
                     }
-                }, Executors.MAIN_EXECUTOR, Executors.UI_HELPER_EXECUTOR);
+                }, Executors.UI_HELPER_EXECUTOR);
 
-        mStashedHandleView.addOnLayoutChangeListener((view, i, i1, i2, i3, i4, i5, i6, i7) ->
-                updateBounds(mBarViewController.getBubbleBarLocation()));
+        mStashedHandleView.addOnLayoutChangeListener(
+                (view, i, i1, i2, i3, i4, i5, i6, i7) -> updateBounds(mBarViewController.getBubbleBarLocation()));
     }
 
     /** Returns the [PhysicsAnimator] for the stashed handle view. */
@@ -144,39 +132,35 @@ public class BubbleStashedHandleViewController {
     }
 
     private void updateBounds(BubbleBarLocation bubbleBarLocation) {
-        // As more bubbles get added, the icon bounds become larger. To ensure a consistent
+        // As more bubbles get added, the icon bounds become larger. To ensure a
+        // consistent
         // handle bar position, we pin it to the edge of the screen.
-        final int stashedCenterY = mStashedHandleView.getHeight() - mStashedBubbleBarHeight / 2;
-        final int stashedCenterX;
+        final int stashedCenterY = mStashedHandleView.getHeight() - mStashedTaskbarHeight / 2;
         if (bubbleBarLocation.isOnLeft(mStashedHandleView.isLayoutRtl())) {
             final int left = mBarViewController.getHorizontalMargin();
-            stashedCenterX = left + mStashedHandleWidth / 2;
+            mStashedHandleBounds.set(
+                    left,
+                    stashedCenterY - mStashedHandleHeight / 2,
+                    left + mStashedHandleWidth,
+                    stashedCenterY + mStashedHandleHeight / 2);
+            mStashedHandleView.setPivotX(0);
         } else {
-            final int right =
-                    mStashedHandleView.getRight() - mBarViewController.getHorizontalMargin();
-            stashedCenterX = right - mStashedHandleWidth / 2;
+            final int right = mActivity.getDeviceProfile().widthPx - mBarViewController.getHorizontalMargin();
+            mStashedHandleBounds.set(
+                    right - mStashedHandleWidth,
+                    stashedCenterY - mStashedHandleHeight / 2,
+                    right,
+                    stashedCenterY + mStashedHandleHeight / 2);
+            mStashedHandleView.setPivotX(mStashedHandleView.getWidth());
         }
-        mStashedHandleBounds.set(
-                stashedCenterX - mStashedHandleWidth / 2,
-                stashedCenterY - mStashedHandleHeight / 2,
-                stashedCenterX + mStashedHandleWidth / 2,
-                stashedCenterY + mStashedHandleHeight / 2
-        );
+
         mStashedHandleView.updateSampledRegion(mStashedHandleBounds);
-        mStashedHandleView.setPivotX(stashedCenterX);
-        mStashedHandleView.setPivotY(stashedCenterY);
+        mStashedHandleView.setPivotY(mStashedHandleView.getHeight() - mStashedTaskbarHeight / 2f);
     }
 
     public void onDestroy() {
         mRegionSamplingHelper.stopAndDestroy();
         mRegionSamplingHelper = null;
-    }
-
-    /**
-     * Returns the width of the stashed handle.
-     */
-    public int getStashedWidth() {
-        return mStashedHandleWidth;
     }
 
     /**
@@ -187,14 +171,16 @@ public class BubbleStashedHandleViewController {
     }
 
     /**
-     * Returns bounds of the stashed handle view
+     * Returns the height when the bubble bar is unstashed (so the height of the
+     * bubble bar).
      */
-    public void getBounds(Rect bounds) {
-        bounds.set(mStashedHandleBounds);
+    public int getUnstashedHeight() {
+        return mBarSize;
     }
 
     /**
-     * Called when system ui state changes. Bubbles don't show when the device is locked.
+     * Called when system ui state changes. Bubbles don't show when the device is
+     * locked.
      */
     public void setHiddenForSysui(boolean hidden) {
         if (mHiddenForSysui != hidden) {
@@ -204,7 +190,8 @@ public class BubbleStashedHandleViewController {
     }
 
     /**
-     * Called when the handle should be hidden (or shown) because there are no bubbles
+     * Called when the handle should be hidden (or shown) because there are no
+     * bubbles
      * (or 1+ bubbles).
      */
     public void setHiddenForBubbles(boolean hidden) {
@@ -215,7 +202,8 @@ public class BubbleStashedHandleViewController {
     }
 
     /**
-     * Called when the home button is enabled / disabled. Bubbles don't show if home is disabled.
+     * Called when the home button is enabled / disabled. Bubbles don't show if home
+     * is disabled.
      */
     // TODO: is this needed for bubbles?
     public void setIsHomeButtonDisabled(boolean homeDisabled) {
@@ -235,7 +223,8 @@ public class BubbleStashedHandleViewController {
     }
 
     /**
-     * Called when bubble bar is stash state changes so that updates to the stashed handle color
+     * Called when bubble bar is stash state changes so that updates to the stashed
+     * handle color
      * can be started or stopped.
      */
     public void onIsStashedChanged() {
@@ -260,56 +249,37 @@ public class BubbleStashedHandleViewController {
      * Sets the translation of the stashed handle during the swipe up gesture.
      */
     public void setTranslationYForSwipe(float transY) {
-        mTranslationForSwipeY = transY;
-        updateTranslationY();
+        mStashedHandleView.setTranslationY(transY);
     }
 
     /**
-     * Sets the translation of the stashed handle during the spring on stash animation.
-     */
-    public void setTranslationYForStash(float transY) {
-        mTranslationForStashY = transY;
-        updateTranslationY();
-    }
-
-    /** Sets translation X for stash handle. */
-    public void setTranslationX(float translationX) {
-        mStashedHandleView.setTranslationX(translationX);
-    }
-
-    private void updateTranslationY() {
-        mStashedHandleView.setTranslationY(mTranslationForSwipeY + mTranslationForStashY);
-    }
-
-    /** Returns the translation of the stashed handle. */
-    public float getTranslationY() {
-        return mStashedHandleView.getTranslationY();
-    }
-
-    /**
-     * Used by {@link BubbleStashController} to animate the handle when stashing or un stashing.
+     * Used by {@link BubbleStashController} to animate the handle when stashing or
+     * un stashing.
      */
     public MultiPropertyFactory<View> getStashedHandleAlpha() {
         return mStashedHandleAlpha;
     }
 
     /**
-     * Creates and returns an Animator that updates the stashed handle  shape and size.
-     * When stashed, the shape is a thin rounded pill. When unstashed, the shape morphs into
+     * Creates and returns an Animator that updates the stashed handle shape and
+     * size.
+     * When stashed, the shape is a thin rounded pill. When unstashed, the shape
+     * morphs into
      * the size of where the bubble bar icons will be.
      */
     public Animator createRevealAnimToIsStashed(boolean isStashed) {
-        Rect bubbleBarBounds = getLocalBubbleBarBounds();
+        Rect bubbleBarBounds = new Rect(mBarViewController.getBubbleBarBounds());
 
-        float bubbleBarRadius = bubbleBarBounds.height() / 2f;
+        // Account for the full visual height of the bubble bar
+        int heightDiff = (mBarSize - bubbleBarBounds.height()) / 2;
+        bubbleBarBounds.top -= heightDiff;
+        bubbleBarBounds.bottom += heightDiff;
+        float stashedHandleRadius = mStashedHandleView.getHeight() / 2f;
         final RevealOutlineAnimation handleRevealProvider = new RoundedRectRevealOutlineProvider(
-                bubbleBarRadius, mStashedHandleRadius, bubbleBarBounds, mStashedHandleBounds);
+                stashedHandleRadius, stashedHandleRadius, bubbleBarBounds, mStashedHandleBounds);
 
         boolean isReversed = !isStashed;
-        // We are only changing direction when mWasLastRevealAnimReversed is set at least once
-        boolean changingDirection =
-                mWasLastRevealAnimReversed != null && mWasLastRevealAnimReversed != isReversed;
-
+        boolean changingDirection = mWasLastRevealAnimReversed != isReversed;
         mWasLastRevealAnimReversed = isReversed;
         if (changingDirection) {
             mStartProgressForNextRevealAnim = 1f - mStartProgressForNextRevealAnim;
@@ -327,32 +297,25 @@ public class BubbleStashedHandleViewController {
     }
 
     /**
-     * Get bounds for the bubble bar in the space of the handle view
+     * Checks that the stash handle is visible and that the motion event is within
+     * bounds.
      */
-    private Rect getLocalBubbleBarBounds() {
-        // Position the bubble bar bounds to the space of handle view
-        Rect bubbleBarBounds = new Rect(mBarViewController.getBubbleBarBounds());
-        // Start by moving bubble bar bounds to the bottom of handle view
-        int height = bubbleBarBounds.height();
-        bubbleBarBounds.bottom = mStashedHandleView.getHeight();
-        bubbleBarBounds.top = bubbleBarBounds.bottom - height;
-        // Then apply translation that is applied to the bubble bar
-        bubbleBarBounds.offset(0, (int) mBubbleStashController.getBubbleBarTranslationY());
-        return bubbleBarBounds;
-    }
-
-    /** Checks that the stash handle is visible and that the motion event is within bounds. */
     public boolean isEventOverHandle(MotionEvent ev) {
         if (mStashedHandleView.getVisibility() != VISIBLE) {
             return false;
         }
 
-        // the bounds of the handle only include the visible part, so we check that the Y coordinate
-        // is anywhere within the stashed height of bubble bar (same as taskbar stashed height).
-        final int top = mActivity.getDeviceProfile().heightPx - mStashedBubbleBarHeight;
-        final float x = ev.getRawX();
-        return ev.getRawY() >= top && x >= mStashedHandleBounds.left
-                && x <= mStashedHandleBounds.right;
+        // the bounds of the handle only include the visible part, so we check that the
+        // Y coordinate
+        // is anywhere within the stashed taskbar height.
+        int top = mActivity.getDeviceProfile().heightPx - mStashedTaskbarHeight;
+
+        return (int) ev.getRawY() >= top && containsX((int) ev.getRawX());
+    }
+
+    /** Checks if the given x coordinate is within the stashed handle bounds. */
+    public boolean containsX(int x) {
+        return x >= mStashedHandleBounds.left && x <= mStashedHandleBounds.right;
     }
 
     /** Set a bubble bar location */

@@ -16,14 +16,8 @@
 
 package com.android.launcher3.model;
 
-import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_DESKTOP;
-import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_HOTSEAT;
-import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
-import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_APP_PAIR;
-import static com.android.launcher3.LauncherSettings.Favorites.ITEM_TYPE_DEEP_SHORTCUT;
+import static com.android.launcher3.LauncherSettings.Favorites.TABLE_NAME;
 import static com.android.launcher3.Utilities.SHOULD_SHOW_FIRST_PAGE_WIDGET;
-import static com.android.launcher3.icons.cache.CacheLookupFlag.DEFAULT_LOOKUP_FLAG;
-import static com.android.launcher3.model.data.ItemInfoWithIcon.FLAG_ARCHIVED;
 
 import android.content.ComponentName;
 import android.content.ContentValues;
@@ -43,22 +37,17 @@ import android.util.LongSparseArray;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.android.launcher3.Flags;
 import com.android.launcher3.InvariantDeviceProfile;
-import com.android.launcher3.LauncherModel;
-import com.android.launcher3.LauncherPrefs;
+import com.android.launcher3.LauncherAppState;
 import com.android.launcher3.LauncherSettings.Favorites;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger;
 import com.android.launcher3.backuprestore.LauncherRestoreEventLogger.RestoreError;
 import com.android.launcher3.config.FeatureFlags;
-import com.android.launcher3.dagger.ApplicationContext;
 import com.android.launcher3.icons.IconCache;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.model.data.AppInfo;
-import com.android.launcher3.model.data.CollectionInfo;
-import com.android.launcher3.model.data.FolderInfo;
 import com.android.launcher3.model.data.IconRequestInfo;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.WorkspaceItemInfo;
@@ -69,17 +58,13 @@ import com.android.launcher3.util.ContentWriter;
 import com.android.launcher3.util.GridOccupancy;
 import com.android.launcher3.util.IntArray;
 import com.android.launcher3.util.IntSparseArrayMap;
+import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import com.android.launcher3.util.PackageManagerHelper;
 import com.android.launcher3.util.UserIconInfo;
-
-import dagger.assisted.Assisted;
-import dagger.assisted.AssistedFactory;
-import dagger.assisted.AssistedInject;
 
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 
-import com.patrykmichalik.opto.core.PreferenceExtensionsKt;
 import app.lawnchair.LawnchairApp;
 import app.lawnchair.preferences2.PreferenceManager2;
 
@@ -92,8 +77,8 @@ public class LoaderCursor extends CursorWrapper {
 
     private final LongSparseArray<UserHandle> allUsers;
 
+    private final LauncherAppState mApp;
     private final Context mContext;
-    private final LauncherModel mModel;
     private final PackageManagerHelper mPmHelper;
     private final IconCache mIconCache;
     private final InvariantDeviceProfile mIDP;
@@ -102,11 +87,6 @@ public class LoaderCursor extends CursorWrapper {
     private final IntArray mItemsToRemove = new IntArray();
     private final IntArray mRestoredRows = new IntArray();
     private final IntSparseArrayMap<GridOccupancy> mOccupied = new IntSparseArrayMap<>();
-
-    // CollectionInfo objects, which have not yet been loaded from the DB, but are expected to
-    // found eventually as the loading progresses
-    private final IntSparseArrayMap<CollectionInfo> mPendingCollectionInfo =
-            new IntSparseArrayMap<>();
 
     private final int mIconIndex;
     public final int mTitleIndex;
@@ -143,24 +123,17 @@ public class LoaderCursor extends CursorWrapper {
     public int restoreFlag;
     private PreferenceManager2 preferenceManager2;
 
-    @AssistedInject
-    public LoaderCursor(
-            @Assisted Cursor cursor,
-            @Assisted UserManagerState userManagerState,
-            @Assisted @Nullable LauncherRestoreEventLogger restoreEventLogger,
-            @ApplicationContext Context context,
-            IconCache iconCache,
-            InvariantDeviceProfile idp,
-            LauncherModel model,
-            PackageManagerHelper pmHelper) {
+    public LoaderCursor(Cursor cursor, LauncherAppState app, UserManagerState userManagerState,
+            PackageManagerHelper pmHelper,
+            @Nullable LauncherRestoreEventLogger restoreEventLogger) {
         super(cursor);
-        mContext = context;
-        mIconCache = iconCache;
-        mIDP = idp;
-        mModel = model;
-        mPmHelper = pmHelper;
 
+        mApp = app;
         allUsers = userManagerState.allUsers;
+        mContext = app.getContext();
+        mIconCache = app.getIconCache();
+        mPmHelper = pmHelper;
+        mIDP = app.getInvariantDeviceProfile();
         mRestoreEventLogger = restoreEventLogger;
 
         preferenceManager2 = PreferenceManager2.getInstance(mContext);
@@ -209,8 +182,7 @@ public class LoaderCursor extends CursorWrapper {
     public Intent parseIntent() {
         String intentDescription = getString(mIntentIndex);
         try {
-            return TextUtils.isEmpty(intentDescription) ?
-                    null : Intent.parseUri(intentDescription, 0);
+            return TextUtils.isEmpty(intentDescription) ? null : Intent.parseUri(intentDescription, 0);
         } catch (URISyntaxException e) {
             Log.e(TAG, "Error parsing Intent");
             return null;
@@ -226,7 +198,7 @@ public class LoaderCursor extends CursorWrapper {
         info.itemType = itemType;
         info.title = getTitle();
         // the fallback icon
-        if (!loadIconFromDb(info)) {
+        if (!loadIcon(info)) {
             info.bitmap = mIconCache.getDefaultIcon(info.user);
         }
 
@@ -236,17 +208,19 @@ public class LoaderCursor extends CursorWrapper {
     }
 
     /**
-     * Loads the icon from the cursor and updates the {@param info} if the icon is an app resource.
+     * Loads the icon from the cursor and updates the {@param info} if the icon is
+     * an app resource.
      */
-    protected boolean loadIconFromDb(WorkspaceItemInfo info) {
-        return createIconRequestInfo(info, false).loadIconFromDbBlob(mContext);
+    protected boolean loadIcon(WorkspaceItemInfo info) {
+        return createIconRequestInfo(info, false).loadWorkspaceIcon(mContext);
     }
 
     public IconRequestInfo<WorkspaceItemInfo> createIconRequestInfo(
             WorkspaceItemInfo wai, boolean useLowResIcon) {
         byte[] iconBlob = itemType == Favorites.ITEM_TYPE_DEEP_SHORTCUT || restoreFlag != 0
-                || (wai.isInactiveArchive() && Flags.restoreArchivedAppIconsFromDb())
-                ? getIconBlob() : null;
+                ? getIconBlob()
+                : null;
+
         return new IconRequestInfo<>(wai, mActivityInfo, iconBlob, useLowResIcon);
     }
 
@@ -328,21 +302,21 @@ public class LoaderCursor extends CursorWrapper {
     }
 
     /**
-     * Make an WorkspaceItemInfo object for a restored application or shortcut item that points
+     * Make an WorkspaceItemInfo object for a restored application or shortcut item
+     * that points
      * to a package that is not yet installed on the system.
      */
-    public WorkspaceItemInfo getRestoredItemInfo(Intent intent, boolean isArchived) {
+    public WorkspaceItemInfo getRestoredItemInfo(Intent intent) {
         final WorkspaceItemInfo info = new WorkspaceItemInfo();
         info.user = user;
         info.intent = intent;
 
         // the fallback icon
-        if (!loadIconFromDb(info)) {
-            FileLog.d(TAG, "loadIconFromDb failed, getting from cache - intent=" + intent);
-            mIconCache.getTitleAndIcon(info, DEFAULT_LOOKUP_FLAG);
+        if (!loadIcon(info)) {
+            mIconCache.getTitleAndIcon(info, false /* useLowResIcon */);
         }
 
-        if (hasRestoreFlag(WorkspaceItemInfo.FLAG_RESTORED_ICON) || isArchived) {
+        if (hasRestoreFlag(WorkspaceItemInfo.FLAG_RESTORED_ICON)) {
             String title = getTitle();
             if (!TextUtils.isEmpty(title)) {
                 info.title = Utilities.trim(title);
@@ -358,7 +332,6 @@ public class LoaderCursor extends CursorWrapper {
         info.contentDescription = mPM.getUserBadgedLabel(info.title, info.user);
         info.itemType = itemType;
         info.status = restoreFlag;
-        if (isArchived) info.runtimeStatusFlags |= FLAG_ARCHIVED;
         return info;
     }
 
@@ -402,11 +375,19 @@ public class LoaderCursor extends CursorWrapper {
         info.intent = newIntent;
         UserCache userCache = UserCache.getInstance(mContext);
         UserIconInfo userIconInfo = userCache.getUserInfo(user);
+
+        if (loadIcon) {
+            mIconCache.getTitleAndIcon(info, mActivityInfo, useLowResIcon);
+            if (mIconCache.isDefaultIcon(info.bitmap, user)) {
+                loadIcon(info);
+            }
+        }
+
         if (mActivityInfo != null) {
             AppInfo.updateRuntimeFlagsForActivityTarget(info, mActivityInfo, userIconInfo,
                     ApiWrapper.INSTANCE.get(mContext), mPmHelper);
         }
-        loadWorkspaceTitleAndIcon(useLowResIcon, loadIcon, info);
+
         // from the db
         if (TextUtils.isEmpty(info.title)) {
             if (loadIcon) {
@@ -425,40 +406,13 @@ public class LoaderCursor extends CursorWrapper {
         return info;
     }
 
-    @VisibleForTesting
-    void loadWorkspaceTitleAndIcon(
-            boolean useLowResIcon,
-            boolean loadIconFromCache,
-            WorkspaceItemInfo info
-    ) {
-        boolean isPreArchived = Flags.enableSupportForArchiving()
-                && Flags.restoreArchivedAppIconsFromDb()
-                && info.isInactiveArchive()
-                && LauncherPrefs.get(mContext).get(LauncherPrefs.IS_FIRST_LOAD_AFTER_RESTORE);
-        boolean preArchivedIconNotFound = isPreArchived && !loadIconFromDb(info);
-        if (preArchivedIconNotFound) {
-            Log.d(TAG, "loadIconFromDb failed for pre-archived icon, loading from cache."
-                    + " Component=" + info.getTargetComponent());
-            mIconCache.getTitleAndIcon(info, mActivityInfo,
-                    DEFAULT_LOOKUP_FLAG.withUseLowRes(useLowResIcon));
-        } else if (loadIconFromCache && !info.isInactiveArchive()) {
-            mIconCache.getTitleAndIcon(info, mActivityInfo,
-                    DEFAULT_LOOKUP_FLAG.withUseLowRes(useLowResIcon));
-            if (mIconCache.isDefaultIcon(info.bitmap, user)) {
-                Log.d(TAG, "Default Icon found in cache, trying DB instead. "
-                        + " Component=" + info.getTargetComponent());
-                loadIconFromDb(info);
-            }
-        }
-    }
-
     /**
      * Returns a {@link ContentWriter} which can be used to update the current item.
      */
     public ContentWriter updater() {
-       return new ContentWriter(mContext, new ContentWriter.CommitParams(
-               mModel.getModelDbController(),
-               BaseColumns._ID + "= ?", new String[]{Integer.toString(id)}));
+        return new ContentWriter(mContext, new ContentWriter.CommitParams(
+                mApp.getModel().getModelDbController(),
+                BaseColumns._ID + "= ?", new String[] { Integer.toString(id) }));
     }
 
     /**
@@ -474,12 +428,13 @@ public class LoaderCursor extends CursorWrapper {
 
     /**
      * Removes any items marked for removal.
+     * 
      * @return true is any item was removed.
      */
     public boolean commitDeleted() {
         if (mItemsToRemove.size() > 0) {
             // Remove dead items
-            mModel.getModelDbController().delete(
+            mApp.getModel().getModelDbController().delete(TABLE_NAME,
                     Utilities.createDbSelectionQuery(Favorites._ID, mItemsToRemove), null);
             return true;
         }
@@ -505,7 +460,7 @@ public class LoaderCursor extends CursorWrapper {
             // Update restored items that no longer require special handling
             ContentValues values = new ContentValues();
             values.put(Favorites.RESTORED, 0);
-            mModel.getModelDbController().update(values,
+            mApp.getModel().getModelDbController().update(TABLE_NAME, values,
                     Utilities.createDbSelectionQuery(Favorites._ID, mRestoredRows), null);
         }
         if (mRestoreEventLogger != null) {
@@ -536,30 +491,13 @@ public class LoaderCursor extends CursorWrapper {
         info.cellY = getInt(mCellYIndex);
     }
 
-    /**
-     * Return an existing FolderInfo object if we have encountered this ID previously,
-     * or make a new one.
-     */
-    public CollectionInfo findOrMakeFolder(int id, BgDataModel dataModel) {
-        // See if a placeholder was created for us already
-        ItemInfo info = dataModel.itemsIdMap.get(id);
-        if (info instanceof CollectionInfo c) return c;
-
-        CollectionInfo pending = mPendingCollectionInfo.get(id);
-        if (pending != null) return pending;
-
-        // No placeholder -- create a new blank folder instance. At this point, we don't know
-        // if the desired container is supposed to be a folder or an app pair. In the case that
-        // it is an app pair, the blank folder will be replaced by a blank app pair when the app
-        // pair is getting processed, in WorkspaceItemProcessor.processFolderOrAppPair().
-        pending = new FolderInfo();
-        pending.id = id;
-        mPendingCollectionInfo.put(id, pending);
-        return pending;
+    public void checkAndAddItem(ItemInfo info, BgDataModel dataModel) {
+        checkAndAddItem(info, dataModel, null);
     }
 
     /**
-     * Adds the {@param info} to {@param dataModel} if it does not overlap with any other item,
+     * Adds the {@param info} to {@param dataModel} if it does not overlap with any
+     * other item,
      * otherwise marks it for deletion.
      */
     public void checkAndAddItem(
@@ -570,37 +508,23 @@ public class LoaderCursor extends CursorWrapper {
             ShortcutKey.fromItemInfo(info);
         }
         if (checkItemPlacement(info, dataModel.isFirstPagePinnedItemEnabled)) {
-            if (logger != null) {
-                logger.addLog(
-                        Log.DEBUG,
-                        TAG,
-                        String.format("Adding item to ID map: %s", info),
-                        /* stackTrace= */ null);
-            }
-            dataModel.addItem(mContext, info, false);
-            if ((info.itemType == ITEM_TYPE_APP_PAIR
-                    || info.itemType == ITEM_TYPE_DEEP_SHORTCUT
-                    || info.itemType == ITEM_TYPE_APPLICATION)
-                    && info.container != CONTAINER_DESKTOP
-                    && info.container != CONTAINER_HOTSEAT) {
-                findOrMakeFolder(info.container, dataModel).add(info);
-            }
+            dataModel.addItem(mContext, info, false, logger);
             if (mRestoreEventLogger != null) {
                 mRestoreEventLogger.logSingleFavoritesItemRestored(itemType);
             }
         } else {
-            markDeleted("Item position overlap", RestoreError.OVERLAPPING_ITEM);
+            markDeleted("Item position overlap", RestoreError.INVALID_LOCATION);
         }
     }
 
     /**
-     * check & update map of what's occupied; used to discard overlapping/invalid items
+     * check & update map of what's occupied; used to discard overlapping/invalid
+     * items
      */
     protected boolean checkItemPlacement(ItemInfo item, boolean isFirstPagePinnedItemEnabled) {
         int containerIndex = item.screenId;
         if (item.container == Favorites.CONTAINER_HOTSEAT) {
-            final GridOccupancy hotseatOccupancy =
-                    mOccupied.get(Favorites.CONTAINER_HOTSEAT);
+            final GridOccupancy hotseatOccupancy = mOccupied.get(Favorites.CONTAINER_HOTSEAT);
 
             if (item.screenId >= mIDP.numDatabaseHotseatIcons) {
                 Log.e(TAG, "Error loading shortcut " + item
@@ -644,8 +568,9 @@ public class LoaderCursor extends CursorWrapper {
 
         if (!mOccupied.containsKey(item.screenId)) {
             GridOccupancy screen = new GridOccupancy(countX + 1, countY + 1);
-            if (item.screenId == Workspace.FIRST_SCREEN_ID && PreferenceExtensionsKt.firstBlocking(preferenceManager2.getEnableSmartspace())) {
-                // Mark the first X columns (X is width of the search container) in the first row as
+            if (item.screenId == Workspace.FIRST_SCREEN_ID && FeatureFlags.topQsbOnFirstScreenEnabled(mContext)) {
+                // Mark the first X columns (X is width of the search container) in the first
+                // row as
                 // occupied (if the feature is enabled) in order to account for the search
                 // container.
                 int spanX = mIDP.numSearchContainerColumns;
@@ -667,13 +592,5 @@ public class LoaderCursor extends CursorWrapper {
                     + ") already occupied");
             return PreferenceExtensionsKt.firstBlocking(preferenceManager2.getAllowWidgetOverlap());
         }
-    }
-
-    @AssistedFactory
-    public interface LoaderCursorFactory {
-
-        LoaderCursor createLoaderCursor(Cursor cursor,
-                UserManagerState userManagerState,
-                @Nullable LauncherRestoreEventLogger restoreEventLogger);
     }
 }

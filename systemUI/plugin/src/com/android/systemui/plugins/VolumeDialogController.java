@@ -14,14 +14,13 @@
 
 package com.android.systemui.plugins;
 
+import android.annotation.IntegerRes;
 import android.content.ComponentName;
 import android.media.AudioManager;
 import android.media.AudioSystem;
 import android.os.Handler;
 import android.os.VibrationEffect;
 import android.util.SparseArray;
-
-import androidx.annotation.StringRes;
 
 import com.android.systemui.plugins.VolumeDialogController.Callbacks;
 import com.android.systemui.plugins.VolumeDialogController.State;
@@ -91,7 +90,7 @@ public interface VolumeDialogController {
         public int levelMax;
         public boolean muted;
         public boolean muteSupported;
-        public @StringRes int name;
+        public @IntegerRes int name;
         public String remoteLabel;
         public boolean routedToBluetooth;
 

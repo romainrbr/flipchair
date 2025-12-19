@@ -168,15 +168,15 @@ public class AddItemWidgetsBottomSheet extends AbstractSlideInView<AddItemActivi
                 windowInsets.getSystemWindowInsetBottom());
         }
         int contentHorizontalMarginInPx = getResources().getDimensionPixelSize(
-            R.dimen.widget_list_horizontal_margin);
+                R.dimen.widget_list_horizontal_margin);
         if (contentHorizontalMarginInPx != mContentHorizontalMarginInPx) {
             setContentHorizontalMargin(findViewById(R.id.widget_appName),
-                contentHorizontalMarginInPx);
+                    contentHorizontalMarginInPx);
             setContentHorizontalMargin(findViewById(R.id.widget_drag_instruction),
-                contentHorizontalMarginInPx);
+                    contentHorizontalMarginInPx);
             setContentHorizontalMargin(findViewById(R.id.widget_cell), contentHorizontalMarginInPx);
             setContentHorizontalMargin(findViewById(R.id.actions_container),
-                contentHorizontalMarginInPx);
+                    contentHorizontalMarginInPx);
             mContentHorizontalMarginInPx = contentHorizontalMarginInPx;
         }
         return windowInsets;

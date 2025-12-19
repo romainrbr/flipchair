@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 
 import com.android.launcher3.ExtendedEditText;
 import com.android.launcher3.R;
+import com.android.launcher3.popup.PopupDataProvider;
 
 import app.lawnchair.font.FontManager;
 import app.lawnchair.theme.drawable.DrawableTokens;
@@ -53,8 +54,7 @@ public class LauncherWidgetsSearchBar extends LinearLayout implements WidgetsSea
     }
 
     @Override
-    public void initialize(WidgetsSearchDataProvider dataProvider,
-            SearchModeListener searchModeListener) {
+    public void initialize(PopupDataProvider dataProvider, SearchModeListener searchModeListener) {
         mController = new WidgetsSearchBarController(
                 new SimpleWidgetsSearchAlgorithm(dataProvider),
                 mEditText, mCancelButton, searchModeListener);

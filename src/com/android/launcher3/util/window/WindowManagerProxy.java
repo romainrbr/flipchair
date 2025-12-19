@@ -27,10 +27,12 @@ import static com.android.launcher3.testing.shared.ResourceUtils.NAV_BAR_INTERAC
 import static com.android.launcher3.testing.shared.ResourceUtils.STATUS_BAR_HEIGHT;
 import static com.android.launcher3.testing.shared.ResourceUtils.STATUS_BAR_HEIGHT_LANDSCAPE;
 import static com.android.launcher3.testing.shared.ResourceUtils.STATUS_BAR_HEIGHT_PORTRAIT;
+import static com.android.launcher3.util.MainThreadInitializedObject.forOverride;
 import static com.android.launcher3.util.RotationUtils.deltaRotation;
 import static com.android.launcher3.util.RotationUtils.rotateRect;
 import static com.android.launcher3.util.RotationUtils.rotateSize;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -38,6 +40,7 @@ import android.graphics.Insets;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.display.DisplayManager;
+import android.os.Build;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.Display;
@@ -52,33 +55,37 @@ import androidx.annotation.VisibleForTesting;
 
 import com.android.launcher3.R;
 import com.android.launcher3.Utilities;
-import com.android.launcher3.dagger.LauncherAppSingleton;
-import com.android.launcher3.dagger.LauncherBaseAppComponent;
 import com.android.launcher3.testing.shared.ResourceUtils;
-import com.android.launcher3.util.DaggerSingletonObject;
+import com.android.launcher3.util.MainThreadInitializedObject;
 import com.android.launcher3.util.NavigationMode;
+import com.android.launcher3.util.ResourceBasedOverride;
+import com.android.launcher3.util.SafeCloseable;
 import com.android.launcher3.util.WindowBounds;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
-
 /**
  * Utility class for mocking some window manager behaviours
  */
-@LauncherAppSingleton
-public class WindowManagerProxy {
+public class WindowManagerProxy implements ResourceBasedOverride, SafeCloseable {
 
     private static final String TAG = "WindowManagerProxy";
     public static final int MIN_TABLET_WIDTH = 600;
 
-    public static final DaggerSingletonObject<WindowManagerProxy> INSTANCE =
-            new DaggerSingletonObject<>(LauncherBaseAppComponent::getWmProxy);
+    public static final MainThreadInitializedObject<WindowManagerProxy> INSTANCE = forOverride(WindowManagerProxy.class,
+            R.string.window_manager_proxy_class);
 
     protected final boolean mTaskbarDrawnInProcess;
 
-    @Inject
+    /**
+     * Creates a new instance of proxy, applying any overrides
+     */
+    public static WindowManagerProxy newInstance(Context context) {
+        return Overrides.getObject(WindowManagerProxy.class, context,
+                R.string.window_manager_proxy_class);
+    }
+
     public WindowManagerProxy() {
         this(false);
     }
@@ -95,7 +102,8 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Returns a map of normalized info of internal displays to estimated window bounds
+     * Returns a map of normalized info of internal displays to estimated window
+     * bounds
      * for that display
      */
     public ArrayMap<CachedDisplayInfo, List<WindowBounds>> estimateInternalDisplayBounds(
@@ -110,34 +118,13 @@ public class WindowManagerProxy {
     /**
      * Returns if we are in desktop mode or not.
      */
-    public boolean isInDesktopMode(int displayId) {
+    public boolean isInDesktopMode() {
         return false;
     }
 
     /**
-     * Returns if the pinned taskbar should be shown when home is visible.
-     */
-    public boolean showLockedTaskbarOnHome(Context displayInfoContext) {
-        return false;
-    }
-
-    /**
-     * Returns whether the display is a freeform display for which taskbar should be pinned
-     * and showing desktop tasks.
-     */
-    public boolean showDesktopTaskbarForFreeformDisplay(Context displayInfoContext) {
-        return false;
-    }
-
-    /**
-     * Returns if the home is visible.
-     */
-    public boolean isHomeVisible(Context context) {
-        return false;
-    }
-
-    /**
-     * Returns the real bounds for the provided display after applying any insets normalization
+     * Returns the real bounds for the provided display after applying any insets
+     * normalization
      */
     public WindowBounds getRealBounds(Context displayInfoContext, CachedDisplayInfo info) {
         WindowMetrics windowMetrics = displayInfoContext.getSystemService(WindowManager.class)
@@ -148,7 +135,8 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Returns an updated insets, accounting for various Launcher UI specific overrides like taskbar
+     * Returns an updated insets, accounting for various Launcher UI specific
+     * overrides like taskbar
      */
     public WindowInsets normalizeWindowInsets(Context context, WindowInsets oldInsets,
                                               Rect outInsets) {
@@ -171,14 +159,15 @@ public class WindowManagerProxy {
         int bottomNav = isLargeScreen
                 ? 0
                 : (isPortrait
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT)
-                        : (isGesture
-                                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
-                                : 0));
+                ? getDimenByName(systemRes, NAVBAR_HEIGHT)
+                : (isGesture
+                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
+                : 0));
         int leftNav = navInsets.left;
         int rightNav = navInsets.right;
         if (!isLargeScreen && !isGesture && !isPortrait) {
-            // In 3-button landscape/seascape, Launcher should always have nav insets regardless if
+            // In 3-button landscape/seascape, Launcher should always have nav insets
+            // regardless if
             // it's initiated from fullscreen apps.
             int navBarWidth = getDimenByName(systemRes, NAVBAR_LANDSCAPE_LEFT_RIGHT_SIZE);
             switch (getRotation(context)) {
@@ -201,8 +190,10 @@ public class WindowManagerProxy {
         insetsBuilder.setInsetsIgnoringVisibility(
                 WindowInsets.Type.statusBars(), newStatusBarInsets);
 
-        // Override the tappable insets to be 0 on the bottom for gesture nav (otherwise taskbar
-        // would count towards it). This is used for the bottom protection in All Apps for example.
+        // Override the tappable insets to be 0 on the bottom for gesture nav (otherwise
+        // taskbar
+        // would count towards it). This is used for the bottom protection in All Apps
+        // for example.
         if (isGesture) {
             Insets oldTappableInsets = oldInsets.getInsets(WindowInsets.Type.tappableElement());
             Insets newTappableInsets = Insets.of(oldTappableInsets.left, oldTappableInsets.top,
@@ -222,8 +213,10 @@ public class WindowManagerProxy {
     }
 
     /**
-     * For large screen, when display cutout is at bottom left/right corner of screen, override
-     * display cutout's bottom inset to 0, because launcher allows drawing content over that area.
+     * For large screen, when display cutout is at bottom left/right corner of
+     * screen, override
+     * display cutout's bottom inset to 0, because launcher allows drawing content
+     * over that area.
      */
     public void applyDisplayCutoutBottomInsetOverrideOnLargeScreen(
             @NonNull Context context,
@@ -231,7 +224,7 @@ public class WindowManagerProxy {
             int screenWidthPx,
             @NonNull WindowInsets windowInsets,
             @NonNull WindowInsets.Builder insetsBuilder) {
-        if (!isLargeScreen) {
+        if (!isLargeScreen || !Utilities.ATLEAST_S) {
             return;
         }
 
@@ -265,19 +258,25 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Return true if bottom display cutouts are at bottom left/right corners, AND has width or
-     * height <= maxWidthAndHeightOfSmallCutoutPx. Note that display cutout rect and screenWidthPx
+     * Return true if bottom display cutouts are at bottom left/right corners, AND
+     * has width or
+     * height <= maxWidthAndHeightOfSmallCutoutPx. Note that display cutout rect and
+     * screenWidthPx
      * passed to this method should be in the SAME screen rotation.
      *
-     * @param cutoutRectBottom bottom display cutout rect, this is based on current screen rotation
-     * @param screenWidthPx screen width in px based on current screen rotation
-     * @param maxWidthAndHeightOfSmallCutoutPx maximum width and height pixels of cutout.
+     * @param cutoutRectBottom                 bottom display cutout rect, this is
+     *                                         based on current screen rotation
+     * @param screenWidthPx                    screen width in px based on current
+     *                                         screen rotation
+     * @param maxWidthAndHeightOfSmallCutoutPx maximum width and height pixels of
+     *                                         cutout.
      */
     @VisibleForTesting
     static boolean areBottomDisplayCutoutsSmallAndAtCorners(
             @NonNull Rect cutoutRectBottom, int screenWidthPx,
             int maxWidthAndHeightOfSmallCutoutPx) {
-        // Empty cutoutRectBottom means there is no display cutout at the bottom. We should ignore
+        // Empty cutoutRectBottom means there is no display cutout at the bottom. We
+        // should ignore
         // it by returning false.
         if (cutoutRectBottom.isEmpty()) {
             return false;
@@ -296,10 +295,11 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Returns a list of possible WindowBounds for the display keyed on the 4 surface rotations
+     * Returns a list of possible WindowBounds for the display keyed on the 4
+     * surface rotations
      */
     protected List<WindowBounds> estimateWindowBounds(Context context,
-            final CachedDisplayInfo displayInfo) {
+                                                      final CachedDisplayInfo displayInfo) {
         int densityDpi = context.getResources().getConfiguration().densityDpi;
         final int rotation = displayInfo.rotation;
 
@@ -316,9 +316,12 @@ public class WindowManagerProxy {
         boolean isTablet = swDp >= MIN_TABLET_WIDTH;
         boolean isTabletOrGesture = isTablet || isGestureNav(context);
 
-        // Use the status bar height resources because current system API to get the status bar
-        // height doesn't allow to do this for an arbitrary display, it returns value only
-        // for the current active display (see com.android.internal.policy.StatusBarUtils)
+        // Use the status bar height resources because current system API to get the
+        // status bar
+        // height doesn't allow to do this for an arbitrary display, it returns value
+        // only
+        // for the current active display (see
+        // com.android.internal.policy.StatusBarUtils)
         int statusBarHeightPortrait = getDimenByName(systemRes,
                 STATUS_BAR_HEIGHT_PORTRAIT, STATUS_BAR_HEIGHT);
         int statusBarHeightLandscape = getDimenByName(systemRes,
@@ -328,14 +331,17 @@ public class WindowManagerProxy {
 
         navBarHeightPortrait = isTablet
                 ? (mTaskbarDrawnInProcess
-                        ? 0 : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
+                ? 0
+                : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
                 : getDimenByName(systemRes, NAVBAR_HEIGHT);
 
         navBarHeightLandscape = isTablet
                 ? (mTaskbarDrawnInProcess
-                        ? 0 : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
+                ? 0
+                : context.getResources().getDimensionPixelSize(R.dimen.taskbar_size))
                 : (isTabletOrGesture
-                        ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE) : 0);
+                ? getDimenByName(systemRes, NAVBAR_HEIGHT_LANDSCAPE)
+                : 0);
         navbarWidthLandscape = isTabletOrGesture
                 ? 0
                 : getDimenByName(systemRes, NAVBAR_LANDSCAPE_LEFT_RIGHT_SIZE);
@@ -406,16 +412,25 @@ public class WindowManagerProxy {
     /**
      * Returns a CachedDisplayInfo initialized for the current display
      */
+    @TargetApi(Build.VERSION_CODES.S)
     public CachedDisplayInfo getDisplayInfo(Context displayInfoContext) {
         int rotation = getRotation(displayInfoContext);
-        WindowMetrics windowMetrics = displayInfoContext.getSystemService(WindowManager.class)
-                .getMaximumWindowMetrics();
-        return getDisplayInfo(windowMetrics, rotation);
+        if (Utilities.ATLEAST_S) {
+            WindowMetrics windowMetrics = displayInfoContext.getSystemService(WindowManager.class)
+                    .getMaximumWindowMetrics();
+            return getDisplayInfo(windowMetrics, rotation);
+        } else {
+            Point size = new Point();
+            Display display = getDisplay(displayInfoContext);
+            display.getRealSize(size);
+            return new CachedDisplayInfo(size, rotation);
+        }
     }
 
     /**
      * Returns a CachedDisplayInfo initialized for the current display
      */
+    @TargetApi(Build.VERSION_CODES.S)
     protected CachedDisplayInfo getDisplayInfo(WindowMetrics windowMetrics, int rotation) {
         Point size = new Point(windowMetrics.getBounds().right, windowMetrics.getBounds().bottom);
         return new CachedDisplayInfo(size, rotation,
@@ -423,7 +438,8 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Returns bounds of the display associated with the context, or bounds of DEFAULT_DISPLAY
+     * Returns bounds of the display associated with the context, or bounds of
+     * DEFAULT_DISPLAY
      * if the context isn't associated with a display.
      */
     public Rect getCurrentBounds(Context displayInfoContext) {
@@ -437,7 +453,8 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Returns rotation of the display associated with the context, or rotation of DEFAULT_DISPLAY
+     * Returns rotation of the display associated with the context, or rotation of
+     * DEFAULT_DISPLAY
      * if the context isn't associated with a display.
      */
     public int getRotation(Context displayInfoContext) {
@@ -445,7 +462,8 @@ public class WindowManagerProxy {
     }
 
     /**
-     * Returns the display associated with the context, or DEFAULT_DISPLAY if the context isn't
+     * Returns the display associated with the context, or DEFAULT_DISPLAY if the
+     * context isn't
      * associated with a display.
      */
     protected Display getDisplay(Context displayInfoContext) {
@@ -462,7 +480,7 @@ public class WindowManagerProxy {
      * Returns a DisplayCutout which represents a rotated version of the original
      */
     protected DisplayCutout rotateCutout(DisplayCutout original, int startWidth, int startHeight,
-            int fromRotation, int toRotation) {
+                                         int fromRotation, int toRotation) {
         Rect safeCutout = getSafeInsets(original);
         rotateRect(safeCutout, deltaRotation(fromRotation, toRotation));
         return new DisplayCutout(Insets.of(safeCutout), null, null, null, null);
@@ -487,6 +505,10 @@ public class WindowManagerProxy {
         return Utilities.ATLEAST_S ? NavigationMode.NO_BUTTON : NavigationMode.THREE_BUTTONS;
     }
 
+    @Override
+    public void close() {
+    }
+
     /**
      * @see DisplayCutout#getSafeInsets
      */
@@ -497,60 +519,4 @@ public class WindowManagerProxy {
         }
         return new Rect();
     }
-
-    /** Registers a listener for Taskbar changes in Desktop Mode.  */
-    public void registerDesktopVisibilityListener(DesktopVisibilityListener listener) { }
-
-    /** Removes a previously registered listener for Taskbar changes in Desktop Mode.  */
-    public void unregisterDesktopVisibilityListener(DesktopVisibilityListener listener) { }
-
-    /** A listener for when the user enters/exits Desktop Mode.  */
-    public interface DesktopVisibilityListener {
-        /**
-         * Called when the desktop mode state on the display whose ID is `displayId` changes.
-         *
-         * @param displayId The ID of the display for which this notification is triggering.
-         * @param isInDesktopModeAndNotInOverview True if a desktop is currently active on the given
-         *                                        display, and Overview is currently inactive.
-         */
-        default void onIsInDesktopModeChanged(int displayId,
-                boolean isInDesktopModeAndNotInOverview) {
-        }
-
-        /**
-         * Called whenever the conditions that allow the creation of desks change.
-         *
-         * @param canCreateDesks whether it is possible to create new desks.
-         */
-        default void onCanCreateDesksChanged(boolean canCreateDesks) {
-        }
-
-        /**
-         * Called when a new desk is added.
-         *
-         * @param displayId The ID of the display on which the desk was added.
-         * @param deskId The ID of the newly added desk.
-         */
-        default void onDeskAdded(int displayId, int deskId) {}
-
-        /**
-         * Called when an existing desk is removed.
-         *
-         * @param displayId The ID of the display on which the desk was removed.
-         * @param deskId The ID of the desk that was removed.
-         */
-        default void onDeskRemoved(int displayId, int deskId) {}
-
-        /**
-         * Called when the active desk changes.
-         *
-         * @param displayId The ID of the display on which the desk activation change is happening.
-         * @param newActiveDesk The ID of the new active desk or -1 if no desk is active anymore
-         *                      (i.e. exit desktop mode).
-         * @param oldActiveDesk The ID of the desk that was previously active, or -1 if no desk was
-         *                      active before.
-         */
-        default void onActiveDeskChanged(int displayId, int newActiveDesk, int oldActiveDesk) {}
-    }
-
 }

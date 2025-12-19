@@ -56,18 +56,14 @@ import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.R
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppComponent
-import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.graphics.ThemeManager as L3ThemeManager
+import com.android.launcher3.graphics.IconShape as L3IconShape
 import com.android.launcher3.util.ComponentKey
-import com.android.launcher3.util.DaggerSingletonObject
 import com.android.launcher3.util.DynamicResource
+import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import com.patrykmichalik.opto.core.PreferenceManager
 import com.patrykmichalik.opto.core.firstBlocking
 import com.patrykmichalik.opto.core.setBlocking
-import javax.inject.Inject
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -76,10 +72,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
-@LauncherAppSingleton
-class PreferenceManager2 @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : PreferenceManager,
+class PreferenceManager2 private constructor(private val context: Context) :
+    PreferenceManager,
     SafeCloseable {
 
     private val scope = MainScope()
@@ -383,6 +377,11 @@ class PreferenceManager2 @Inject constructor(
         },
     )
 
+    val enableSmartspaceCalendarSelection = preference(
+        key = booleanPreferencesKey(name = "enable_smartspace_calendar_selection"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_smartspace_calendar_selection),
+    )
+
     val autoShowKeyboardInDrawer = preference(
         key = booleanPreferencesKey(name = "auto_show_keyboard_in_drawer"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_auto_show_keyboard_in_drawer),
@@ -566,6 +565,18 @@ class PreferenceManager2 @Inject constructor(
         onSet = { reloadHelper.restart() },
     )
 
+    val enableDotPagination = preference(
+        key = booleanPreferencesKey(name = "enable_dot_pagination"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_dot_pagination),
+        onSet = { reloadHelper.recreate() },
+    )
+
+    val enableMaterialUPopUp = preference(
+        key = booleanPreferencesKey(name = "enable_material_u_popup"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_enable_material_u_popup),
+        onSet = { reloadHelper.recreate() },
+    )
+
     val twoLineAllApps = preference(
         key = booleanPreferencesKey(name = "two_line_all_apps"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_enable_two_line_allapps),
@@ -734,8 +745,8 @@ class PreferenceManager2 @Inject constructor(
             .distinctUntilChanged()
             .onEach { shape ->
                 initializeIconShape(shape)
-                L3ThemeManager.INSTANCE.get(context)
-                LauncherAppState.getInstance(context).model.reloadIfActive()
+                L3IconShape.INSTANCE.get(context)
+                LauncherAppState.getInstance(context).reloadIcons()
             }
             .launchIn(scope)
     }
@@ -790,7 +801,7 @@ class PreferenceManager2 @Inject constructor(
         )
 
         @JvmField
-        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getPreferenceManager2)
+        val INSTANCE = MainThreadInitializedObject(::PreferenceManager2)
 
         @JvmStatic
         fun getInstance(context: Context) = INSTANCE.get(context)!!

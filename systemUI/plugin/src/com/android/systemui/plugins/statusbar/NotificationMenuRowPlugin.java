@@ -122,7 +122,7 @@ public interface NotificationMenuRowPlugin extends Plugin {
 
     public void setAppName(String appName);
 
-    public void createMenu(ViewGroup parent);
+    public void createMenu(ViewGroup parent, StatusBarNotification sbn);
 
     public void resetMenu();
 
@@ -215,8 +215,9 @@ public interface NotificationMenuRowPlugin extends Plugin {
 
     /**
      * Callback used to signal the menu that its parent notification has been updated.
+     * @param sbn
      */
-    public void onNotificationUpdated();
+    public void onNotificationUpdated(StatusBarNotification sbn);
 
     /**
      * Callback used to signal the menu that a user is moving the parent notification.

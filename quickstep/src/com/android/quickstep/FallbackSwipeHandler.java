@@ -52,7 +52,6 @@ import android.view.RemoteAnimationTarget;
 import android.view.Surface;
 import android.view.SurfaceControl;
 import android.view.SurfaceControl.Transaction;
-import android.window.TransitionInfo;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -65,7 +64,6 @@ import com.android.launcher3.anim.PendingAnimation;
 import com.android.launcher3.anim.SpringAnimationBuilder;
 import com.android.launcher3.states.StateAnimationConfig;
 import com.android.launcher3.util.DisplayController;
-import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.quickstep.fallback.FallbackRecentsView;
 import com.android.quickstep.fallback.RecentsState;
 import com.android.quickstep.util.RectFSpringAnim;
@@ -88,7 +86,7 @@ import app.lawnchair.compat.LawnchairQuickstepCompat;
  * Handles the navigation gestures when a 3rd party launcher is the default home activity.
  */
 public class FallbackSwipeHandler extends
-        AbsSwipeUpHandler<RecentsActivity, FallbackRecentsView<RecentsActivity>, RecentsState> {
+        AbsSwipeUpHandler<RecentsActivity, FallbackRecentsView, RecentsState> {
 
     private static final String TAG = "FallbackSwipeHandler";
 
@@ -107,12 +105,11 @@ public class FallbackSwipeHandler extends
 
     private boolean mAppCanEnterPip;
 
-    public FallbackSwipeHandler(Context context,
+    public FallbackSwipeHandler(Context context, RecentsAnimationDeviceState deviceState,
             TaskAnimationManager taskAnimationManager, GestureState gestureState, long touchTimeMs,
-            boolean continuingLastGesture, InputConsumerController inputConsumer,
-            MSDLPlayerWrapper msdlPlayerWrapper) {
-        super(context, taskAnimationManager, gestureState, touchTimeMs,
-                continuingLastGesture, inputConsumer, msdlPlayerWrapper);
+            boolean continuingLastGesture, InputConsumerController inputConsumer) {
+        super(context, deviceState, taskAnimationManager, gestureState, touchTimeMs,
+                continuingLastGesture, inputConsumer);
 
         mRunningOverHome = mGestureState.getRunningTask() != null
                 && mGestureState.getRunningTask().isHomeTask();
@@ -171,22 +168,22 @@ public class FallbackSwipeHandler extends
             @NonNull String reason) {
         ActivityOptions options = ActivityOptions.makeCustomAnimation(mContext, 0, 0);
         Intent intent = new Intent(mGestureState.getHomeIntent());
-        if (gestureContractAnimationFactory != null && runningTaskTarget != null) {
-            gestureContractAnimationFactory.addGestureContract(intent, runningTaskTarget.taskInfo);
+        var runningTask = TopTaskTracker.INSTANCE.get(mContext).getCachedTopTask(true);
+        if (gestureContractAnimationFactory != null && runningTaskTarget != null && runningTask.getTaskId() == runningTaskTarget.taskId) {
+            gestureContractAnimationFactory.addGestureContract(intent, runningTask.mAllCachedTasks.get(0));
         }
         startHomeIntentSafely(mContext, intent, options.toBundle(), reason);
     }
 
     @Override
-    public void onTasksAppeared(@NonNull RemoteAnimationTarget[] appearedTaskTargets,
-            @Nullable TransitionInfo transitionInfo) {
-        if (mActiveAnimationFactory != null && mActiveAnimationFactory.handleHomeTaskAppeared(
-                appearedTaskTargets)) {
+    protected boolean handleTaskAppeared(RemoteAnimationTarget[] appearedTaskTarget) {
+        if (mActiveAnimationFactory != null
+                && mActiveAnimationFactory.handleHomeTaskAppeared(appearedTaskTarget)) {
             mActiveAnimationFactory = null;
-            return;
+            return false;
         }
 
-        super.onTasksAppeared(appearedTaskTargets, transitionInfo);
+        return super.handleTaskAppeared(appearedTaskTarget);
     }
 
     @Override
@@ -223,8 +220,8 @@ public class FallbackSwipeHandler extends
         if (mRunningOverHome) {
             if (DisplayController.getNavigationMode(mContext).hasGestures) {
                 mRecentsView.onGestureAnimationStartOnHome(
-                        mGestureState.getRunningTask().getPlaceholderGroupedTaskInfo(
-                                /* splitTaskIds = */ null));
+                        mGestureState.getRunningTask().getPlaceholderTasks(),
+                        mDeviceState.getRotationTouchHelper());
             }
         } else {
             super.notifyGestureAnimationStartToRecents();

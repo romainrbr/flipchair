@@ -39,8 +39,7 @@ interface Expandable {
         launchCujType: Int? = null,
         cookie: ActivityTransitionAnimator.TransitionCookie? = null,
         component: ComponentName? = null,
-        returnCujType: Int? = null,
-        isEphemeral: Boolean = true,
+        returnCujType: Int? = null
     ): ActivityTransitionAnimator.Controller?
 
     /**
@@ -56,8 +55,7 @@ interface Expandable {
             launchCujType,
             cookie = null,
             component = null,
-            returnCujType = null,
-            isEphemeral = true,
+            returnCujType = null
         )
     }
 
@@ -82,16 +80,14 @@ interface Expandable {
                     launchCujType: Int?,
                     cookie: ActivityTransitionAnimator.TransitionCookie?,
                     component: ComponentName?,
-                    returnCujType: Int?,
-                    isEphemeral: Boolean,
+                    returnCujType: Int?
                 ): ActivityTransitionAnimator.Controller? {
                     return ActivityTransitionAnimator.Controller.fromView(
                         view,
                         launchCujType,
                         cookie,
                         component,
-                        returnCujType,
-                        isEphemeral,
+                        returnCujType
                     )
                 }
 

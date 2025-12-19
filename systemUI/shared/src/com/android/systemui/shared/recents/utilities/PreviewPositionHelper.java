@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 
 import com.android.systemui.shared.recents.model.ThumbnailData;
+import com.android.wm.shell.util.SplitBounds;
 
 /**
  * Utility class to position the thumbnail in the TaskView
@@ -34,6 +35,8 @@ public class PreviewPositionHelper {
 
     private final Matrix mMatrix = new Matrix();
     private boolean mIsOrientationChanged;
+    private SplitBounds mSplitBounds;
+    private int mDesiredStagePosition;
 
     public Matrix getMatrix() {
         return mMatrix;
@@ -45,6 +48,11 @@ public class PreviewPositionHelper {
 
     public boolean isOrientationChanged() {
         return mIsOrientationChanged;
+    }
+
+    public void setSplitBounds(SplitBounds splitBounds, int desiredStagePosition) {
+        mSplitBounds = splitBounds;
+        mDesiredStagePosition = desiredStagePosition;
     }
 
     /**
@@ -207,20 +215,5 @@ public class PreviewPositionHelper {
                 break;
         }
         mMatrix.postTranslate(translateX, translateY);
-    }
-
-    /**
-     * A factory that returns a new instance of the {@link PreviewPositionHelper}.
-     * <p>{@link PreviewPositionHelper} is a stateful helper, and hence when using it in distinct
-     * scenarios, prefer fetching an object using this factory</p>
-     * <p>Additionally, helpful for injecting mocks in tests</p>
-     */
-    public static class PreviewPositionHelperFactory {
-        /**
-         * Returns a new {@link PreviewPositionHelper} for use in a distinct scenario.
-         */
-        public PreviewPositionHelper create() {
-            return new PreviewPositionHelper();
-        }
     }
 }

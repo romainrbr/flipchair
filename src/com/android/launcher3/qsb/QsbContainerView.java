@@ -308,7 +308,7 @@ public class QsbContainerView extends FrameLayout {
         }
 
         public boolean isQsbEnabled() {
-            return FeatureFlags.QSB_ON_FIRST_SCREEN;
+            return FeatureFlags.topQsbOnFirstScreenEnabled(getContext());
         }
 
         protected Bundle createBindOptions() {
@@ -320,8 +320,7 @@ public class QsbContainerView extends FrameLayout {
         protected View getDefaultView(ViewGroup container, boolean showSetupIcon) {
             // Return a default widget with setup icon.
             View v = QsbWidgetHostView.getDefaultView(container);
-            // pE-TODO(??): Why are we using isInPreviewMode() check to prevent crash?
-            if (showSetupIcon && !isInPreviewMode()) {
+            if (showSetupIcon) {
                 requestQsbCreate();
                 View setupButton = v.findViewById(R.id.btn_qsb_setup);
                 setupButton.setVisibility(View.VISIBLE);

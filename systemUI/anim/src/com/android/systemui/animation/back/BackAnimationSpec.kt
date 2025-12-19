@@ -58,12 +58,7 @@ fun BackAnimationSpec.Companion.createFloatingSurfaceAnimationSpec(
         val maxTranslationY = maxTranslationYByScale - maxMarginYPx
         val minScaleReversed = 1f - minScale
 
-        val direction =
-            when (backEvent.swipeEdge) {
-                BackEvent.EDGE_LEFT -> 1
-                BackEvent.EDGE_RIGHT -> -1
-                else -> 0
-            }
+        val direction = if (backEvent.swipeEdge == BackEvent.EDGE_LEFT) 1 else -1
         val progressX = backEvent.progress
 
         val ratioTranslateX = translateXEasing.getInterpolation(progressX)

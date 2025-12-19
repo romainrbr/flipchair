@@ -28,8 +28,6 @@ import android.util.ArraySet;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-
 import com.android.internal.messages.nano.SystemMessageProto.SystemMessage;
 import com.android.systemui.plugins.Plugin;
 import com.android.systemui.plugins.PluginListener;
@@ -64,7 +62,7 @@ public class PluginManagerImpl extends BroadcastReceiver implements PluginManage
     public PluginManagerImpl(Context context,
             PluginActionManager.Factory actionManagerFactory,
             boolean debuggable,
-            @Nullable UncaughtExceptionPreHandlerManager preHandlerManager,
+            UncaughtExceptionPreHandlerManager preHandlerManager,
             PluginEnabler pluginEnabler,
             PluginPrefs pluginPrefs,
             List<String> privilegedPlugins) {
@@ -75,9 +73,7 @@ public class PluginManagerImpl extends BroadcastReceiver implements PluginManage
         mPluginPrefs = pluginPrefs;
         mPluginEnabler = pluginEnabler;
 
-        if (preHandlerManager != null) {
-            preHandlerManager.registerHandler(new PluginExceptionHandler());
-        }
+        preHandlerManager.registerHandler(new PluginExceptionHandler());
     }
 
     public boolean isDebuggable() {

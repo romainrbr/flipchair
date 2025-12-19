@@ -15,7 +15,6 @@
  */
 package com.android.quickstep.util;
 
-import static android.app.WindowConfiguration.WINDOWING_MODE_FREEFORM;
 import static android.view.Display.DEFAULT_DISPLAY;
 
 import android.content.Context;
@@ -27,36 +26,24 @@ import android.view.WindowManager;
 import android.view.WindowMetrics;
 
 import com.android.internal.policy.SystemBarUtils;
-import com.android.launcher3.dagger.LauncherAppSingleton;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.statehandlers.DesktopVisibilityController;
 import com.android.launcher3.util.WindowBounds;
 import com.android.launcher3.util.window.CachedDisplayInfo;
 import com.android.launcher3.util.window.WindowManagerProxy;
-import com.android.quickstep.SystemUiProxy;
-import com.android.window.flags.Flags;
-import com.android.wm.shell.shared.desktopmode.DesktopModeStatus;
+import com.android.quickstep.LauncherActivityInterface;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
-
 /**
- * Extension of {@link WindowManagerProxy} with some assumption for the default system Launcher
+ * Extension of {@link WindowManagerProxy} with some assumption for the default
+ * system Launcher
  */
-@LauncherAppSingleton
 public class SystemWindowManagerProxy extends WindowManagerProxy {
-    // LC-Note: This is pretty much unused by Launcher3, see [LawnchairWindowManagerProxy]
 
-    private final DesktopVisibilityController mDesktopVisibilityController;
-
-
-    @Inject
-    public SystemWindowManagerProxy(DesktopVisibilityController desktopVisibilityController) {
+    public SystemWindowManagerProxy(Context context) {
         super(true);
-        mDesktopVisibilityController = desktopVisibilityController;
     }
 
     @Override
@@ -66,55 +53,10 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
     }
 
     @Override
-    public void registerDesktopVisibilityListener(DesktopVisibilityListener listener) {
-        mDesktopVisibilityController.registerDesktopVisibilityListener(listener);
-    }
-
-    @Override
-    public void unregisterDesktopVisibilityListener(DesktopVisibilityListener listener) {
-        mDesktopVisibilityController.unregisterDesktopVisibilityListener(listener);
-    }
-
-    @Override
-    public boolean isInDesktopMode(int displayId) {
-        return mDesktopVisibilityController.isInDesktopMode(displayId);
-    }
-
-    @Override
-    public boolean showLockedTaskbarOnHome(Context displayInfoContext) {
-        if (!DesktopModeStatus.canEnterDesktopMode(displayInfoContext)) {
-            return false;
-        }
-        if (!DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
-            return false;
-        }
-        final boolean isFreeformDisplay = displayInfoContext.getResources().getConfiguration()
-                .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
-        return isFreeformDisplay;
-    }
-
-    @Override
-    public boolean showDesktopTaskbarForFreeformDisplay(Context displayInfoContext) {
-        if (!DesktopModeStatus.canEnterDesktopMode(displayInfoContext)) {
-            return false;
-        }
-
-        if (!DesktopModeStatus.enterDesktopByDefaultOnFreeformDisplay(displayInfoContext)) {
-            return false;
-        }
-
-        if (!Flags.enableDesktopTaskbarOnFreeformDisplays()) {
-            return false;
-        }
-
-        final boolean isFreeformDisplay = displayInfoContext.getResources().getConfiguration()
-                .windowConfiguration.getWindowingMode() == WINDOWING_MODE_FREEFORM;
-        return isFreeformDisplay;
-    }
-
-    @Override
-    public boolean isHomeVisible(Context context) {
-        return SystemUiProxy.INSTANCE.get(context).getHomeVisibilityState().isHomeVisible();
+    public boolean isInDesktopMode() {
+        DesktopVisibilityController desktopController = LauncherActivityInterface.INSTANCE
+                .getDesktopVisibilityController();
+        return desktopController != null && desktopController.areDesktopTasksVisible();
     }
 
     @Override
@@ -125,8 +67,10 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
 
     @Override
     protected int getStatusBarHeight(Context context, boolean isPortrait, int statusBarInset) {
-        // See b/264656380, calculate the status bar height manually as the inset in the system
-        // server might not be updated by this point yet causing extra DeviceProfile updates
+        // See b/264656380, calculate the status bar height manually as the inset in the
+        // system
+        // server might not be updated by this point yet causing extra DeviceProfile
+        // updates
         return SystemBarUtils.getStatusBarHeight(context);
     }
 
@@ -135,14 +79,9 @@ public class SystemWindowManagerProxy extends WindowManagerProxy {
             Context displayInfoContext) {
         ArrayMap<CachedDisplayInfo, List<WindowBounds>> result = new ArrayMap<>();
         WindowManager windowManager = displayInfoContext.getSystemService(WindowManager.class);
-        Set<WindowMetrics> possibleMaximumWindowMetrics =
-            null;
-        try {
-            possibleMaximumWindowMetrics = windowManager.getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY);
-        } catch (Throwable t) {
-            possibleMaximumWindowMetrics = Collections.singleton(
-                windowManager.getMaximumWindowMetrics());
-        }
+        Set<WindowMetrics> possibleMaximumWindowMetrics = windowManager
+                .getPossibleMaximumWindowMetrics(DEFAULT_DISPLAY);
+        FileLog.d("b/283944974", "possibleMaximumWindowMetrics: " + possibleMaximumWindowMetrics);
         for (WindowMetrics windowMetrics : possibleMaximumWindowMetrics) {
             CachedDisplayInfo info = getDisplayInfo(windowMetrics, Surface.ROTATION_0);
             List<WindowBounds> bounds = estimateWindowBounds(displayInfoContext, info);

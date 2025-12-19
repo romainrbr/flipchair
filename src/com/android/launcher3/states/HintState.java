@@ -24,9 +24,6 @@ import androidx.core.graphics.ColorUtils;
 
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherState;
-import com.android.launcher3.R;
-import com.android.launcher3.util.Themes;
-import com.android.launcher3.views.ActivityContext;
 
 import app.lawnchair.theme.color.tokens.ColorTokens;
 
@@ -49,7 +46,7 @@ public class HintState extends LauncherState {
     }
 
     @Override
-    public int getTransitionDuration(ActivityContext context, boolean isToState) {
+    public int getTransitionDuration(Context context, boolean isToState) {
         return 80;
     }
 

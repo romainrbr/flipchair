@@ -21,7 +21,6 @@ import android.graphics.Insets;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.UserHandle;
-import android.view.KeyEvent;
 import android.view.MotionEvent;
 import com.android.internal.util.ScreenshotRequest;
 
@@ -69,10 +68,10 @@ interface ISystemUiProxy {
 
     /**
      * Indicates that the given Assist invocation types should be handled by Launcher via
-     * LauncherProxy#onAssistantOverrideInvoked and should not be invoked by SystemUI.
+     * OverviewProxy#onAssistantOverrideInvoked and should not be invoked by SystemUI.
      *
      * @param invocationTypes The invocation types that will henceforth be handled via
-     *         LauncherProxy (Launcher); other invocation types should be handled by SysUI.
+     *         OverviewProxy (Launcher); other invocation types should be handled by SysUI.
      */
     oneway void setAssistantOverridesRequested(in int[] invocationTypes) = 53;
 
@@ -103,9 +102,9 @@ interface ISystemUiProxy {
     oneway void expandNotificationPanel() = 29;
 
     /**
-     * Notifies SystemUI of a back KeyEvent.
+     * Notifies SystemUI to invoke Back.
      */
-    oneway void onBackEvent(in KeyEvent keyEvent) = 44;
+    oneway void onBackPressed() = 44;
 
     /** Sets home rotation enabled. */
     oneway void setHomeRotationEnabled(boolean enabled) = 45;
@@ -121,7 +120,7 @@ interface ISystemUiProxy {
     oneway void notifyTaskbarAutohideSuspend(boolean suspend) = 48;
 
     /**
-     * Notifies that the IME switcher button has been pressed.
+     * Notifies SystemUI to invoke IME Switcher.
      */
     oneway void onImeSwitcherPressed() = 49;
 
@@ -168,15 +167,5 @@ interface ISystemUiProxy {
      */
     oneway void toggleQuickSettingsPanel() = 56;
 
-    /**
-     * Notifies that the IME Switcher button has been long pressed.
-     */
-    oneway void onImeSwitcherLongPress() = 57;
-
-    /**
-     * Updates contextual education stats when target gesture type is triggered.
-     */
-    oneway void updateContextualEduStats(boolean isTrackpadGesture, String gestureType) = 58;
-
-    // Next id = 59
+    // Next id = 57
 }

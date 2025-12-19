@@ -16,23 +16,15 @@
 
 package com.android.launcher3.model.data;
 
-import static com.android.launcher3.icons.BitmapInfo.FLAG_NO_BADGE;
-import static com.android.launcher3.icons.BitmapInfo.FLAG_THEMED;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Process;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.android.launcher3.Flags;
-import com.android.launcher3.Utilities;
-import com.android.launcher3.graphics.ThemeManager;
 import com.android.launcher3.icons.BitmapInfo;
-import com.android.launcher3.icons.BitmapInfo.DrawableCreationFlags;
 import com.android.launcher3.icons.FastBitmapDrawable;
-import com.android.launcher3.icons.cache.CacheLookupFlag;
 import com.android.launcher3.logging.FileLog;
 import com.android.launcher3.pm.PackageInstallInfo;
 import com.android.launcher3.util.ApiWrapper;
@@ -49,7 +41,6 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
     /**
      * The bitmap for the application icon
      */
-    @NonNull
     public BitmapInfo bitmap = BitmapInfo.LOW_RES_INFO;
 
     /**
@@ -194,10 +185,10 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
     }
 
     /**
-     * Returns the lookup flag to match this current state of this info
+     * Indicates whether we're using a low res icon
      */
-    public CacheLookupFlag getMatchingLookupFlag() {
-        return bitmap.getMatchingLookupFlag();
+    public boolean usingLowResIcon() {
+        return bitmap.isLowRes();
     }
 
     /**
@@ -322,19 +313,21 @@ public abstract class ItemInfoWithIcon extends ItemInfo {
      * Returns a FastBitmapDrawable with the icon.
      */
     public FastBitmapDrawable newIcon(Context context) {
-        return newIcon(context, 0);
+        return newIcon(context, PreferenceManager.getInstance(context).getThemedIcons().get());
     }
 
     /**
      * Returns a FastBitmapDrawable with the icon and context theme applied
      */
-    public FastBitmapDrawable newIcon(Context context, @DrawableCreationFlags int creationFlags) {
-        var shouldTheme = PreferenceManager.getInstance(context).getThemedIcons().get();
-        if (!shouldTheme) {
-            creationFlags &= ~FLAG_THEMED;
-        }
-        FastBitmapDrawable drawable = bitmap.newIcon(
-                context, creationFlags, Utilities.getIconShapeOrNull(context));
+    public FastBitmapDrawable newIcon(Context context, boolean applyTheme) {
+        return newIcon(context, applyTheme ? BitmapInfo.FLAG_THEMED : BitmapInfo.FLAG_NO_BADGE);
+    }
+
+    /**
+     * Returns a FastBitmapDrawable with the icon and context theme applied
+     */
+    public FastBitmapDrawable newIcon(Context context, @BitmapInfo.DrawableCreationFlags int creationFlags) {
+        FastBitmapDrawable drawable = (creationFlags & BitmapInfo.FLAG_THEMED) != 0 ? bitmap.newThemedIcon(context) : bitmap.newIcon(context, creationFlags);
         drawable.setIsDisabled(isDisabled());
         return drawable;
     }

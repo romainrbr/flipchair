@@ -3,6 +3,7 @@ package com.android.window.flags2;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
+
 /** @hide */
 public class FakeFeatureFlagsImpl extends CustomFeatureFlags {
     private final Map<String, Boolean> mFlagMap = new HashMap<>();

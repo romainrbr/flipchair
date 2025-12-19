@@ -18,8 +18,7 @@
 package com.android.launcher3.taskbar.bubbles
 
 import com.android.launcher3.R
-import com.android.wm.shell.R as SharedR
-import com.android.wm.shell.shared.bubbles.DismissView
+import com.android.wm.shell.common.bubbles.DismissView
 
 /**
  * Dismiss view is shared from WMShell. It requires setup with local resources.
@@ -36,9 +35,9 @@ fun DismissView.setup() {
             iconSizeResId = R.dimen.bubblebar_dismiss_target_icon_size,
             bottomMarginResId = R.dimen.bubblebar_dismiss_target_bottom_margin,
             floatingGradientHeightResId = R.dimen.bubblebar_dismiss_floating_gradient_height,
-            floatingGradientColorResId = android.R.color.system_neutral1_900,
-            backgroundResId = SharedR.drawable.floating_dismiss_background,
-            iconResId = SharedR.drawable.floating_dismiss_ic_close,
+            floatingGradientColorResId = R.color.system_neutral1_900,
+            backgroundResId = R.drawable.bg_bubble_dismiss_circle,
+            iconResId = R.drawable.ic_bubble_dismiss_white
         )
     )
 }

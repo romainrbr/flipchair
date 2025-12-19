@@ -318,10 +318,9 @@ public abstract class WMShellBaseModule {
             ShellInit shellInit,
             ShellCommandHandler shellCommandHandler,
             RootTaskDisplayAreaOrganizer rootTdaOrganizer) {
-        // LC-Ignored
-        //if (!com.android.window.flags.Flags.explicitRefreshRateHints()) {
-        //    return Optional.empty();
-        //}
+        if (!com.android.window.flags.Flags.explicitRefreshRateHints()) {
+            return Optional.empty();
+        }
         final PerfHintController perfHintController =
                 new PerfHintController(context, shellInit, shellCommandHandler, rootTdaOrganizer);
         return Optional.of(perfHintController.getHinter());

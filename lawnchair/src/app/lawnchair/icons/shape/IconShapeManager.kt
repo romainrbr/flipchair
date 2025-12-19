@@ -25,20 +25,13 @@ import android.graphics.Region
 import android.graphics.drawable.AdaptiveIconDrawable
 import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.Utilities
-import com.android.launcher3.dagger.ApplicationContext
-import com.android.launcher3.dagger.LauncherAppComponent
-import com.android.launcher3.dagger.LauncherAppSingleton
-import com.android.launcher3.graphics.ThemeManager
 import com.android.launcher3.icons.GraphicsUtils
-import com.android.launcher3.util.DaggerSingletonObject
+import com.android.launcher3.icons.IconProvider
+import com.android.launcher3.util.MainThreadInitializedObject
 import com.android.launcher3.util.SafeCloseable
 import com.patrykmichalik.opto.core.firstBlocking
-import javax.inject.Inject
 
-@LauncherAppSingleton
-class IconShapeManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : SafeCloseable {
+class IconShapeManager(private val context: Context) : SafeCloseable {
 
     private val systemIconShape = getSystemShape()
 
@@ -56,7 +49,7 @@ class IconShapeManager @Inject constructor(
             override fun toString() = "system"
 
             override fun getHashString(): String {
-                val resId = ThemeManager.CONFIG_ICON_MASK_RES_ID
+                val resId = IconProvider.CONFIG_ICON_MASK_RES_ID
                 if (resId == 0) {
                     return "system-path"
                 }
@@ -98,7 +91,7 @@ class IconShapeManager @Inject constructor(
 
     companion object {
         @JvmField
-        val INSTANCE = DaggerSingletonObject(LauncherAppComponent::getIconShapeManager)
+        val INSTANCE = MainThreadInitializedObject(::IconShapeManager)
 
         fun getSystemIconShape(context: Context) = INSTANCE.get(context).systemIconShape
 

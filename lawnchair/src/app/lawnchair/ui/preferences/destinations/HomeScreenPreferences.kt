@@ -16,6 +16,8 @@
 
 package app.lawnchair.ui.preferences.destinations
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,6 +46,9 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.navigation.HomeScreenGrid
 import app.lawnchair.util.collectAsStateBlocking
+import com.android.launcher3.Launcher
+import com.android.launcher3.LauncherAppState
+import com.android.launcher3.LauncherSettings
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
 import kotlinx.coroutines.launch
@@ -60,6 +65,7 @@ fun HomeScreenPreferences(
     val prefs = preferenceManager()
     val prefs2 = preferenceManager2()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     PreferenceLayout(
         label = stringResource(id = R.string.home_screen_label),
         backArrowVisible = !LocalIsExpandedScreen.current,
@@ -98,6 +104,19 @@ fun HomeScreenPreferences(
                     prefs.infiniteScrolling.getAdapter(),
                     label = stringResource(id = R.string.infinite_scrolling_label),
                     description = stringResource(id = R.string.infinite_scrolling_description),
+                )
+            }
+        }
+        PreferenceGroup(heading = stringResource(id = R.string.home_screen_actions)) {
+            Item {
+                ClickablePreference(
+                    label = stringResource(id = R.string.remove_all_views_from_home_screen),
+                    confirmationText = stringResource(id = R.string.remove_all_views_from_home_screen_desc),
+                    onClick = {
+                        scope.launch {
+                            clearAllViewsFromHomeScreen(context)
+                        }
+                    },
                 )
             }
         }
@@ -272,6 +291,20 @@ fun HomeScreenPreferences(
                 )
             }
         }
+    }
+}
+
+private fun clearAllViewsFromHomeScreen(context: Context) {
+    val model = Launcher.getLauncher(context).modelWriter
+    val isViewsRemoved = model.clearAllHomeScreenViewsByType(
+        LauncherSettings.Favorites.CONTAINER_DESKTOP,
+    )
+    if (isViewsRemoved) {
+        Toast.makeText(
+            context,
+            R.string.home_screen_all_views_removed_msg,
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 }
 

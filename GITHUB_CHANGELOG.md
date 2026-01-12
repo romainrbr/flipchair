@@ -4,7 +4,11 @@
 
 ### 🏗️ Development 5 Release 1
 
-Build: BD4.2712 (latest)
+> [!WARNING]
+> This branch has diverged timeline from the original `16-dev`, meaning you will have to rebase your
+> commit back to this branch if you wish to contribute to this branch.
+
+Build: BD5.1201 (latest), BD4.2712
 
 Compatibility list:
 

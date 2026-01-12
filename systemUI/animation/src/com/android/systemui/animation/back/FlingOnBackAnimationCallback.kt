@@ -16,6 +16,7 @@
 
 package com.android.systemui.animation.back
 
+import android.os.Build
 import android.util.TimeUtils
 import android.view.Choreographer
 import android.view.MotionEvent
@@ -86,7 +87,7 @@ abstract class FlingOnBackAnimationCallback(
             onBackInvokedCompat()
         }
         reset()
-        if (predictiveBackTimestampApi()) {
+        if (predictiveBackTimestampApi() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
             downTime = backEvent.frameTimeMillis
         }
         onBackStartedCompat(backEvent)
@@ -94,7 +95,7 @@ abstract class FlingOnBackAnimationCallback(
 
     final override fun onBackProgressed(backEvent: BackEvent) {
         val interpolatedProgress = progressInterpolator.getInterpolation(backEvent.progress)
-        if (predictiveBackTimestampApi()) {
+        if (predictiveBackTimestampApi() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
             downTime?.let { downTime ->
                 velocityTracker.addMovement(
                     MotionEvent.obtain(

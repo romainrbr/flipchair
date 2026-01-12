@@ -672,7 +672,7 @@ constructor(
         private val controller = WeakReference(controller)
         private val displayManager: DisplayManager = context.getSystemService(DisplayManager::class.java)
         private val displayId = if (Utilities.ATLEAST_R) {
-            context.display.displayId
+            context.displayId
         } else {
             displayManager.displays[DEFAULT_DISPLAY].displayId
         }

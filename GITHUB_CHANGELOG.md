@@ -23,6 +23,7 @@ Compatibility list:
 #### Fixes
 * [Launcher] Limited Android 11 support
 * [Launcher] Limited Android 10 support
+* [Launcher] Icon pack support (by SuperDragonXD @ https://github.com/LawnchairLauncher/lawnchair/pull/6066)
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

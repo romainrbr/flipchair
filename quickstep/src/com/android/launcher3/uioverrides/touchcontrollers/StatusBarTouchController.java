@@ -27,6 +27,7 @@ import static com.android.launcher3.MotionEventsUtils.isTrackpadScroll;
 import static com.android.launcher3.Utilities.shouldEnableMouseInteractionChanges;
 import static com.android.launcher3.logging.StatsLogManager.LauncherEvent.LAUNCHER_SWIPE_DOWN_WORKSPACE_NOTISHADE_OPEN;
 
+import android.annotation.SuppressLint;
 import android.graphics.PointF;
 import android.util.SparseArray;
 import android.view.InputDevice;
@@ -39,9 +40,13 @@ import com.android.launcher3.AbstractFloatingView;
 import com.android.launcher3.BaseActivity;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Utilities;
+import com.android.launcher3.util.MSDLPlayerWrapper;
 import com.android.launcher3.util.TouchController;
+import com.android.launcher3.util.VibratorWrapper;
 import com.android.quickstep.SystemUiProxy;
 
+import com.android.systemui.Flags;
+import com.google.android.msdl.data.model.MSDLToken;
 import java.util.function.Supplier;
 import java.lang.reflect.InvocationTargetException;
 
@@ -67,6 +72,10 @@ public class StatusBarTouchController implements TouchController {
     /* If {@code false}, this controller should not handle the input {@link MotionEvent}.*/
     private boolean mCanIntercept;
 
+    // LC-Note: For pulling down on notification panel (default gesture config)
+    private boolean mExpanded;
+    private boolean mVibrated;
+
     public StatusBarTouchController(BaseActivity l, Supplier<Boolean> isEnabledCheck) {
         mLauncher = l;
         mSystemUiProxy = SystemUiProxy.INSTANCE.get(mLauncher);
@@ -87,6 +96,37 @@ public class StatusBarTouchController implements TouchController {
         if (mSystemUiProxy.isActive()) {
             mLastAction = ev.getActionMasked();
             mSystemUiProxy.onStatusBarTouchEvent(ev);
+        } else if (!mExpanded) {
+            // LC-Note: For pulling down on notification panel (default gesture config)
+            mExpanded = true;
+            expand();
+        }
+        if (!mVibrated) {
+            mVibrated = true;
+            vibrate();
+        }
+    }
+
+    @SuppressLint({"WrongConstant", "PrivateApi"})
+    private void expand() {
+        // LC-Note: For pulling down on notification panel (default gesture config)
+        try {
+            Class.forName("android.app.StatusBarManager")
+                .getMethod("expandNotificationsPanel")
+                .invoke(mLauncher.getSystemService("statusbar"));
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void vibrate() {
+        // LC-Note: For pulling down on notification panel (default gesture config)
+        if (!LawnchairAppKt.getLawnchairApp(mLauncher).isVibrateOnIconAnimation()) {
+            if (Flags.msdlFeedback()) {
+                MSDLPlayerWrapper.INSTANCE.get(mLauncher).playToken(MSDLToken.SWIPE_THRESHOLD_INDICATOR);
+            } else {
+                VibratorWrapper.INSTANCE.get(mLauncher).vibrate(VibratorWrapper.OVERVIEW_HAPTIC);
+            }
         }
     }
 
@@ -101,6 +141,8 @@ public class StatusBarTouchController implements TouchController {
                 return false;
             }
             mDownEvents.clear();
+            mExpanded = false;
+            mVibrated = false;
             mDownEvents.put(pid, new PointF(ev.getX(), ev.getY()));
         } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
             // Check!! should only set it only when threshold is not entered.
@@ -180,6 +222,7 @@ public class StatusBarTouchController implements TouchController {
                 return false;
             }
         }
-        return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
+        return true;
+        // LC-Ignored: return SystemUiProxy.INSTANCE.get(mLauncher).isActive();
     }
 }

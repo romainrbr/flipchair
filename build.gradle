@@ -30,8 +30,8 @@ allprojects {
                 }
             }
             defaultConfig {
-                minSdk 26
-                targetSdk 36
+                minSdk = 26
+                targetSdk = 36
                 vectorDrawables.useSupportLibrary = true
             }
             lint {
@@ -283,7 +283,7 @@ android {
 
         withQuickstep {
             dimension "recents"
-            minSdk 26
+            minSdk = 26
         }
 
         github {

@@ -135,8 +135,6 @@ sealed interface UpdateState {
  * @property MAJOR_IS_NEWER Disabled because of current build major version is higher than what is currently offered by updater source.
  */
 enum class UpdateDisabledReason {
-    /** Disabled because of user configuration. */
-    USER_OVERRIDE,
     /** Disabled because of current build major version is higher than what is currently offered by updater source. */
     MAJOR_IS_NEWER,
 }

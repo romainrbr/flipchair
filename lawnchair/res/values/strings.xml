@@ -518,8 +518,9 @@
     <string name="major_update_description">You are about to update from Lawnchair <xliff:g example="15" id="current_major_version">%1$s</xliff:g> to Lawnchair <xliff:g example="16" id="next_major_version">%2$s</xliff:g>, please consider carefully as newer major version may be unstable than current version.</string>
 
     <string name="pro_disabled_by_unknown">Cannot update!</string>
-    <string name="pro_disabled_by_user">Cannot update, turn on Nightly updater in settings!</string>
     <string name="pro_disabled_by_major_is_newer">Cannot update, This build is way too new!</string>
+
+    <string name="updater">Updater</string>
 
     <!--
 
@@ -605,6 +606,9 @@
     <!-- General and home screen settings -->
     <string name="home_screen_rotation_label">Home screen rotation</string>
     <string name="home_screen_rotation_description">Allow home screen rotation when device is rotated</string>
+
+    <string name="auto_updater_label">Auto updater</string>
+    <string name="auto_updater_description">Automatically check for Nightly update when going to About section</string>
 
     <string name="wallpaper_blur">Blur wallpaper (experimental)</string>
     <string name="wallpaper_background_blur">Blur intensity</string>

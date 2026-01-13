@@ -58,7 +58,10 @@ class AboutViewModel(
             _uiState.update { it.copy(coreTeam = updatedCoreTeam) }
         }
 
-        if (BuildConfig.APPLICATION_ID.contains("nightly") || prefs2.debugTestForAutoUpdater.firstBlocking()) {
+        // Check if the build variant is Nightly
+        // AND check if user has enabled auto updater (available to Nightly variant)
+        // OR check if user has overridden it in debug flags (available to All variant)
+        if (BuildConfig.APPLICATION_ID.contains("nightly") && prefs2.autoUpdaterNightly.firstBlocking()) {
             nightlyBuildsRepository.checkForUpdate()
             viewModelScope.launch {
                 nightlyBuildsRepository.updateState.collect { state ->

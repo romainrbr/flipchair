@@ -52,6 +52,7 @@ import app.lawnchair.ui.preferences.components.HiddenAppsInSearch
 import app.lawnchair.ui.preferences.data.liveinfo.LiveInformationManager
 import app.lawnchair.util.kotlinxJson
 import app.lawnchair.views.overlay.FullScreenOverlayMode
+import com.android.launcher3.BuildConfig
 import com.android.launcher3.InvariantDeviceProfile
 import com.android.launcher3.InvariantDeviceProfile.INDEX_DEFAULT
 import com.android.launcher3.LauncherAppState
@@ -718,9 +719,13 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = GestureHandlerConfig.NoOp,
     )
 
-    val debugTestForAutoUpdater = preference(
-        key = booleanPreferencesKey(name = "test_for_auto_updater"),
-        defaultValue = context.resources.getBoolean(R.bool.config_default_test_for_auto_updater),
+    val autoUpdaterNightly = preference(
+        key = booleanPreferencesKey(name = "enable_nightly_auto_updater"),
+        defaultValue = if (BuildConfig.APPLICATION_ID.contains("nightly")) {
+            false
+        } else {
+            context.resources.getBoolean(R.bool.config_default_enable_nightly_auto_updater)
+        }
     )
 
     private inline fun <reified T> serializablePreference(

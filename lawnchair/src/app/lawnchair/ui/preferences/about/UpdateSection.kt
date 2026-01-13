@@ -141,9 +141,6 @@ fun UpdateSection(
 
             is UpdateState.Disabled -> {
                 var reason = stringResource(R.string.pro_disabled_by_unknown)
-                if (updateState.reason == UpdateDisabledReason.USER_OVERRIDE) {
-                    reason = stringResource(R.string.pro_disabled_by_user)
-                }
                 if (updateState.reason == UpdateDisabledReason.MAJOR_IS_NEWER) {
                     reason = stringResource(R.string.pro_disabled_by_major_is_newer)
                 }

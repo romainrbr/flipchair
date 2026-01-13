@@ -8,7 +8,7 @@
 > This branch has diverged timeline from the original `16-dev`, meaning you will have to rebase your
 > commit back to this branch if you wish to contribute to this branch.
 
-Build: BD5.1201 (latest), BD4.2712
+Build: BD5.1301 (latest), BD5.1201, BD4.2712
 
 Compatibility list:
 
@@ -24,6 +24,9 @@ Compatibility list:
 |             | Android 16            |
 |             | Android 16.1          |
 
+#### Features
+* [Lawnchair] Allow user to disable the auto-updater (for Nightly build only)
+
 #### Fixes
 * [Launcher] Limited Android 11 support
 * [Launcher] Limited Android 10 support
@@ -32,6 +35,7 @@ Compatibility list:
 * [Launcher] Don't run predictiveBackTimestamp in less than Baklava device
 * [Launcher] Reimplement Pull to trigger notifications
 * [Lawnchair/Preference] Broken ASI/Global preference items for allapps search
+* [Lawnchair] Stop Nightly auto updater from showing outdated result when app major version is newer than what available to source
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 
@@ -58,9 +62,9 @@ Compatibility list:
 
 * [Launcher] Move to Google Sans Flex font (TODO)*
 * [Lawnchair] Material 3 Expressive Settings (Phase 2, TODO)*
-~~* [Lawnchair] Better At-a-Glance perceptive wallpaper colour luminance detection*~~
-    ~~* Big word that means Lawnchair will take system default hint bright/dark theme and fallback to luminosity detection for bright/dark mode detection in At a Glance.*~~
-~~* [Launcher] Enable Material Expressive Folder Expansion animation flag~~*
+* ~~[Lawnchair] Better At-a-Glance perceptive wallpaper colour luminance detection*~~
+    * ~~Big word that means Lawnchair will take system default hint bright/dark theme and fallback to luminosity detection for bright/dark mode detection in At a Glance.*~~
+* ~~[Launcher] Enable Material Expressive Folder Expansion animation flag~~*
     * Disabled due to rendering bugs*
 * [Launcher/Font] Variable font for Launcher3 (????????)*
 * [Launcher/Popup] Dynamically get app widget popup icon*

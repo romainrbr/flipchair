@@ -725,7 +725,7 @@ class PreferenceManager2 @Inject constructor(
             false
         } else {
             context.resources.getBoolean(R.bool.config_default_enable_nightly_auto_updater)
-        }
+        },
     )
 
     private inline fun <reified T> serializablePreference(

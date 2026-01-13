@@ -139,7 +139,6 @@ enum class UpdateDisabledReason {
     MAJOR_IS_NEWER,
 }
 
-
 data class ChangelogState(
     val commits: List<GitHubCommit> = emptyList(),
     val currentBuildNumber: Int = 0,

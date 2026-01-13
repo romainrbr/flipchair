@@ -4,8 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import app.lawnchair.preferences.PreferenceManager
+import app.lawnchair.preferences2.PreferenceManager2
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
+import com.patrykmichalik.opto.core.firstBlocking
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,7 @@ class AboutViewModel(
 
     private val api: GitHubService = gitHubApiRetrofit.create()
     private val prefs: PreferenceManager = PreferenceManager.getInstance(application)
+    private val prefs2: PreferenceManager2 = PreferenceManager2.getInstance(application)
 
     private val nightlyBuildsRepository = NightlyBuildsRepository(
         applicationContext = application,
@@ -55,7 +58,7 @@ class AboutViewModel(
             _uiState.update { it.copy(coreTeam = updatedCoreTeam) }
         }
 
-        if (BuildConfig.APPLICATION_ID.contains("nightly")) {
+        if (BuildConfig.APPLICATION_ID.contains("nightly") || prefs2.debugTestForAutoUpdater.firstBlocking()) {
             nightlyBuildsRepository.checkForUpdate()
             viewModelScope.launch {
                 nightlyBuildsRepository.updateState.collect { state ->

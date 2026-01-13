@@ -718,6 +718,11 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = GestureHandlerConfig.NoOp,
     )
 
+    val debugTestForAutoUpdater = preference(
+        key = booleanPreferencesKey(name = "test_for_auto_updater"),
+        defaultValue = context.resources.getBoolean(R.bool.config_default_test_for_auto_updater),
+    )
+
     private inline fun <reified T> serializablePreference(
         key: Preferences.Key<String>,
         defaultValue: T,

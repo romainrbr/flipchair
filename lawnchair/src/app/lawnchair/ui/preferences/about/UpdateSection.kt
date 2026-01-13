@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.lawnchair.util.getApkVersionComparison
 import com.android.launcher3.R
@@ -135,6 +136,25 @@ fun UpdateSection(
                             Text(stringResource(android.R.string.cancel))
                         }
                     },
+                )
+            }
+
+            is UpdateState.Disabled -> {
+                var reason = stringResource(R.string.pro_disabled_by_unknown)
+                if (updateState.reason == UpdateDisabledReason.USER_OVERRIDE) {
+                    reason = stringResource(R.string.pro_disabled_by_user)
+                }
+                if (updateState.reason == UpdateDisabledReason.MAJOR_IS_NEWER) {
+                    reason = stringResource(R.string.pro_disabled_by_major_is_newer)
+                }
+                Text(
+                    text = reason,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .padding(horizontal = 12.dp),
                 )
             }
         }

@@ -517,6 +517,10 @@
     <string name="major_update_label">Breaking change!</string>
     <string name="major_update_description">You are about to update from Lawnchair <xliff:g example="15" id="current_major_version">%1$s</xliff:g> to Lawnchair <xliff:g example="16" id="next_major_version">%2$s</xliff:g>, please consider carefully as newer major version may be unstable than current version.</string>
 
+    <string name="pro_disabled_by_unknown">Cannot update!</string>
+    <string name="pro_disabled_by_user">Cannot update, turn on Nightly updater in settings!</string>
+    <string name="pro_disabled_by_major_is_newer">Cannot update, This build is way too new!</string>
+
     <!--
 
     Backup and restore

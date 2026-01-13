@@ -43,6 +43,15 @@ class NightlyBuildsRepository(
                 val nightly = releases.firstOrNull { it.tagName == "nightly" }
                 val asset = nightly?.assets?.firstOrNull()
 
+                val majorVersion = applicationContext.getApkVersionComparison().first[0]
+                val expectedBranch = "$majorVersion-dev"
+
+                if (nightly != null && nightly.targetCommitish != expectedBranch) {
+                    Log.d(TAG, "Skipping update from branch ${nightly.targetCommitish}, expected $expectedBranch")
+                    _updateState.update { UpdateState.Disabled(UpdateDisabledReason.MAJOR_IS_NEWER) }
+                    return@launch
+                }
+
                 // As of now the version string looks like this (CI builds only):
                 // <major>.<branch>.(#<CI build number>)
                 // This is done inside build.gradle in the source root. Reflect
@@ -141,8 +150,11 @@ class NightlyBuildsRepository(
 
     private suspend fun getCommitsSinceCurrentVersion(): List<GitHubCommit>? {
         return try {
+            val majorVersion = applicationContext.getApkVersionComparison().first[0]
+            val branch = "$majorVersion-dev"
+
             // Get the latest commits (last 100)
-            val commits = api.getRepositoryCommits("LawnchairLauncher", "lawnchair")
+            val commits = api.getRepositoryCommits("LawnchairLauncher", "lawnchair", branch)
 
             // Find the index of current commit
             val currentIndex = commits.indexOfFirst { it.sha.startsWith(currentCommitHash) }

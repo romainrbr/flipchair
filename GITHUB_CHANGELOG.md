@@ -31,6 +31,7 @@ Compatibility list:
 * [Launcher] Crash when trying to grab display context from public reference in Android 12.0 and above
 * [Launcher] Don't run predictiveBackTimestamp in less than Baklava device
 * [Launcher] Reimplement Pull to trigger notifications
+* [Lawnchair/Preference] Broken ASI/Global preference items for allapps search
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

@@ -37,6 +37,7 @@ Compatibility list:
 * [Lawnchair/Preference] Broken ASI/Global preference items for allapps search
 * [Lawnchair] Stop Nightly auto updater from showing outdated result when app major version is newer than what available to source
 * [Launcher] Crash with `NameNotFoundException` when app is archived in Android 15/16.0
+* [Launcher] Null crash when trying to drop an icon on the home screen for some devices (fix: LawnchairLauncher/Lawnchair#6237)
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

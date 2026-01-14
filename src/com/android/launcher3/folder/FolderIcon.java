@@ -38,6 +38,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Property;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -382,34 +383,37 @@ public class FolderIcon extends FrameLayout implements FloatingIconViewCompanion
             center[0] = Math.round(scaleRelativeToDragLayer * center[0]);
             center[1] = Math.round(scaleRelativeToDragLayer * center[1]);
 
-            to.offset(center[0] - animateView.getMeasuredWidth() / 2,
-                    center[1] - animateView.getMeasuredHeight() / 2);
+            // Lawnchair-TODO: if to is null we skip immediately to place the item. destination can be null (or nowhere)
+            if (to != null) {
+                to.offset(center[0] - animateView.getMeasuredWidth() / 2,
+                        center[1] - animateView.getMeasuredHeight() / 2);
 
-            float finalAlpha = index < MAX_NUM_ITEMS_IN_PREVIEW ? 1f : 0f;
+                float finalAlpha = index < MAX_NUM_ITEMS_IN_PREVIEW ? 1f : 0f;
 
-            float finalScale = scale * scaleRelativeToDragLayer;
+                float finalScale = scale * scaleRelativeToDragLayer;
 
-            // Account for potentially different icon sizes with non-default grid settings
-            if (d.dragSource instanceof ActivityAllAppsContainerView) {
-                DeviceProfile grid = mActivity.getDeviceProfile();
-                float containerScale = (1f * grid.iconSizePx
-                        / grid.getAllAppsProfile().getIconSizePx());
-                finalScale *= containerScale;
+                // Account for potentially different icon sizes with non-default grid settings
+                if (d.dragSource instanceof ActivityAllAppsContainerView) {
+                    DeviceProfile grid = mActivity.getDeviceProfile();
+                    float containerScale = (1f * grid.iconSizePx
+                            / grid.getAllAppsProfile().getIconSizePx());
+                    finalScale *= containerScale;
+                }
+
+                final int finalIndex = index;
+                dragLayer.animateView(animateView, to, finalAlpha,
+                        finalScale, finalScale, DROP_IN_ANIMATION_DURATION,
+                        Interpolators.DECELERATE_2,
+                        () -> {
+                            mPreviewItemManager.hidePreviewItem(finalIndex, false);
+                            mFolder.showItem(item);
+                        },
+                        DragLayer.ANIMATION_END_DISAPPEAR, null);
+
+                mFolder.hideItem(item);
+
+                if (!itemAdded) mPreviewItemManager.hidePreviewItem(index, true);
             }
-
-            final int finalIndex = index;
-            dragLayer.animateView(animateView, to, finalAlpha,
-                    finalScale, finalScale, DROP_IN_ANIMATION_DURATION,
-                    Interpolators.DECELERATE_2,
-                    () -> {
-                        mPreviewItemManager.hidePreviewItem(finalIndex, false);
-                        mFolder.showItem(item);
-                    },
-                    DragLayer.ANIMATION_END_DISAPPEAR, null);
-
-            mFolder.hideItem(item);
-
-            if (!itemAdded) mPreviewItemManager.hidePreviewItem(index, true);
             d.folderNameSuggestionLoader.getSuggestedFolderName(mInfo.getAppContents(),
                     folderNameInfos -> postDelayed(() -> {
                         setLabelSuggestion(folderNameInfos, d.logInstanceId);

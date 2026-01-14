@@ -39,6 +39,7 @@ Compatibility list:
 * [Launcher] Crash with `NameNotFoundException` when app is archived in Android 15/16.0
 * [Launcher] Null crash when trying to drop an icon on the home screen for some devices (fix: LawnchairLauncher/Lawnchair#6237)
 * [Launcher] Crash due to incorrect thread looper for accessing cache
+* [Launcher] Make icon shapes change instantaneous
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

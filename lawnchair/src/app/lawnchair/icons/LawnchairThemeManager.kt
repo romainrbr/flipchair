@@ -46,7 +46,7 @@ constructor(
         val scope = MainScope()
         merge(
             prefs2.iconShape.get(),
-            prefs2.customIconShape.get()
+            prefs2.customIconShape.get(),
         ).onEach { verifyIconState() }
             .launchIn(scope)
 

@@ -16,12 +16,9 @@
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.kotlin.compose)
 }
-
-android.buildFeatures.compose = true
 
 android {
     namespace = "com.android.launcher3.widgetpicker"
@@ -30,26 +27,27 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testApplicationId = "com.android.launcher3.widgetpicker.tests"
     }
+    buildFeatures {
+        compose = true
+    }
     sourceSets {
         named("main") {
-            java.setSrcDirs(listOf("src"))
+            java.srcDirs("src")
             manifest.srcFile("AndroidManifest.xml")
-            res.setSrcDirs(listOf("res"))
+            res.srcDirs("res")
         }
         named("androidTest") {
-            java.setSrcDirs(
-                listOf(
-                    "tests/multivalentScreenshotTests/src",
-                    "tests/multivalentTestsForDevice/src",
-                )
+            java.srcDirs(
+                "tests/multivalentScreenshotTests/src",
+                "tests/multivalentTestsForDevice/src",
             )
             manifest.srcFile("tests/AndroidManifest.xml")
         }
         named("test") {
-            java.setSrcDirs(listOf("tests/multivalentTests/src"))
-            resources.setSrcDirs(listOf("tests/config"))
+            java.srcDirs("tests/multivalentTests/src")
+            resources.srcDirs("tests/config")
             manifest.srcFile("tests/AndroidManifest.xml")
-            res.setSrcDirs(listOf("tests/multivalentScreenshotTests/res"))
+            res.srcDirs("tests/multivalentScreenshotTests/res")
         }
     }
 
@@ -101,9 +99,9 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
 
     // Compose UI Tests
-    testApi(libs.compose.ui.test.junit4)
-    androidTestApi(libs.compose.ui.test.junit4)
-    debugApi(libs.compose.ui.test.manifest)
+    testImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 
     implementation(projects.concurrent)
     implementation(projects.dagger)

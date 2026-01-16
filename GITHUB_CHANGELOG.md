@@ -40,6 +40,7 @@ Compatibility list:
 * [Launcher] Null crash when trying to drop an icon on the home screen for some devices (fix: LawnchairLauncher/Lawnchair#6237)
 * [Launcher] Crash due to incorrect thread looper for accessing cache
 * [Launcher] Make icon shapes change instantaneous
+* [Build] Update dependency to fully support 16-kb page size in Android (x86_64 architecture)
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

@@ -41,6 +41,7 @@ Compatibility list:
 * [Launcher] Crash due to incorrect thread looper for accessing cache
 * [Launcher] Make icon shapes change instantaneous
 * [Build] Update dependency to fully support 16-kb page size in Android (x86_64 architecture)
+* [Lawnchair] Crash due to unable to access Window/Display context on Android 8.0 and above
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

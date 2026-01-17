@@ -40,6 +40,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextClock;
 
 import androidx.annotation.NonNull;
@@ -397,7 +398,8 @@ public class LauncherPreviewRenderer extends BaseContext
      * Returns the insets of the screen closest to the display given by the context
      */
     private static Rect getInsets(Context context) {
-        Display display = context.getDisplay();
+        WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        Display display = windowManager.getDefaultDisplay();
         return DisplayController.INSTANCE.get(context).getInfo().supportedBounds.stream()
                 .filter(w -> w.rotationHint == display.getRotation())
                 .min(comparingDouble(w ->

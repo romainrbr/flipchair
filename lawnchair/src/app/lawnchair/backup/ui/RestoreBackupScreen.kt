@@ -211,7 +211,7 @@ fun ColumnScope.RestoreBackupOptions(
                 .align(Alignment.CenterEnd)
                 .fillMaxWidth(),
             enabled = contents != 0 && !restoringBackup,
-            shapes = ButtonDefaults.shapes()
+            shapes = ButtonDefaults.shapes(),
         ) {
             Text(text = stringResource(id = R.string.action_restore))
         }

@@ -192,7 +192,7 @@ fun CreateBackupScreen(
                     .align(Alignment.CenterEnd)
                     .fillMaxWidth(),
                 enabled = contents != 0 && screenshotDone && !creatingBackup,
-                shapes = ButtonDefaults.shapes()
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Text(text = stringResource(id = R.string.action_create))
             }

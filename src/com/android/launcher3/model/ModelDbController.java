@@ -112,6 +112,10 @@ public class ModelDbController {
     // Lawnchair: ModelDbController
     public ModelDbController(Context context) {
         mContext = context;
+        mIdp = InvariantDeviceProfile.INSTANCE.get(context);
+        mPrefs = LauncherPrefs.get(context);
+        mUserCache = UserCache.INSTANCE.get(context);
+        mLayoutParserFactory = new LayoutParserFactory(context);
     }
 
     private synchronized void createDbIfNotExists() {

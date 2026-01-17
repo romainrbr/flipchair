@@ -43,6 +43,7 @@ Compatibility list:
 * [Build] Update dependency to fully support 16-kb page size in Android (x86_64 architecture)
 * [Lawnchair] Crash due to unable to access Window/Display context on Android 8.0 and above
 * [Lawnchair] Reimplement Backup & Restore
+* [Launcher] Fix or **_tried_** to make the app drawer listing listed in alphabetical order when loading icon in bulk
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

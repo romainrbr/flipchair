@@ -29,6 +29,7 @@ import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.os.LocaleList;
 import android.os.UserHandle;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -315,9 +316,14 @@ public class AllAppsList {
     public void updateIconsAndLabels(HashSet<String> packages, UserHandle user) {
         for (AppInfo info : data) {
             if (info.user.equals(user) && packages.contains(info.componentName.getPackageName())) {
+                CharSequence oldTitle = info.title;
+                String oldSectionName = info.sectionName;
                 mIconCache.updateTitleAndIcon(info);
                 info.sectionName = mIndex.computeSectionName(info.title);
-                mDataChanged = true;
+                if (!TextUtils.equals(oldTitle, info.title) 
+                        || !TextUtils.equals(oldSectionName, info.sectionName)) {
+                    mDataChanged = true;
+                }
             }
         }
     }

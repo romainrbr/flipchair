@@ -708,6 +708,23 @@ public class LoaderTask implements Runnable {
             } finally {
                 Trace.endSection();
             }
+        } else {
+            // LC-Note: This code dark magic sorting fallback is powered by Opus 4.5
+            Trace.beginSection("LoadAllAppsIconsIndividually");
+            try {
+                for (IconRequestInfo<AppInfo> iconRequestInfo : allAppsItemRequestInfos) {
+                    AppInfo appInfo = iconRequestInfo.itemInfo;
+                    if (iconRequestInfo.launcherActivityInfo != null) {
+                        mIconCache.getTitleAndIcon(appInfo, iconRequestInfo.launcherActivityInfo,
+                                appInfo.getMatchingLookupFlag());
+                    } else {
+                        mIconCache.getTitleAndIcon(appInfo, appInfo.getMatchingLookupFlag());
+                    }
+                    mBgAllAppsList.updateSectionName(appInfo);
+                }
+            } finally {
+                Trace.endSection();
+            }
         }
 
         if (Flags.enablePrivateSpace()) {

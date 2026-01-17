@@ -14,6 +14,7 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['shared/src']
+            kotlin.srcDirs = ['shared/src']
             aidl.srcDirs = ['shared/src']
             manifest.srcFile 'AndroidManifest.xml'
             res.srcDirs = ['shared', 'shared/res']
@@ -30,6 +31,7 @@ dependencies {
     implementation libs.androidx.core.animation
     implementation libs.androidx.dynamicanimation
     compileOnly projects.iconloaderlib
+    compileOnly projects.msdllib
     compileOnly projects.flags
     compileOnly projects.utils
 }

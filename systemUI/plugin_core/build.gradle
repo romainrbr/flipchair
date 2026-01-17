@@ -11,6 +11,7 @@ android {
     sourceSets {
         main {
             java.srcDirs = ['src']
+            kotlin.srcDirs = ['src']
             aidl.srcDirs = ['src']
             manifest.srcFile 'AndroidManifest.xml'
         }

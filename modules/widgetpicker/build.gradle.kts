@@ -33,6 +33,7 @@ android {
     sourceSets {
         named("main") {
             java.srcDirs("src")
+            kotlin.srcDirs("src")
             manifest.srcFile("AndroidManifest.xml")
             res.srcDirs("res")
         }
@@ -41,10 +42,15 @@ android {
                 "tests/multivalentScreenshotTests/src",
                 "tests/multivalentTestsForDevice/src",
             )
+            kotlin.srcDirs(
+                "tests/multivalentScreenshotTests/src",
+                "tests/multivalentTestsForDevice/src",
+            )
             manifest.srcFile("tests/AndroidManifest.xml")
         }
         named("test") {
             java.srcDirs("tests/multivalentTests/src")
+            kotlin.srcDirs("tests/multivalentTests/src")
             resources.srcDirs("tests/config")
             manifest.srcFile("tests/AndroidManifest.xml")
             res.srcDirs("tests/multivalentScreenshotTests/res")

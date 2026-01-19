@@ -133,6 +133,8 @@ fun DebugMenuPreferences(
                     }
                 }
                 Item {
+                    // Codename for Lawnchair to intentionally omit version number from the public,
+                    // Crash log will continue to show them normally.
                     TextPreference(
                         label = "Custom version info",
                         adapter = prefs.pseudonymVersion.getAdapter(),

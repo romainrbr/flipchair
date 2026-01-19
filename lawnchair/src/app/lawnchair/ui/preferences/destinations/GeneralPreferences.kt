@@ -171,7 +171,7 @@ fun GeneralPreferences() {
             Item {
                 NavigationActionPreference(
                     label = stringResource(id = R.string.icon_shape_label),
-                    destination = GeneralIconShape,
+                    destination = GeneralIconShape(ShapeRoute.APP_SHAPE),
                     subtitle = iconShapeSubtitle,
                     endWidget = {
                         IconShapePreview(iconShape = iconShapeAdapter.state.value)

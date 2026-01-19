@@ -76,30 +76,44 @@ constructor(
     }
 
     private fun parseIconStateV2(oldState: IconState?): IconState {
-        val currentShape: IconShape = try {
+        val currentAppIconShape: IconShape = try {
             prefs2.iconShape.firstBlocking()
         } catch (e: Exception) {
             Log.d(TAG, "Error getting icon shape", e)
             IconShape.Circle
         }
 
-        val shapePath = currentShape.getMaskPath()
-        val shapeKey = currentShape.getHashString()
+        val currentFolderShape: IconShape = try {
+            prefs2.folderShape.firstBlocking()
+        } catch (e: Exception) {
+            Log.d(TAG, "Error getting icon shape", e)
+            IconShape.Circle
+        }
 
-        val iconShape =
-            if (oldState != null && oldState.iconMask == shapeKey) {
+        val appShapeKey = currentAppIconShape.getHashString()
+        val folderShapeKey = currentFolderShape.getHashString()
+
+        val appIconShape =
+            if (oldState != null && oldState.iconMask == appShapeKey) {
                 oldState.iconShape
             } else {
-                PathShapeDelegate(shapePath)
+                PathShapeDelegate(currentAppIconShape)
+            }
+
+        val folderIconShape =
+            if (oldState != null && oldState.iconMask == folderShapeKey) {
+                oldState.iconShape
+            } else {
+                PathShapeDelegate(currentFolderShape)
             }
 
         return IconState(
-            iconMask = shapeKey,
+            iconMask = appShapeKey,
             folderRadius = 1f,
             shapeRadius = 1f,
             themeController = iconControllerFactory.createThemeController(),
-            iconShape = iconShape,
-            folderShape = iconShape,
+            iconShape = appIconShape,
+            folderShape = folderIconShape,
         )
     }
 }

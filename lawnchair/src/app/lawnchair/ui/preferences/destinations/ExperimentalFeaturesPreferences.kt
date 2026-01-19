@@ -1,5 +1,14 @@
 package app.lawnchair.ui.preferences.destinations
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,18 +17,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.lawnchair.preferences.getAdapter
 import app.lawnchair.preferences.preferenceManager
 import app.lawnchair.preferences2.preferenceManager2
 import app.lawnchair.ui.preferences.LocalIsExpandedScreen
+import app.lawnchair.ui.preferences.components.NavigationActionPreference
 import app.lawnchair.ui.preferences.components.WallpaperAccessPermissionDialog
 import app.lawnchair.ui.preferences.components.controls.SliderPreference
 import app.lawnchair.ui.preferences.components.controls.SwitchPreference
 import app.lawnchair.ui.preferences.components.controls.WarningPreference
 import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
+import app.lawnchair.ui.preferences.navigation.GeneralIconShape
 import app.lawnchair.util.FileAccessManager
 import app.lawnchair.util.FileAccessState
 import app.lawnchair.util.isGestureNavContractCompatible
@@ -47,6 +59,12 @@ fun ExperimentalFeaturesPreferences(
         val hasPermission = wallpaperAccessState != FileAccessState.Denied
         var showPermissionDialog by remember { mutableStateOf(false) }
 
+        val folderIconShapeAdapter = prefs2.folderShape.getAdapter()
+        val folderIconShapeSubtitle = iconShapeEntries(context)
+            .firstOrNull { it.value == folderIconShapeAdapter.state.value }
+            ?.label?.invoke()
+            ?: stringResource(id = R.string.custom)
+
         PreferenceGroup(
             Modifier,
             stringResource(R.string.workspace_label),
@@ -68,6 +86,45 @@ fun ExperimentalFeaturesPreferences(
                         "least Android 12 or above, and device need performant GPU to render " +
                         "blur and need to enable support rendering cross window blur by the " +
                         "device manufacturer.",
+                )
+            }
+            Item {
+                val getFolderIconShapeCustomizationAdapter = prefs2.enableFolderIconShapeCustomization.getAdapter()
+                val enableFolderIconShapeCustomizationAdapter = remember(prefs2) {
+                    getFolderIconShapeCustomizationAdapter
+                }
+
+                val folderShapeAdapter = prefs2.folderShape.getAdapter()
+                val folderShapeDefault = prefs2.folderShape.defaultValue
+
+                val enabled = enableFolderIconShapeCustomizationAdapter.state.value
+
+                NavigationActionPreference(
+                    label = stringResource(id = R.string.folder_shape_label),
+                    destination = if (enabled) GeneralIconShape(ShapeRoute.FOLDER_SHAPE) else null,
+                    subtitle = folderIconShapeSubtitle,
+                    endWidget = {
+                        if (enabled) {
+                            VerticalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        }
+                        Switch(
+                            checked = enabled,
+                            onCheckedChange = {
+                                enableFolderIconShapeCustomizationAdapter.onChange(it)
+                                // Clean-up when user disables folder shape customisation.
+                                if (!it) {
+                                    folderShapeAdapter.onChange(folderShapeDefault)
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    imageVector = if (enabled) Icons.Filled.Check else Icons.Filled.Close,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            },
+                        )
+                    },
                 )
             }
             Item {

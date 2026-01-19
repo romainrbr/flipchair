@@ -108,6 +108,7 @@ fun ProvideBottomSheetHandler(
             label = "BottomSheetBlurFraction",
         )
 
+        val supportsBlur = BlurUtils.supportsBlursOnWindows()
         val blur = dimensionResource(R.dimen.max_depth_blur_radius_enhanced) * animatedFraction
         val scrimAlpha = 0.32f * animatedFraction
 
@@ -115,14 +116,14 @@ fun ProvideBottomSheetHandler(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(blur),
+                    .addIf(supportsBlur) {
+                        blur(blur)
+                    },
             ) {
                 content()
             }
 
             if (showBottomSheet) {
-                val supportsBlur = BlurUtils.supportsBlursOnWindows()
-
                 if (supportsBlur) {
                     Box(
                         modifier = Modifier

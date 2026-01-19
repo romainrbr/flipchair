@@ -100,7 +100,7 @@ data class PathShapeDelegate(private val iconShape: IconShape) : ShapeDelegate {
                             RectF(startRect),
                             Matrix.ScaleToFit.FILL,
                         )
-                    }
+                    },
                 ),
                 end = createRoundedRect(
                     left = endRect.left.toFloat(),
@@ -147,7 +147,8 @@ data class PathShapeDelegate(private val iconShape: IconShape) : ShapeDelegate {
     }
 
     private class ClipAnimBuilder<T>(val target: T, val pathProvider: (Float, Path) -> Unit) :
-        AnimatorListenerAdapter(), ValueAnimator.AnimatorUpdateListener where T : View, T : ClipPathView {
+        AnimatorListenerAdapter(),
+        ValueAnimator.AnimatorUpdateListener where T : View, T : ClipPathView {
 
         private var oldOutlineProvider: ViewOutlineProvider? = null
         val path = Path()
@@ -174,16 +175,14 @@ data class PathShapeDelegate(private val iconShape: IconShape) : ShapeDelegate {
             target.setClipPath(path)
         }
 
-        fun toAnim(isReversed: Boolean) =
-            (if (isReversed) ValueAnimator.ofFloat(1f, 0f) else ValueAnimator.ofFloat(0f, 1f))
-                .also {
-                    it.addListener(this)
-                    it.addUpdateListener(this)
-                }
+        fun toAnim(isReversed: Boolean) = (if (isReversed) ValueAnimator.ofFloat(1f, 0f) else ValueAnimator.ofFloat(0f, 1f))
+            .also {
+                it.addListener(this)
+                it.addUpdateListener(this)
+            }
     }
 
-    private class ClipSpringAnimBuilder<T>(val target: T, val pathProvider: (Float, Path) -> Unit) :
-        AnimatorListenerAdapter() where T : View, T : ClipPathView {
+    private class ClipSpringAnimBuilder<T>(val target: T, val pathProvider: (Float, Path) -> Unit) : AnimatorListenerAdapter() where T : View, T : ClipPathView {
 
         private var oldOutlineProvider: ViewOutlineProvider? = null
         val path = Path()

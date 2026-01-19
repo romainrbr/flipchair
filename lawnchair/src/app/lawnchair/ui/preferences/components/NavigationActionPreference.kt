@@ -28,8 +28,8 @@ import app.lawnchair.ui.util.addIf
 @Composable
 fun NavigationActionPreference(
     label: String,
-    destination: PreferenceRoute? = null,
     modifier: Modifier = Modifier,
+    destination: PreferenceRoute? = null,
     subtitle: String? = null,
     endWidget: (@Composable () -> Unit)? = null,
 ) {

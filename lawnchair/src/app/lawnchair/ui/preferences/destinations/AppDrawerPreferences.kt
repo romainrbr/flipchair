@@ -80,8 +80,8 @@ fun AppDrawerPreferences(
             Item {
                 NavigationActionPreference(
                     label = stringResource(id = R.string.hidden_apps_label),
-                    subtitle = resources.getQuantityString(R.plurals.apps_count, hiddenApps.size, hiddenApps.size),
                     destination = AppDrawerHiddenApps,
+                    subtitle = resources.getQuantityString(R.plurals.apps_count, hiddenApps.size, hiddenApps.size),
                 )
             }
             Item { SearchBarPreference(SearchRoute.DRAWER_SEARCH, showLabel = false) }

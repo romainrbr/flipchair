@@ -299,7 +299,7 @@ private fun clearAllViewsFromHomeScreen(context: Context, type: Int) {
     val modelWriter = launcherModel.getWriter(
         verifyChanges = false,
         cellPosMapper = CellPosMapper.DEFAULT,
-        owner = null
+        owner = null,
     )
     val isViewsRemoved = modelWriter.clearAllHomeScreenViewsByType(type)
     if (isViewsRemoved) {

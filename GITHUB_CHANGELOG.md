@@ -8,7 +8,7 @@
 > This branch has diverged timeline from the original `16-dev`, meaning you will have to rebase your
 > commit back to this branch if you wish to contribute to this branch.
 
-Build: BD5.1301 (latest), BD5.1201, BD4.2712
+Build: BD5.1901 (latest), BD5.1301, BD5.1201, BD4.2712
 
 Compatibility list:
 
@@ -26,6 +26,9 @@ Compatibility list:
 
 #### Features
 * [Lawnchair] Allow user to disable the auto-updater (for Nightly build only)
+* [Lawnchair/PathShapeDelegate] Implement custom path revealing animations for folder transitions with complex shapes
+* [Lawnchair/Folder] Allow user to set custom folder shapes (experimental settings exclusive!)
+* [Launcher] Reintroduce folder expressive animations from Bubble Tea QPR1 Development 1 Release 1
 
 #### Fixes
 * [Launcher] Limited Android 11 support
@@ -44,6 +47,10 @@ Compatibility list:
 * [Lawnchair] Crash due to unable to access Window/Display context on Android 8.0 and above
 * [Lawnchair] Reimplement Backup & Restore
 * [Launcher] Fix or **_tried_** to make the app drawer listing listed in alphabetical order when loading icon in bulk
+* [Lawnchair] Incorrect expressive lists behaviour
+* [Lawnchair] Disable blur effect on bottom sheet on L3 incompatible devices for consistency
+* [Lawnchair] Reimplement clear home screen action
+* [Lawmchair] Crash when tapping on launcher preview
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

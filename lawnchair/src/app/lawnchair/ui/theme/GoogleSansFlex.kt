@@ -29,7 +29,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -56,7 +56,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -83,7 +83,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -112,7 +112,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -140,7 +140,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -168,7 +168,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -198,7 +198,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -225,7 +225,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -252,7 +252,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -281,7 +281,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -309,7 +309,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -337,7 +337,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -366,7 +366,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -393,7 +393,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -420,7 +420,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -449,7 +449,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -477,7 +477,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -505,7 +505,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -535,7 +535,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -562,7 +562,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -589,7 +589,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Normal.weight),
                         FontVariation.width(100f),
@@ -618,7 +618,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -646,7 +646,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -674,7 +674,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -704,7 +704,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -731,7 +731,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -758,7 +758,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.Medium.weight),
                         FontVariation.width(100f),
@@ -787,7 +787,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.SemiBold.weight),
                         FontVariation.width(100f),
@@ -815,7 +815,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.SemiBold.weight),
                         FontVariation.width(100f),
@@ -843,7 +843,7 @@ object GoogleSansFlex {
                     ),
                 ),
                 Font(
-                    R.font.googlesans_variable,
+                    R.font.googlesansflex_variable, // Google Sans
                     variationSettings = FontVariation.Settings(
                         FontVariation.weight(FontWeight.SemiBold.weight),
                         FontVariation.width(100f),

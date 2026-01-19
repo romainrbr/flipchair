@@ -107,9 +107,10 @@ fun IconShapePreference(
         PreferenceGroup(
             heading = stringResource(id = R.string.custom),
         ) {
-            Item {
+            Item(visible = customIconShape.value != null) {
                 CustomIconShapePreferenceOption(
                     iconShapeAdapter = iconShapeAdapter,
+                    customIconShape = customIconShape.value!!,
                 )
             }
             Item {
@@ -149,30 +150,24 @@ fun IconShapePreference(
 @Composable
 private fun CustomIconShapePreferenceOption(
     iconShapeAdapter: PreferenceAdapter<IconShape>,
+    customIconShape: IconShape,
     modifier: Modifier = Modifier,
 ) {
-    val preferenceManager2 = preferenceManager2()
-
-    val customIconShapeAdapter = preferenceManager2.customIconShape.getAdapter()
-    val customIconShape = customIconShapeAdapter.state.value
-
-    customIconShape?.let {
-        PreferenceTemplate(
-            title = { Text(stringResource(id = R.string.custom)) },
-            modifier = modifier.clickable {
-                iconShapeAdapter.onChange(newValue = it)
-            },
-            startWidget = {
-                RadioButton(
-                    selected = IconShape.isCustomShape(iconShapeAdapter.state.value),
-                    onClick = null,
-                )
-            },
-            endWidget = {
-                IconShapePreview(iconShape = it)
-            },
-        )
-    }
+    PreferenceTemplate(
+        title = { Text(stringResource(id = R.string.custom)) },
+        modifier = modifier.clickable {
+            iconShapeAdapter.onChange(newValue = customIconShape)
+        },
+        startWidget = {
+            RadioButton(
+                selected = IconShape.isCustomShape(iconShapeAdapter.state.value),
+                onClick = null,
+            )
+        },
+        endWidget = {
+            IconShapePreview(iconShape = customIconShape)
+        },
+    )
 }
 
 @Composable

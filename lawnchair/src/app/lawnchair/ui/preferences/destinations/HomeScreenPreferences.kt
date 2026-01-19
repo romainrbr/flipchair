@@ -46,11 +46,11 @@ import app.lawnchair.ui.preferences.components.layout.PreferenceGroup
 import app.lawnchair.ui.preferences.components.layout.PreferenceLayout
 import app.lawnchair.ui.preferences.navigation.HomeScreenGrid
 import app.lawnchair.util.collectAsStateBlocking
-import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherAppState
 import com.android.launcher3.LauncherSettings
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
+import com.android.launcher3.celllayout.CellPosMapper
 import kotlinx.coroutines.launch
 
 object HomeScreenRoutes {
@@ -114,7 +114,7 @@ fun HomeScreenPreferences(
                     confirmationText = stringResource(id = R.string.remove_all_views_from_home_screen_desc),
                     onClick = {
                         scope.launch {
-                            clearAllViewsFromHomeScreen(context)
+                            clearAllViewsFromHomeScreen(context, LauncherSettings.Favorites.CONTAINER_DESKTOP)
                         }
                     },
                 )
@@ -294,12 +294,16 @@ fun HomeScreenPreferences(
     }
 }
 
-private fun clearAllViewsFromHomeScreen(context: Context) {
-    val model = Launcher.getLauncher(context).modelWriter
-    val isViewsRemoved = model.clearAllHomeScreenViewsByType(
-        LauncherSettings.Favorites.CONTAINER_DESKTOP,
+private fun clearAllViewsFromHomeScreen(context: Context, type: Int) {
+    val launcherModel = LauncherAppState.getInstance(context).model
+    val modelWriter = launcherModel.getWriter(
+        verifyChanges = false,
+        cellPosMapper = CellPosMapper.DEFAULT,
+        owner = null
     )
+    val isViewsRemoved = modelWriter.clearAllHomeScreenViewsByType(type)
     if (isViewsRemoved) {
+        launcherModel.forceReload()
         Toast.makeText(
             context,
             R.string.home_screen_all_views_removed_msg,

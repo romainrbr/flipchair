@@ -183,15 +183,17 @@ fun CustomizeAppDialog(
             showDescription = showComponentNames,
         ) {
             val stringKey = componentKey.toString()
-            SwitchPreference(
-                checked = hiddenApps.contains(stringKey),
-                label = stringResource(id = R.string.hide_from_drawer),
-                onCheckedChange = { newValue ->
-                    val newSet = hiddenApps.toMutableSet()
-                    if (newValue) newSet.add(stringKey) else newSet.remove(stringKey)
-                    adapter.onChange(newSet)
-                },
-            )
+            Item {
+                SwitchPreference(
+                    checked = hiddenApps.contains(stringKey),
+                    label = stringResource(id = R.string.hide_from_drawer),
+                    onCheckedChange = { newValue ->
+                        val newSet = hiddenApps.toMutableSet()
+                        if (newValue) newSet.add(stringKey) else newSet.remove(stringKey)
+                        adapter.onChange(newSet)
+                    },
+                )
+            }
         }
 
         if (preferenceManager2.iconSwipeGestures.asState().value && context.launcher.stateManager.state != LauncherState.ALL_APPS) {
@@ -200,11 +202,13 @@ fun CustomizeAppDialog(
                     GestureType.SWIPE_LEFT,
                     GestureType.SWIPE_RIGHT,
                 ).map { gestureType ->
-                    AppGesturePreference(
-                        componentKey,
-                        gestureType,
-                        stringResource(id = gestureType.labelResId),
-                    )
+                    Item {
+                        AppGesturePreference(
+                            componentKey,
+                            gestureType,
+                            stringResource(id = gestureType.labelResId),
+                        )
+                    }
                 }
             }
         }

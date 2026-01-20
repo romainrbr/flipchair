@@ -89,6 +89,9 @@ fun ExperimentalFeaturesPreferences(
                 )
             }
             Item {
+                // LC-Note: The feature is pretty much ready,
+                // we just need some minor UI planning then we should be good to promote the feature
+                // to stable.
                 val getFolderIconShapeCustomizationAdapter = prefs2.enableFolderIconShapeCustomization.getAdapter()
                 val enableFolderIconShapeCustomizationAdapter = remember(prefs2) {
                     getFolderIconShapeCustomizationAdapter

@@ -12,17 +12,20 @@ Build: BD5.2001 (latest), BD5.1901, BD5.1301, BD5.1201, BD4.2712
 
 Compatibility list:
 
-| 🏗️ Crash   | 🥞 Fully supported    |
-|-------------|-----------------------|
-| Android 8.0 | Android 10* (Limited) |
-| Android 8.1 | Android 11* (Limited) |
-| Android 9   | Android 12.0          |
-|             | Android 12.1          |
-|             | Android 13            |
-|             | Android 14            |
-|             | Android 15            |
-|             | Android 16            |
-|             | Android 16.1          |
+| 📱 Android version | 🥞 Recommended? | 💥 Crash? | 🧑‍💻 QuickSwitch Ready? |
+|--------------------|-----------------|-----------|--------------------------|
+| Android 8.0        | ❌               | ✅         | N/A                      |
+| Android 8.1        | ❌               | ✅         | N/A                      |
+| Android 9          | ❌               | ✅         | N/A                      |
+| Android 10         | ❌               | ❌         | ❌                        |
+| Android 11         | ❌               | ❌         | ❌                        |
+| Android 12.0       | ✅               | ❌         | ❌                        |
+| Android 12.1       | ✅               | ❌         | ❌                        |
+| Android 13         | ✅               | ❌         | ❌                        |
+| Android 14         | ✅               | ❌         | ❌                        |
+| Android 15         | ✅               | ❌         | ❌                        |
+| Android 16         | ✅               | ❌         | ❌                        |
+| Android 16.1       | ✅               | ❌         | N/A                      |
 
 #### Features
 * [Lawnchair] Allow user to disable the auto-updater (for Nightly build only)

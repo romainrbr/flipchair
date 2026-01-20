@@ -50,7 +50,8 @@ Compatibility list:
 * [Lawnchair] Incorrect expressive lists behaviour
 * [Lawnchair] Disable blur effect on bottom sheet on L3 incompatible devices for consistency
 * [Lawnchair] Reimplement clear home screen action
-* [Lawmchair] Crash when tapping on launcher preview
+* [Lawnchair] Crash when tapping on launcher preview
+* [Launcher] Actually fix app drawer alphabetical listing when loading icon in bulk
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

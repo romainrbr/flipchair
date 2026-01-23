@@ -144,6 +144,17 @@ final def ciRef = System.getenv("GITHUB_REF") ?: ""
 final def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER") ?: ""
 final def isReleaseBuild = ciBuild && ciRef.contains("beta")
 final def devReleaseName = ciBuild ? "Dev.(#${ciRunNumber})" : "Dev.(${buildCommit})"
+
+/* pE-TODO(Configuration):
+       Reduce versioning scheme from pE build format into Lawnchair format.
+       .
+       Notice: This may break Nightly auto-updater breaking changes warning but the code was written
+               to handle both two formats and switch accordingly so this could not be a problem?
+               Or so I thought since the updater wasn't tested for this scenario.
+       .
+       Note: pE format:             AA_BB_CC_DD_EE  is [Major, Minor, Stage, Release, Patch]
+             Lawnchair format:      AA_BB_CC_DD     is [Major, Minor, Stage, Release]
+*/
 final def version = "16"
 final def releaseName = "Development 5 Release 1"
 final def versionDisplayName = "${version}.${isReleaseBuild ? releaseName : devReleaseName}"

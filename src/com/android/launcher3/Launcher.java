@@ -234,6 +234,7 @@ import com.android.launcher3.util.IntSet;
 import com.android.launcher3.util.ItemInflater;
 import com.android.launcher3.util.KeyboardShortcutsDelegate;
 import com.android.launcher3.util.LauncherBindableItemsContainer;
+import com.android.launcher3.util.OnboardingPrefs;
 import com.android.launcher3.util.PackageUserKey;
 import com.android.launcher3.util.PendingRequestArgs;
 import com.android.launcher3.util.PluginManagerWrapper;
@@ -1147,6 +1148,12 @@ public class Launcher extends StatefulActivity<LauncherState>
         if (mPrevLauncherState != state && ALL_APPS.equals(state)
                 // Making sure mAllAppsSessionLogId is null to avoid double logging.
                 && mAllAppsSessionLogId == null) {
+            // LC-Note: Mark home bounce as seen when user actually opens All Apps
+            if (!OnboardingPrefs.HOME_BOUNCE_SEEN.get(this)) {
+                LauncherPrefs.getPrefs(this).edit()
+                        .putBoolean(OnboardingPrefs.HOME_BOUNCE_SEEN.getSharedPrefKey(), true)
+                        .apply();
+            }
             // creates new instance ID since new all apps session is started.
             mAllAppsSessionLogId = new InstanceIdSequence().newInstanceId();
             if (getAllAppsEntryEvent().isPresent()) {

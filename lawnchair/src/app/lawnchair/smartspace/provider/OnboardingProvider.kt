@@ -29,8 +29,11 @@ class OnboardingProvider(context: Context) :
         const val PREF_HAS_OPENED_SETTINGS = "pref_hasOpenedSettings"
 
         private val HOME_BOUNCE_KEY = OnboardingPrefs.HOME_BOUNCE_SEEN.sharedPrefKey
-        private val PREF_KEYS = setOf(PREF_LAWNCHAIR_MAJOR_VERSION, PREF_HAS_OPENED_SETTINGS,
-                                        HOME_BOUNCE_KEY)
+        private val PREF_KEYS = setOf(
+            PREF_LAWNCHAIR_MAJOR_VERSION,
+            PREF_HAS_OPENED_SETTINGS,
+            HOME_BOUNCE_KEY,
+        )
 
         private const val REQUEST_CODE_SETTINGS = 1
     }
@@ -50,8 +53,10 @@ class OnboardingProvider(context: Context) :
     private val lawnOnboardingPendingIntent: PendingIntent = lawnSettingsPendingIntent
 
     override val internalTargets = callbackFlow {
-        val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences,
-                                                                                 key ->
+        val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener {
+                sharedPreferences,
+                key,
+            ->
             if (key == null) return@OnSharedPreferenceChangeListener
 
             val isRelevant = when (sharedPreferences) {
@@ -81,8 +86,7 @@ class OnboardingProvider(context: Context) :
     }
 
     private fun hasRecentlyUpgradedMajor(): Boolean {
-        return context.getApkVersionComparison().first[0] > prefs.getInt(
-            PREF_LAWNCHAIR_MAJOR_VERSION, 123456)
+        return context.getApkVersionComparison().first[0] > prefs.getInt(PREF_LAWNCHAIR_MAJOR_VERSION, 123456)
     }
 
     private fun getSmartspaceTarget(): SmartspaceTarget? {

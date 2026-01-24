@@ -118,6 +118,7 @@ jobs:
 
   nightly-release:
     runs-on: ubuntu-latest
+    # Lawnchair-TODO(Configuration): Don't publish nightly build until Android 8.0, 8.1 is stable, and (probably) stable to match Lawnchair 15 Beta 1 or 2
     if: false
     # if: github.repository_owner == 'LawnchairLauncher' && github.event_name == 'push' && github.ref == 'refs/heads/15-dev'
     needs: build-debug-apk

@@ -142,6 +142,24 @@ fun DebugMenuPreferences(
                 }
             }
 
+            val hasOpenedSettings = prefs.hasOpenedSettings.getAdapter()
+            PreferenceGroup(heading = "Smartspace Onboarding") {
+                Item {
+                    ClickablePreference(
+                        label = "Reset All Apps Bounce",
+                        subtitle = "Reset it in Feature Flags page",
+                    ) { }
+                }
+                Item {
+                    ClickablePreference(
+                        label = "Reset open lawn settings",
+                        subtitle = hasOpenedSettings.state.value.toString(),
+                    ) {
+                        hasOpenedSettings.onChange(false)
+                    }
+                }
+            }
+
             val apmSupport = context.checkCallingOrSelfPermission(Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED
             PreferenceGroup(heading = "Supported features") {
                 Item {

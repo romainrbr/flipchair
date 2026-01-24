@@ -658,6 +658,11 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = true,
     )
 
+    val smartspaceOnboarding = preference(
+        key = booleanPreferencesKey("enable_smartspace_onboarding"),
+        defaultValue = true,
+    )
+
     val smartspaceShowDate = preference(
         key = booleanPreferencesKey("smartspace_show_date"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_smartspace_show_date),

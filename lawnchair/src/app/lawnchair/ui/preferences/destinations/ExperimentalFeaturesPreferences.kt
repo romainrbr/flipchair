@@ -83,7 +83,7 @@ fun ExperimentalFeaturesPreferences(
                 val enabled = enableFolderIconShapeCustomizationAdapter.state.value
 
                 NavigationActionPreference(
-                    label = stringResource(id = R.string.folder_shape_label),
+                    label = stringResource(id = R.string.experimental_folder_shape_modify_label),
                     destination = if (enabled) GeneralIconShape(ShapeRoute.FOLDER_SHAPE) else null,
                     subtitle = folderIconShapeSubtitle,
                     endWidget = {
@@ -200,7 +200,6 @@ fun ExperimentalFeaturesPreferences(
             stringResource(R.string.internal_label),
             stringResource(R.string.internal_description),
         ) {
-            // Lawnchair-TODO(Merge): Investigate Always Reload Icons
             Item {
                 SwitchPreference(
                     adapter = alwaysReloadIconsAdapter,

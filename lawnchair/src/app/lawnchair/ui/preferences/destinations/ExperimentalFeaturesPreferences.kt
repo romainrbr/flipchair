@@ -50,7 +50,6 @@ fun ExperimentalFeaturesPreferences(
         backArrowVisible = !LocalIsExpandedScreen.current,
         modifier = modifier,
     ) {
-        val enableMaterialExpressiveAdapter = prefs.enableMaterialExpressive.getAdapter()
         val enableWallpaperBlur = prefs.enableWallpaperBlur.getAdapter()
         val context = LocalContext.current
         val fileAccessManager = remember { FileAccessManager.getInstance(context) }
@@ -69,25 +68,6 @@ fun ExperimentalFeaturesPreferences(
             Modifier,
             stringResource(R.string.workspace_label),
         ) {
-            // pE-FeatureTaskForce-TODO(N/A): Make Material 3 Expressive Toggle
-            Item {
-                SwitchPreference(
-                    adapter = enableMaterialExpressiveAdapter,
-                    label = stringResource(id = R.string.material_expressive_label),
-                    description = stringResource(id = R.string.material_expressive_description),
-                )
-            }
-            Item(
-                "material_expressive_warning",
-                enableMaterialExpressiveAdapter.state.value && (!ATLEAST_S || !BlurUtils.supportsBlursOnWindows()),
-            ) {
-                WarningPreference(
-                    "Expressive Blur will be ignored because blur effect required at " +
-                        "least Android 12 or above, and device need performant GPU to render " +
-                        "blur and need to enable support rendering cross window blur by the " +
-                        "device manufacturer.",
-                )
-            }
             Item {
                 // LC-Note: The feature is pretty much ready,
                 // we just need some minor UI planning then we should be good to promote the feature

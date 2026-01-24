@@ -145,8 +145,6 @@ class PreferenceManager @Inject constructor(
 
     val hideVersionInfo = BoolPref("pref_hideVersionInfo", false)
     val pseudonymVersion = StringPref("pref_pseudonymVersion", "Bubble Tea")
-
-    val enableMaterialExpressive = BoolPref("pref_enableMaterialExpressive", false, recreate)
     val enableGnc = BoolPref("pref_enableGnc", isGestureNavContractCompatible, recreate)
     val hasOpenedSettings = BoolPref("pref_hasOpenedSettings", false)
 

@@ -8,7 +8,7 @@
 > This branch has diverged timeline from the original `16-dev`, meaning you will have to rebase your
 > commit back to this branch if you wish to contribute to this branch.
 
-Build: BD5.2001 (latest), BD5.1901, BD5.1301, BD5.1201, BD4.2712
+Build: BD5.2401 (latest), BD5.2101, BD5.2001, BD5.1901, BD5.1301, BD5.1201, BD4.2712
 
 Compatibility list:
 
@@ -32,6 +32,8 @@ Compatibility list:
 * [Lawnchair/PathShapeDelegate] Implement custom path revealing animations for folder transitions with complex shapes
 * [Lawnchair/Folder] Allow user to set custom folder shapes (experimental settings exclusive!)
 * [Launcher] Reintroduce folder expressive animations from Bubble Tea QPR1 Development 1 Release 1
+* [Lawnchair/Smartspace] Onboarding provider (Full-parity with Lawnchair Legacy)
+* [Launcher] Theme page indicator dots
 
 #### Fixes
 * [Launcher] Limited Android 11 support
@@ -55,6 +57,7 @@ Compatibility list:
 * [Lawnchair] Reimplement clear home screen action
 * [Lawnchair] Crash when tapping on launcher preview
 * [Launcher] Actually fix app drawer alphabetical listing when loading icon in bulk
+* [Launcher] Mark home bounce as seen when user actually opens All Apps
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 
@@ -213,7 +216,7 @@ Compatibility list:
 * [Project] Support for Android Studio 2025.2.3 Canary 5 (Bump to AGP 9.0.0-beta05)
 * [Lawnchair] Offer a toggle to disable/enable suggestions instead of linking it to ASI if the device is not Google Pixel
 
-### 🥞 Development 3 Release 2
+### Development 3 Release 2
 
 Build: BD3.2211
 

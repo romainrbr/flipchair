@@ -197,6 +197,11 @@ object ColorTokens {
         Neutral1_500.setLStar(98.0).setAlpha(0.32f),
         Neutral1_500.setLStar(4.0).setAlpha(0.32f),
     )
+
+    @JvmField val pageIndicatorDotColor = DayNightColorToken(
+        Accent1_600,
+        Accent1_500,
+    )
 }
 
 @Composable

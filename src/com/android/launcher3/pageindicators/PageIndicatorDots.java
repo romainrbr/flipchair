@@ -171,8 +171,7 @@ public class PageIndicatorDots extends View implements Insettable, PageIndicator
 
         mPaginationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaginationPaint.setStyle(Style.FILL);
-        // Lawnchair-TODO: pageIndicatorDotColor
-        mPaginationPaint.setColor(Themes.getAttrColor(context, R.attr.pageIndicatorDotColor));
+        mPaginationPaint.setColor(ColorTokens.pageIndicatorDotColor.resolveColor(context));
         mDotRadius = getResources().getDimension(R.dimen.page_indicator_dot_size) / 2;
         mGapWidth = getResources().getDimension(R.dimen.page_indicator_gap_width);
         mCircleGap = (enableLauncherVisualRefresh())

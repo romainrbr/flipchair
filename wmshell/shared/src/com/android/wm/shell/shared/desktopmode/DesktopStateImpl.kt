@@ -72,16 +72,18 @@ class DesktopStateImpl(context: Context) : DesktopState {
         }
 
     override val canShowDesktopModeDevOption: Boolean =
-        isDeviceEligibleForDesktopModeDevOption && if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        isDeviceEligibleForDesktopModeDevOption && if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             Flags.showDesktopWindowingDevOption()
         } else {
             false
         }
 
     private val isDesktopModeEnabledByDevOption =
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             DesktopModeFlags.isDesktopModeForcedEnabled()
         } else {
             false
@@ -90,15 +92,17 @@ class DesktopStateImpl(context: Context) : DesktopState {
     override val canEnterDesktopMode: Boolean = run {
         val isEligibleForDesktopMode =
             isDeviceEligibleForDesktopMode &&
-                    (if (false) {
-                        // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+                    (if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+                        && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+                    ) {
                         DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue
                     } else {
                         false
                     } || canInternalDisplayHostDesktops)
         val desktopModeEnabled =
-            isEligibleForDesktopMode && if (false) {
-                // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+            isEligibleForDesktopMode && if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+                && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            ) {
                 DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_MODE.isTrue
             } else { false}
         desktopModeEnabled || isDesktopModeEnabledByDevOption
@@ -108,16 +112,18 @@ class DesktopStateImpl(context: Context) : DesktopState {
         !enforceDeviceRestrictions || isDesktopModeSupported || isDesktopModeDevOptionSupported
 
     override val canShowDesktopExperienceDevOption: Boolean =
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             Flags.showDesktopExperienceDevOption()
         } else {
             false
         } && isDeviceEligibleForDesktopExperienceDevOption
 
     override val enterDesktopByDefaultOnFreeformDisplay: Boolean =
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             DesktopExperienceFlags.ENABLE_DESKTOP_FIRST_BASED_DEFAULT_TO_DESKTOP_BUGFIX.isTrue ||
             DesktopExperienceFlags.ENTER_DESKTOP_BY_DEFAULT_ON_FREEFORM_DISPLAYS.isTrue &&
                 SystemProperties.getBoolean(
@@ -134,8 +140,9 @@ class DesktopStateImpl(context: Context) : DesktopState {
         get() {
             if (!enforceDeviceRestrictions) return true
             val desktopModeSupportedByDevOptions =
-                if (false) {
-                    // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+                    && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+                ) {
                     Flags.enableDesktopModeThroughDevOption()
                 } else {
                     false
@@ -144,8 +151,9 @@ class DesktopStateImpl(context: Context) : DesktopState {
         }
 
     override val enableMultipleDesktops: Boolean =
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue
                     && DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
         } else {
@@ -153,8 +161,9 @@ class DesktopStateImpl(context: Context) : DesktopState {
         } && canEnterDesktopMode
 
     override fun isMultipleDesktopFrontendEnabledOnDisplay(display: Display): Boolean =
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
                     && DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue
         } else {
@@ -172,8 +181,9 @@ class DesktopStateImpl(context: Context) : DesktopState {
         if (!canEnterDesktopMode) return false
         if (!enforceDeviceRestrictions) return true
         if (display.type == Display.TYPE_INTERNAL) return canInternalDisplayHostDesktops
-        if (!if (false) {
-                // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if (!if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+                && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            ) {
                 DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue
             } else {false}
         ) return false
@@ -181,8 +191,9 @@ class DesktopStateImpl(context: Context) : DesktopState {
     }
 
     override fun isProjectedMode(): Boolean {
-        if (!if (false) {
-                // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if (!if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+                && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            ) {
                 DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue
             } else {
                 false
@@ -212,8 +223,9 @@ class DesktopStateImpl(context: Context) : DesktopState {
         }
 
     override val overridesShowAppHandle: Boolean =
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             (Flags.showAppHandleLargeScreens() ||
                 BubbleAnythingFlagHelper.enableBubbleToFullscreen()) && deviceHasLargeScreen
         } else {
@@ -226,15 +238,16 @@ class DesktopStateImpl(context: Context) : DesktopState {
         Settings.Global.getInt(
             context.getContentResolver(),
             Settings.Global.DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT,
-            0
+            0,
         ) != 0
     override val isFreeformEnabled: Boolean = hasFreeformFeature || hasFreeformDevOption
 
     override val shouldShowHomeBehindDesktop: Boolean =
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
+            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+        ) {
             Flags.showHomeBehindDesktop() && context.resources.getBoolean(
-                R.bool.config_showHomeBehindDesktop
+                R.bool.config_showHomeBehindDesktop,
             )
         } else {
             false

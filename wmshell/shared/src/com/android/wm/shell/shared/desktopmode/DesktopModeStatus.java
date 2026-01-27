@@ -22,6 +22,9 @@ import static com.android.wm.shell.shared.bubbles.BubbleAnythingFlagHelper.enabl
 
 import android.content.res.Resources.NotFoundException;
 import android.os.Build;
+import android.os.Build.VERSION;
+import android.os.Build.VERSION_CODES;
+import android.os.Build.VERSION_CODES_FULL;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.content.Context;
@@ -147,8 +150,8 @@ public class DesktopModeStatus {
      */
     public static boolean canEnterDesktopMode(@NonNull Context context) {
         boolean ENABLED_PROJECTED_DISPLAY_DESKTOP_MODE;
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
+            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
             ENABLED_PROJECTED_DISPLAY_DESKTOP_MODE = DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue();
         } else {
             ENABLED_PROJECTED_DISPLAY_DESKTOP_MODE = false;
@@ -158,8 +161,8 @@ public class DesktopModeStatus {
                         || canInternalDisplayHostDesktops(context));
         
         boolean ENABLE_DESKTOP_WINDOWING_MODE;
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
+            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
             ENABLE_DESKTOP_WINDOWING_MODE = DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_MODE.isTrue();
         } else {
             ENABLE_DESKTOP_WINDOWING_MODE = false;
@@ -174,8 +177,9 @@ public class DesktopModeStatus {
      */
     private static boolean isDesktopModeEnabledByDevOption(@NonNull Context context) {
         boolean isDesktopModeForcedEnabled;
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
+            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            // LC-Ignored
             isDesktopModeForcedEnabled = DesktopModeFlags.isDesktopModeForcedEnabled();
         } else {
             isDesktopModeForcedEnabled = false;
@@ -200,8 +204,8 @@ public class DesktopModeStatus {
         }
         
         boolean ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT;
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
+            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
             ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT = DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue();
         } else {
             ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT = false;
@@ -224,8 +228,8 @@ public class DesktopModeStatus {
         boolean ENABLE_MULTIPLE_DESKTOPS_FRONTEND;
         boolean ENABLE_MULTIPLE_DESKTOPS_BACKEND;
 
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
+            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
             ENABLE_MULTIPLE_DESKTOPS_FRONTEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue();
             ENABLE_MULTIPLE_DESKTOPS_BACKEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue();
         } else {
@@ -246,8 +250,8 @@ public class DesktopModeStatus {
         boolean ENABLE_MULTIPLE_DESKTOPS_FRONTEND;
         boolean ENABLE_MULTIPLE_DESKTOPS_BACKEND;
 
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
+            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
             ENABLE_MULTIPLE_DESKTOPS_FRONTEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue();
             ENABLE_MULTIPLE_DESKTOPS_BACKEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue();
         } else {
@@ -285,8 +289,8 @@ public class DesktopModeStatus {
             return true;
         }
         final boolean enableDesktopModeThroughDevOption;
-        if (false) {
-            // LC-Ignored: Lawnchair-TODO: Intentional unless we can find a way to detect QPR1 build or skip to Android 17
+        if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
+            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
             enableDesktopModeThroughDevOption = Flags.enableDesktopModeThroughDevOption();
         } else {
             enableDesktopModeThroughDevOption = false;

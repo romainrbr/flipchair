@@ -151,7 +151,7 @@ public class DesktopModeStatus {
     public static boolean canEnterDesktopMode(@NonNull Context context) {
         boolean ENABLED_PROJECTED_DISPLAY_DESKTOP_MODE;
         if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
-            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            && (VERSION.SDK_INT_FULL >= 3600001)) {
             ENABLED_PROJECTED_DISPLAY_DESKTOP_MODE = DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue();
         } else {
             ENABLED_PROJECTED_DISPLAY_DESKTOP_MODE = false;
@@ -162,7 +162,7 @@ public class DesktopModeStatus {
         
         boolean ENABLE_DESKTOP_WINDOWING_MODE;
         if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
-            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            && (VERSION.SDK_INT_FULL >= 3600001)) {
             ENABLE_DESKTOP_WINDOWING_MODE = DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_MODE.isTrue();
         } else {
             ENABLE_DESKTOP_WINDOWING_MODE = false;
@@ -178,7 +178,7 @@ public class DesktopModeStatus {
     private static boolean isDesktopModeEnabledByDevOption(@NonNull Context context) {
         boolean isDesktopModeForcedEnabled;
         if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
-            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            && (VERSION.SDK_INT_FULL >= 3600001)) {
             // LC-Ignored
             isDesktopModeForcedEnabled = DesktopModeFlags.isDesktopModeForcedEnabled();
         } else {
@@ -205,7 +205,7 @@ public class DesktopModeStatus {
         
         boolean ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT;
         if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
-            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            && (VERSION.SDK_INT_FULL >= 3600001)) {
             ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT = DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue();
         } else {
             ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT = false;
@@ -229,7 +229,7 @@ public class DesktopModeStatus {
         boolean ENABLE_MULTIPLE_DESKTOPS_BACKEND;
 
         if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
-            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            && (VERSION.SDK_INT_FULL >= 3600001)) {
             ENABLE_MULTIPLE_DESKTOPS_FRONTEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue();
             ENABLE_MULTIPLE_DESKTOPS_BACKEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue();
         } else {
@@ -251,7 +251,7 @@ public class DesktopModeStatus {
         boolean ENABLE_MULTIPLE_DESKTOPS_BACKEND;
 
         if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
-            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            && (VERSION.SDK_INT_FULL >= 3600001)) {
             ENABLE_MULTIPLE_DESKTOPS_FRONTEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue();
             ENABLE_MULTIPLE_DESKTOPS_BACKEND = DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue();
         } else {
@@ -290,7 +290,7 @@ public class DesktopModeStatus {
         }
         final boolean enableDesktopModeThroughDevOption;
         if ((VERSION.SDK_INT >= VERSION_CODES.BAKLAVA)
-            && (VERSION.SDK_INT_FULL >= VERSION_CODES_FULL.BAKLAVA_1)) {
+            && (VERSION.SDK_INT_FULL >= 3600001)) {
             enableDesktopModeThroughDevOption = Flags.enableDesktopModeThroughDevOption();
         } else {
             enableDesktopModeThroughDevOption = false;

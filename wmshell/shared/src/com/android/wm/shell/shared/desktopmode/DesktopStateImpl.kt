@@ -73,7 +73,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override val canShowDesktopModeDevOption: Boolean =
         isDeviceEligibleForDesktopModeDevOption && if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             Flags.showDesktopWindowingDevOption()
         } else {
@@ -82,7 +82,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     private val isDesktopModeEnabledByDevOption =
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             DesktopModeFlags.isDesktopModeForcedEnabled()
         } else {
@@ -93,7 +93,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
         val isEligibleForDesktopMode =
             isDeviceEligibleForDesktopMode &&
                     (if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                        && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+                        && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
                     ) {
                         DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue
                     } else {
@@ -101,7 +101,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
                     } || canInternalDisplayHostDesktops)
         val desktopModeEnabled =
             isEligibleForDesktopMode && if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+                && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
             ) {
                 DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_MODE.isTrue
             } else { false}
@@ -113,7 +113,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override val canShowDesktopExperienceDevOption: Boolean =
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             Flags.showDesktopExperienceDevOption()
         } else {
@@ -122,7 +122,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override val enterDesktopByDefaultOnFreeformDisplay: Boolean =
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             DesktopExperienceFlags.ENABLE_DESKTOP_FIRST_BASED_DEFAULT_TO_DESKTOP_BUGFIX.isTrue ||
             DesktopExperienceFlags.ENTER_DESKTOP_BY_DEFAULT_ON_FREEFORM_DISPLAYS.isTrue &&
@@ -141,7 +141,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
             if (!enforceDeviceRestrictions) return true
             val desktopModeSupportedByDevOptions =
                 if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                    && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+                    && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
                 ) {
                     Flags.enableDesktopModeThroughDevOption()
                 } else {
@@ -152,7 +152,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override val enableMultipleDesktops: Boolean =
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue
                     && DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
@@ -162,7 +162,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override fun isMultipleDesktopFrontendEnabledOnDisplay(display: Display): Boolean =
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
                     && DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue
@@ -182,7 +182,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
         if (!enforceDeviceRestrictions) return true
         if (display.type == Display.TYPE_INTERNAL) return canInternalDisplayHostDesktops
         if (!if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+                && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
             ) {
                 DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue
             } else {false}
@@ -192,7 +192,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override fun isProjectedMode(): Boolean {
         if (!if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+                && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
             ) {
                 DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue
             } else {
@@ -224,7 +224,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override val overridesShowAppHandle: Boolean =
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             (Flags.showAppHandleLargeScreens() ||
                 BubbleAnythingFlagHelper.enableBubbleToFullscreen()) && deviceHasLargeScreen
@@ -244,7 +244,7 @@ class DesktopStateImpl(context: Context) : DesktopState {
 
     override val shouldShowHomeBehindDesktop: Boolean =
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= Build.VERSION_CODES_FULL.BAKLAVA_1)
+            && (Build.VERSION.SDK_INT_FULL >= Build.3600001)
         ) {
             Flags.showHomeBehindDesktop() && context.resources.getBoolean(
                 R.bool.config_showHomeBehindDesktop,

@@ -497,7 +497,7 @@ spotless {
     }
     kotlin {
         target("lawnchair/src/**/*.kt")
-        ktlint("1.8.0").customRuleSets([
+        ktlint(libs.ktlint.get().version).customRuleSets([
             libs.composeRules.get().toString()
         ]).editorConfigOverride([
             "ktlint_compose_compositionlocal-allowlist": "disabled",

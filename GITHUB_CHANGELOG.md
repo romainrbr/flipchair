@@ -58,7 +58,6 @@ Compatibility list:
 * [Lawnchair] Crash when tapping on launcher preview
 * [Launcher] Actually fix app drawer alphabetical listing when loading icon in bulk
 * [Launcher] Mark home bounce as seen when user actually opens All Apps
-* [Launcher] Correct detect QPR1 build and enable features for them accordingly
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

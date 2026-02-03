@@ -72,18 +72,16 @@ class DesktopStateImpl(context: Context) : DesktopState {
         }
 
     override val canShowDesktopModeDevOption: Boolean =
-        isDeviceEligibleForDesktopModeDevOption && if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        isDeviceEligibleForDesktopModeDevOption && if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             Flags.showDesktopWindowingDevOption()
         } else {
             false
         }
 
     private val isDesktopModeEnabledByDevOption =
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             DesktopModeFlags.isDesktopModeForcedEnabled()
         } else {
             false
@@ -92,17 +90,15 @@ class DesktopStateImpl(context: Context) : DesktopState {
     override val canEnterDesktopMode: Boolean = run {
         val isEligibleForDesktopMode =
             isDeviceEligibleForDesktopMode &&
-                    (if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                        && (Build.VERSION.SDK_INT_FULL >= 3600001)
-                    ) {
+                    (if (false) {
+                        // LC-Ignored: Intentional, all Android desktop flags are disabled
                         DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue
                     } else {
                         false
                     } || canInternalDisplayHostDesktops)
         val desktopModeEnabled =
-            isEligibleForDesktopMode && if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                && (Build.VERSION.SDK_INT_FULL >= 3600001)
-            ) {
+            isEligibleForDesktopMode && if (false) {
+                // LC-Ignored: Intentional, all Android desktop flags are disabled
                 DesktopModeFlags.ENABLE_DESKTOP_WINDOWING_MODE.isTrue
             } else { false}
         desktopModeEnabled || isDesktopModeEnabledByDevOption
@@ -112,18 +108,16 @@ class DesktopStateImpl(context: Context) : DesktopState {
         !enforceDeviceRestrictions || isDesktopModeSupported || isDesktopModeDevOptionSupported
 
     override val canShowDesktopExperienceDevOption: Boolean =
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             Flags.showDesktopExperienceDevOption()
         } else {
             false
         } && isDeviceEligibleForDesktopExperienceDevOption
 
     override val enterDesktopByDefaultOnFreeformDisplay: Boolean =
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             DesktopExperienceFlags.ENABLE_DESKTOP_FIRST_BASED_DEFAULT_TO_DESKTOP_BUGFIX.isTrue ||
             DesktopExperienceFlags.ENTER_DESKTOP_BY_DEFAULT_ON_FREEFORM_DISPLAYS.isTrue &&
                 SystemProperties.getBoolean(
@@ -140,9 +134,8 @@ class DesktopStateImpl(context: Context) : DesktopState {
         get() {
             if (!enforceDeviceRestrictions) return true
             val desktopModeSupportedByDevOptions =
-                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                    && (Build.VERSION.SDK_INT_FULL >= 3600001)
-                ) {
+                if (false) {
+                    // LC-Ignored: Intentional, all Android desktop flags are disabled
                     Flags.enableDesktopModeThroughDevOption()
                 } else {
                     false
@@ -151,9 +144,8 @@ class DesktopStateImpl(context: Context) : DesktopState {
         }
 
     override val enableMultipleDesktops: Boolean =
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue
                     && DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
         } else {
@@ -161,9 +153,8 @@ class DesktopStateImpl(context: Context) : DesktopState {
         } && canEnterDesktopMode
 
     override fun isMultipleDesktopFrontendEnabledOnDisplay(display: Display): Boolean =
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_FRONTEND.isTrue
                     && DesktopExperienceFlags.ENABLE_MULTIPLE_DESKTOPS_BACKEND.isTrue
         } else {
@@ -181,9 +172,8 @@ class DesktopStateImpl(context: Context) : DesktopState {
         if (!canEnterDesktopMode) return false
         if (!enforceDeviceRestrictions) return true
         if (display.type == Display.TYPE_INTERNAL) return canInternalDisplayHostDesktops
-        if (!if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                && (Build.VERSION.SDK_INT_FULL >= 3600001)
-            ) {
+        if (!if (false) {
+                // LC-Ignored: Intentional, all Android desktop flags are disabled
                 DesktopExperienceFlags.ENABLE_DISPLAY_CONTENT_MODE_MANAGEMENT.isTrue
             } else {false}
         ) return false
@@ -191,9 +181,8 @@ class DesktopStateImpl(context: Context) : DesktopState {
     }
 
     override fun isProjectedMode(): Boolean {
-        if (!if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-                && (Build.VERSION.SDK_INT_FULL >= 3600001)
-            ) {
+        if (!if (false) {
+                // LC-Ignored: Intentional, all Android desktop flags are disabled
                 DesktopExperienceFlags.ENABLE_PROJECTED_DISPLAY_DESKTOP_MODE.isTrue
             } else {
                 false
@@ -223,9 +212,8 @@ class DesktopStateImpl(context: Context) : DesktopState {
         }
 
     override val overridesShowAppHandle: Boolean =
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             (Flags.showAppHandleLargeScreens() ||
                 BubbleAnythingFlagHelper.enableBubbleToFullscreen()) && deviceHasLargeScreen
         } else {
@@ -238,16 +226,15 @@ class DesktopStateImpl(context: Context) : DesktopState {
         Settings.Global.getInt(
             context.getContentResolver(),
             Settings.Global.DEVELOPMENT_ENABLE_FREEFORM_WINDOWS_SUPPORT,
-            0,
+            0
         ) != 0
     override val isFreeformEnabled: Boolean = hasFreeformFeature || hasFreeformDevOption
 
     override val shouldShowHomeBehindDesktop: Boolean =
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA)
-            && (Build.VERSION.SDK_INT_FULL >= 3600001)
-        ) {
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             Flags.showHomeBehindDesktop() && context.resources.getBoolean(
-                R.bool.config_showHomeBehindDesktop,
+                R.bool.config_showHomeBehindDesktop
             )
         } else {
             false

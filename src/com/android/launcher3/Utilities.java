@@ -51,7 +51,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
-import android.os.Build.VERSION_CODES_FULL;
 import android.os.DeadObjectException;
 import android.os.Handler;
 import android.os.Message;
@@ -160,7 +159,7 @@ public final class Utilities {
     @ChecksSdkIntAtLeast(api = 36, codename = "BAKLAVA_1")
     public static final boolean ATLEAST_BAKLAVA_1 = 
             (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) 
-                && (Build.VERSION.SDK_INT_FULL >= 3600001);
+                && (Build.VERSION.SDK_INT_FULL >= 3600001); // pE-TODO(): Why Build.VERSION_CODES_FULL.BAKLAVA_1 failed?
 
     /**
      * Set on a motion event dispatched from the nav bar. See {@link MotionEvent#setEdgeFlags(int)}.

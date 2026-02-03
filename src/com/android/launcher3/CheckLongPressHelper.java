@@ -142,8 +142,8 @@ public class CheckLongPressHelper {
 
     private void triggerLongPress() {
         boolean showHomeBehindDesktop;
-        if (Utilities.ATLEAST_BAKLAVA_1) {
-            // LC-Ignored
+        if (false) {
+            // LC-Ignored: Intentional, all Android desktop flags are disabled
             showHomeBehindDesktop = Flags.showHomeBehindDesktop();
         } else {
             showHomeBehindDesktop = false;

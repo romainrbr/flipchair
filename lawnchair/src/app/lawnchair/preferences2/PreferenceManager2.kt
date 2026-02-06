@@ -611,7 +611,9 @@ class PreferenceManager2 @Inject constructor(
     val twoLineAllApps = preference(
         key = booleanPreferencesKey(name = "two_line_all_apps"),
         defaultValue = context.resources.getBoolean(R.bool.config_default_enable_two_line_allapps),
-        onSet = { reloadHelper.recreate() },
+        onSet = { value ->
+            LauncherPrefs.get(context).put(ENABLE_TWOLINE_ALLAPPS_TOGGLE, value)
+        },
     )
 
     val enableFeed = preference(

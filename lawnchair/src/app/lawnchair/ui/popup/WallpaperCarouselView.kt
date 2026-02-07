@@ -16,9 +16,9 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
-import app.lawnchair.launcher
 import app.lawnchair.data.wallpaper.Wallpaper
 import app.lawnchair.data.wallpaper.model.WallpaperViewModel
+import app.lawnchair.launcher
 import app.lawnchair.views.component.IconFrame
 import com.android.launcher3.R
 import com.android.launcher3.util.Themes

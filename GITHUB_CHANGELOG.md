@@ -36,6 +36,7 @@ Compatibility list:
 * [Launcher] Theme page indicator dots
 * [Lawnchair] Add work profile customization and fix issues (https://github.com/LawnchairLauncher/lawnchair/pull/6167)
 * [Lawnchair] Update Google Fonts listing to 03022026 (https://github.com/LawnchairLauncher/lawnchair/pull/6193)
+* [Lawnchair] Compare GitHub digest with actual downloaded file in Nightly updater
 
 #### Fixes
 * [Launcher] Limited Android 11 support

@@ -64,6 +64,7 @@ Compatibility list:
 * [Lawnchair] Disable all Android Desktop components
 * [Lawnchair] Reimplement app drawer multiple lines logic (https://github.com/LawnchairLauncher/lawnchair/pull/6324)
 * [Launcher] Skip initialising QuickstepProtoLog for Android 11
+* [Lawnchair] Reimplement Lawnchair 13 migration
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

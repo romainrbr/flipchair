@@ -37,6 +37,8 @@ Compatibility list:
 * [Lawnchair] Add work profile customization and fix issues (https://github.com/LawnchairLauncher/lawnchair/pull/6167)
 * [Lawnchair] Update Google Fonts listing to 03022026 (https://github.com/LawnchairLauncher/lawnchair/pull/6193)
 * [Lawnchair] Compare GitHub digest with actual downloaded file in Nightly updater
+* [Lawnchair] Enable wrap adaptive icons by default (only on by default)
+* [Lawnchair] Enable bulk icon loading by default (toggle removed, on by default)
 
 #### Fixes
 * [Launcher] Limited Android 11 support
@@ -69,6 +71,7 @@ Compatibility list:
 * [Launcher] Launcher render At a Glance widget as search widget in preview
 * [Lawnchair/Iconloaderlib] Use correct default percentage for icon adaptive lightness
 * [Lawnchair/Iconloaderlib] Correct wrap adaptive drawable behaviour
+* [Launcher] Null exception in FloatingIconView
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

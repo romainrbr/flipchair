@@ -110,8 +110,6 @@ class PreferenceManager @Inject constructor(
     val searchResultSettingsEntry = BoolPref("pref_searchResultSettingsEntry", false, recreate)
     val searchResulRecentSuggestion = BoolPref("pref_searchResultRecentSuggestion", false, recreate)
 
-    val allAppBulkIconLoading = BoolPref("pref_allapps_bulk_icon_loading", true, recreate)
-
     val themedIcons = BoolPref("themed_icons", false, recreate)
     val drawerThemedIcons = BoolPref("drawer_themed_icons", false, recreate)
     val tintIconPackBackgrounds = BoolPref("tint_icon_pack_backgrounds", false, recreate)

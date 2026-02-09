@@ -67,6 +67,8 @@ Compatibility list:
 * [Launcher] Skip initialising QuickstepProtoLog for Android 11
 * [Lawnchair] Reimplement Lawnchair 13 migration
 * [Launcher] Launcher render At a Glance widget as search widget in preview
+* [Lawnchair/Iconloaderlib] Use correct default percentage for icon adaptive lightness
+* [Lawnchair/Iconloaderlib] Correct wrap adaptive drawable behaviour
 
 ### 🥞 Development 4 Release 1 (Snapshot 10)
 

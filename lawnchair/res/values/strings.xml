@@ -145,6 +145,10 @@
     <!-- A11y description -->
     <string name="accessibility_service_description">To perform certain actions (such as locking your phone) when performing a gesture, Lawnchair requires accessibility access.\n\nLawnchair doesn\'t watch any user action, though the privilege to do so is required for all accessibility services. Lawnchair discards any event sent by the system.\n\nIn order to lock your phone, or to open the Recents screen, Lawnchair uses the performGlobalAction Accessibility service.</string>
 
+    <!-- Cover screen -->
+    <string name="cover_screen_auto_launch_label">Auto-launch on cover screen</string>
+    <string name="cover_screen_auto_launch_description">Automatically bring Lawnchair to the foreground when the cover screen is unlocked</string>
+
     <string name="iconPackPackageDefault" translatable="false">""</string>
 
     <string name="n_percent" translatable="false">%1$d%%</string>

@@ -764,6 +764,11 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = GestureHandlerConfig.NoOp,
     )
 
+    val coverScreenAutoLaunch = preference(
+        key = booleanPreferencesKey(name = "cover_screen_auto_launch"),
+        defaultValue = false,
+    )
+
     val autoUpdaterNightly = preference(
         key = booleanPreferencesKey(name = "enable_nightly_auto_updater"),
         defaultValue = if (BuildConfig.APPLICATION_ID.contains("nightly")) {

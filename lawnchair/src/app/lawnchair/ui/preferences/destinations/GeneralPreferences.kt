@@ -50,6 +50,7 @@ import app.lawnchair.ui.preferences.components.notificationDotsEnabled
 import app.lawnchair.ui.preferences.components.notificationServiceEnabled
 import app.lawnchair.ui.preferences.navigation.GeneralIconPack
 import app.lawnchair.ui.preferences.navigation.GeneralIconShape
+import app.lawnchair.util.isSamsung
 import com.android.launcher3.BuildConfig
 import com.android.launcher3.R
 import com.android.launcher3.Utilities
@@ -97,6 +98,15 @@ fun GeneralPreferences() {
                     label = stringResource(id = R.string.home_screen_rotation_label),
                     description = stringResource(id = R.string.home_screen_rotation_description),
                 )
+            }
+            if (isSamsung) {
+                Item {
+                    SwitchPreference(
+                        adapter = prefs2.coverScreenAutoLaunch.getAdapter(),
+                        label = stringResource(id = R.string.cover_screen_auto_launch_label),
+                        description = stringResource(id = R.string.cover_screen_auto_launch_description),
+                    )
+                }
             }
         }
         if (BuildConfig.APPLICATION_ID.contains("nightly")) {

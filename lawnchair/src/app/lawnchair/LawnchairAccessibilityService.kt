@@ -32,6 +32,7 @@ import com.patrykmichalik.opto.core.firstBlocking
 class LawnchairAccessibilityService : AccessibilityService() {
 
     private var lastLaunchTime = 0L
+    private var lastForegroundPackage: String? = null
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -71,38 +72,36 @@ class LawnchairAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
+        if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         if (!isCoverScreen()) return
 
         val prefs = PreferenceManager2.getInstance(this) ?: return
         if (!prefs.coverScreenAutoLaunch.firstBlocking()) return
 
-        val eventTypeName = when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> "STATE_CHANGED"
-            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> "WINDOWS_CHANGED"
-            else -> "OTHER(${event.eventType})"
-        }
+        val source = event.packageName?.toString()
+        val className = event.className?.toString()
+        Log.d(TAG, "[STATE_CHANGED] pkg=$source class=$className lastFg=$lastForegroundPackage")
 
-        when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-                val source = event.packageName?.toString()
-                val className = event.className?.toString()
-                Log.d(TAG, "[$eventTypeName] pkg=$source class=$className")
+        val isCoverHome = source == "com.sec.android.app.launcher" ||
+            className == SAMSUNG_COVER_HOME_CLASS ||
+            source == "com.samsung.android.app.aodservice"
 
-                // Match Samsung's cover home screen specifically, not generic systemui events
-                // (systemui fires for gesture animations, nav bar, etc.)
-                val isCoverHome = source == "com.sec.android.app.launcher" ||
-                    className == SAMSUNG_COVER_HOME_CLASS ||
-                    source == "com.samsung.android.app.aodservice"
-                if (isCoverHome) {
-                    Log.d(TAG, "  -> MATCH: cover home detected")
-                    launchLawnchair()
-                } else {
-                    Log.d(TAG, "  -> SKIP: not cover home")
-                }
+        if (isCoverHome) {
+            // Samsung's cover home appeared. Check where the user was:
+            // - From an app → launch Lawnchair (Lawnchair replaces Samsung's home)
+            // - From Lawnchair → let Samsung's home stay (user intentionally left)
+            if (lastForegroundPackage == packageName) {
+                Log.d(TAG, "  -> User left Lawnchair, staying on Samsung home")
+            } else {
+                Log.d(TAG, "  -> User left app ($lastForegroundPackage), launching Lawnchair")
+                launchLawnchair()
             }
-            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
-                // Not useful on this device (windows list is always empty on cover screen)
+        } else {
+            // Track the foreground package (ignore transient systemui events)
+            if (source != "com.android.systemui") {
+                lastForegroundPackage = source
             }
+            Log.d(TAG, "  -> Tracking foreground: $source")
         }
     }
 

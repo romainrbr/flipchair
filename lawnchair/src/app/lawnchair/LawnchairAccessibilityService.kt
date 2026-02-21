@@ -25,6 +25,7 @@ import android.content.IntentFilter
 import android.hardware.display.DisplayManager
 import android.util.Log
 import android.view.Display
+import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import app.lawnchair.preferences2.PreferenceManager2
 import com.patrykmichalik.opto.core.firstBlocking
@@ -47,6 +48,7 @@ class LawnchairAccessibilityService : AccessibilityService() {
         serviceInfo = AccessibilityServiceInfo().apply {
             eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
+            flags = AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
             notificationTimeout = 0
             packageNames = null
         }
@@ -69,6 +71,25 @@ class LawnchairAccessibilityService : AccessibilityService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
     override fun onInterrupt() {}
+
+    // Intercept the home key before Samsung's home screen appears, eliminating the ~200ms flash.
+    // Only consume when we're in a non-Lawnchair app on the cover screen — let it pass when in
+    // Lawnchair so the user can still navigate to Samsung's home intentionally.
+    override fun onKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode != KeyEvent.KEYCODE_HOME) return false
+        if (event.action != KeyEvent.ACTION_UP) return false
+        if (!isCoverScreen()) return false
+
+        val prefs = PreferenceManager2.getInstance(this) ?: return false
+        if (!prefs.coverScreenAutoLaunch.firstBlocking()) return false
+
+        val fg = lastForegroundPackage
+        if (fg == null || fg == packageName) return false // unknown state or in Lawnchair → pass through
+
+        Log.d(TAG, "  -> Home key intercepted from $fg, launching Lawnchair directly")
+        launchLawnchair()
+        return true // consume: prevent Samsung home from appearing
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
@@ -125,7 +146,11 @@ class LawnchairAccessibilityService : AccessibilityService() {
 
         Log.d(TAG, ">>> LAUNCHING Lawnchair on cover screen!")
         val intent = Intent(this, LawnchairLauncher::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                    Intent.FLAG_ACTIVITY_NO_ANIMATION,
+            )
         }
         startActivity(intent)
     }

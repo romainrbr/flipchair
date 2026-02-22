@@ -75,6 +75,9 @@ open class SystemApiWrapper @Inject constructor(@ApplicationContext context: Con
     }
 
     override fun createFadeOutAnimOptions(): ActivityOptions {
+        // remoteTransition on ActivityOptions requires a privileged permission on API 36+
+        // (Android 16 / Baklava) and will throw SecurityException during startActivity.
+        if (Build.VERSION.SDK_INT >= 36) return super.createFadeOutAnimOptions()
         return try {
             ActivityOptions.makeBasic().apply {
                 remoteTransition = RemoteTransition(FadeOutRemoteTransition(), "FadeOut")

@@ -282,8 +282,15 @@ public class DatabaseWidgetPreviewLoader {
 
         int size = iconSize + 2 * padding;
         if (maxHeight < size || maxWidth < size) {
-            throw new RuntimeException("Max size is too small for preview");
+            // Scale down to fit within the available space rather than crashing.
+            int available = Math.max(1, Math.min(maxHeight, maxWidth));
+            float scale = (float) available / size;
+            iconSize = Math.max(1, (int) (iconSize * scale));
+            padding = Math.max(0, (available - iconSize) / 2);
+            size = available;
         }
+        final int finalIconSize = iconSize;
+        final int finalPadding = padding;
         return BitmapRenderer.createHardwareBitmap(size, size, c -> {
             LauncherIcons li = LauncherIcons.obtain(mContext);
             Drawable icon = li.createBadgedIconBitmap(
@@ -292,7 +299,8 @@ public class DatabaseWidgetPreviewLoader {
                     .newIcon(mContext);
             li.recycle();
 
-            icon.setBounds(padding, padding, padding + iconSize, padding + iconSize);
+            icon.setBounds(finalPadding, finalPadding,
+                    finalPadding + finalIconSize, finalPadding + finalIconSize);
             icon.draw(c);
         });
     }

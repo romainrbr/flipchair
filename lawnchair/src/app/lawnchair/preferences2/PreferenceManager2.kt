@@ -769,6 +769,11 @@ class PreferenceManager2 @Inject constructor(
         defaultValue = false,
     )
 
+    val coverScreenSamsungHomeToggle = preference(
+        key = booleanPreferencesKey(name = "cover_screen_samsung_home_toggle"),
+        defaultValue = true,
+    )
+
     val autoUpdaterNightly = preference(
         key = booleanPreferencesKey(name = "enable_nightly_auto_updater"),
         defaultValue = if (BuildConfig.APPLICATION_ID.contains("nightly")) {

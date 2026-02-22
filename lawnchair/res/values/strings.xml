@@ -148,6 +148,8 @@
     <!-- Cover screen -->
     <string name="cover_screen_auto_launch_label">Auto-launch on cover screen</string>
     <string name="cover_screen_auto_launch_description">Automatically bring Lawnchair to the foreground when the cover screen is unlocked</string>
+    <string name="cover_screen_samsung_home_toggle_label">Home button returns to Samsung menu</string>
+    <string name="cover_screen_samsung_home_toggle_description">Pressing home from the Lawnchair home screen switches to Samsung\'s cover screen menu</string>
 
     <string name="iconPackPackageDefault" translatable="false">""</string>
 

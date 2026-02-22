@@ -109,9 +109,11 @@ class LawnchairAccessibilityService : AccessibilityService() {
 
         if (isCoverHome) {
             // Samsung's cover home appeared. Check where the user was:
-            // - From an app → launch Lawnchair (Lawnchair replaces Samsung's home)
-            // - From Lawnchair → let Samsung's home stay (user intentionally left)
-            if (lastForegroundPackage == packageName) {
+            // - From Lawnchair → let Samsung's home stay only if the toggle is enabled;
+            //   otherwise treat it like any other app and relaunch Lawnchair.
+            // - From any other app → launch Lawnchair.
+            if (lastForegroundPackage == packageName &&
+                prefs.coverScreenSamsungHomeToggle.firstBlocking()) {
                 Log.d(TAG, "  -> User left Lawnchair, staying on Samsung home")
             } else {
                 Log.d(TAG, "  -> User left app ($lastForegroundPackage), launching Lawnchair")

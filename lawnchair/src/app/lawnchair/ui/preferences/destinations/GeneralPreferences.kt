@@ -107,6 +107,13 @@ fun GeneralPreferences() {
                         description = stringResource(id = R.string.cover_screen_auto_launch_description),
                     )
                 }
+                Item {
+                    SwitchPreference(
+                        adapter = prefs2.coverScreenSamsungHomeToggle.getAdapter(),
+                        label = stringResource(id = R.string.cover_screen_samsung_home_toggle_label),
+                        description = stringResource(id = R.string.cover_screen_samsung_home_toggle_description),
+                    )
+                }
             }
         }
         if (BuildConfig.APPLICATION_ID.contains("nightly")) {

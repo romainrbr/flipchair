@@ -1,4 +1,4 @@
-# Lawnchair — Galaxy Z Flip Cover Screen Fork
+# Flipchair — Galaxy Z Flip Cover Screen Fork
 
 This is a fully vibe-coded fork of [Lawnchair](https://github.com/LawnchairLauncher/lawnchair), aimed at making Lawnchair usable as a full launcher on the **Samsung Galaxy Z Flip** cover screen.
 
@@ -26,11 +26,7 @@ The cover screen integration relies on an `AccessibilityService`. After installi
 Enable the toggle. Without this, auto-launch and home button interception will not work.
 
 ### 2. Add apps to a Multistar Launcher
-Samsung restricts which apps can run on the cover screen. Any app you want to use within Lawnchair on the cover screen must first be added to a **Multistar** launcher entry:
-
-**Settings → Advanced features → Multi Star → Cover screen apps**
-
-Add every app you want accessible from Lawnchair on the cover screen. Apps not added here will not open (or will open on the main screen instead).
+Samsung restricts which apps can run on the cover screen. Any app you want to use within Lawnchair on the cover screen must first be added to a **Multistar** launcher entry.
 
 ---
 

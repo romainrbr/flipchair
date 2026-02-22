@@ -1,112 +1,54 @@
-# Lawnchair 16
+# Lawnchair — Galaxy Z Flip Cover Screen Fork
 
-[![Build debug APK](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/ci.yml/badge.svg)](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/ci.yml)
-[![Build release APK](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/release_update.yml/badge.svg)](https://github.com/LawnchairLauncher/lawnchair/actions/workflows/release_update.yml)
-[![Crowdin](https://badges.crowdin.net/e/188ba69d884418987f0b7f1dd55e3a4e/localized.svg)](https://lawnchair.crowdin.com/lawnchair)
-[![OpenCollective](https://img.shields.io/opencollective/all/lawnchair?label=financial%20contributors&logo=open-collective)](https://opencollective.com/lawnchair)
-[![Telegram](https://img.shields.io/endpoint?url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Flccommunity)](https://t.me/lccommunity)
-[![Discord](https://img.shields.io/discord/803299970169700402?label=server&logo=discord)](https://discord.gg/3x8qNWxgGZ)
-[![GitHub Downloads](https://img.shields.io/github/downloads/LawnchairLauncher/lawnchair/total.svg?label=GitHub%20Downloads&logo=github)](https://github.com/LawnchairLauncher/lawnchair/releases)
-[![Play Store Installs](https://img.shields.io/endpoint?color=green&logo=googleplay&logoColor=green&url=https%3A%2F%2Fplay.cuzi.workers.dev%2Fplay%3Fi%3Dapp.lawnchair.play%26l%3DPlay%2520Store%2520Installs%26m%3D%24shortinstalls)](https://play.google.com/store/apps/details?id=app.lawnchair.play)
+This is a fully vibe-coded fork of [Lawnchair](https://github.com/LawnchairLauncher/lawnchair), aimed at making Lawnchair usable as a full launcher on the **Samsung Galaxy Z Flip** cover screen.
 
-> [!WARNING]
-> This branch contains major changes from the rebase of Launcher3, including breaking changes that can cause Lawnchair to break.
-> 
-> If you wish to contribute, read our [contributing guidelines](CONTRIBUTING.md). This branch will undergo many changes as we slowly refactor our codebase, so the `16-dev` branch may be particularly unfriendly to new contributors.
-> 
-> For regular users, we recommend staying on **Lawnchair 15 Beta 2**.
+Only tested on the **Galaxy Z Flip 7** (Android 16). Your mileage may vary on other Flip models.
 
-<picture>
-    <!-- Avoid image being clickable with slight workaround -->
-    <!-- ❤️ Credit to simonppt for the current mockup on Unsplash 
-            https://unsplash.com/photos/a-white-flower-with-green-leaves-on-a-white-background-ojBNiaeykwc
-    -->
-    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/device-frame.webp" width="250px">
-    <img alt="A device running Lawnchair Launcher with green flower wallpaper" src="docs/assets/device-frame.webp" width="250px">
-</picture>
-
-Lawnchair is a free, open-source home app for Android. Taking Launcher3—Android’s default home app—as a starting point, it ports Pixel Launcher features and introduces rich customization options.
-
-This branch houses the codebase of Lawnchair 16, which is currently in development and is based on Launcher3 from Android 16. For Lawnchair 9 to 15, see the branches with the `9-` to `15-` prefixes, respectively.
+---
 
 ## Features
 
--   **Material Expressive Theming:** Adapts to your wallpaper and system theme.
--   **At a Glance Widget:** Displays information *at a glance* with support for [Smartspacer](https://github.com/KieronQuinn/Smartspacer).
--   **QuickSwitch Support:** Integrates with Android Recents on Android 10-15 (requires root).
--   **Global Search:** Allows quick access to apps, contacts, and web results from the home screen.
--   **Customization Options:** Provides options to tweak icons, fonts, and colors to your liking.
--   And more!
+### Auto-launch on cover screen
+When the cover screen is unlocked, Lawnchair is automatically brought to the foreground instead of Samsung's default cover screen launcher. Unlock → straight into your launcher.
 
-## Download
+### Home button returns to Samsung menu
+Pressing home from the Lawnchair home screen switches to Samsung's native cover screen menu. This lets you toggle between the two launchers: home from Lawnchair goes to Samsung's menu, and any subsequent navigation back to an app context will bring Lawnchair back up.
 
-<p align="left">
-  <a href="https://play.google.com/store/apps/details?id=app.lawnchair.play">
-    <picture>
-      <!-- Avoid image being clickable with slight workaround -->
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-google-play.webp" height="60">
-      <img alt="Get it on Google Play" src="docs/assets/badge-google-play.webp" height="60">
-    </picture>
-  </a>
-  <a href="https://apt.izzysoft.de/fdroid/index/apk/app.lawnchair">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-izzyondroid.webp" height="60">
-      <img alt="Get it on IzzyOnDroid" src="docs/assets/badge-izzyondroid.webp" height="60">
-    </picture>
-  </a>
-  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/LawnchairLauncher/lawnchair/">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-obtainium.webp" height="60">
-      <img alt="Get it on Obtainium" src="docs/assets/badge-obtainium.webp" height="60">
-    </picture>
-  </a>
-    <a href="https://github.com/LawnchairLauncher/lawnchair/releases">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/badge-github.webp" height="60">
-      <img alt="Get it on GitHub" src="docs/assets/badge-github.webp" height="60">
-    </picture>
-  </a>
-</p>
+---
 
-Lawnchair on Play Store will install as a different app from other sources. Features may be restricted to comply with Google Play's publishing rules.
+## Settings
 
-You can also [verify your installation](VERIFICATION.md) to see if you have installed an official build.
+Both features are toggleable under **Settings → General**, visible only on Samsung devices:
 
-### Development builds
+- **Auto-launch on cover screen** — enabled/disabled independently
+- **Home button returns to Samsung menu** — enabled/disabled independently
 
-Interested in keeping yourself up-to-date with every Lawnchair development? Try our development builds!
+---
 
-These builds offer the latest features and bug fixes at a cost of performance and additional issues. Make backups before installing!
+## How it works
 
-**Download:** [Obtainium][Obtainium link] • [GitHub][GitHub link] • [nightly.link][Nightly link]
+A background `AccessibilityService` (`LawnchairAccessibilityService`) monitors window state changes on the cover screen display. When the cover screen is unlocked (`ACTION_USER_PRESENT`), or when Samsung's cover home (`SubHomeActivity`) appears after leaving a non-Lawnchair context, the service launches Lawnchair. If the user intentionally pressed home from Lawnchair, the service steps aside and lets Samsung's home screen stay.
 
-## Contributing
+---
 
-Visit the [Lawnchair contributing guidelines](CONTRIBUTING.md) for information and tips on contributing to Lawnchair.
+## Building
 
-## Supporting Lawnchair
+```bash
+GRADLE_OPTS="-Xmx16g" ./gradlew assembleLawnWithQuickstepGithub \
+  -Pkotlin.daemon.jvmargs="-Xmx16g" \
+  -Dorg.gradle.workers.max=12
+```
 
-If you love what we do, consider [supporting us on Open Collective](https://opencollective.com/lawnchair)! Your contributions help keep Lawnchair independent and enable us to develop faster.
+Output APKs land in `build/outputs/apk/lawnWithQuickstepGithub/`.
 
-A huge thank you to our **Core Backers ($5+)**:
-*(These backers directly fund our Project Velocity Fund)*
+## Installing
 
-[![Core Backers](https://opencollective.com/lawnchair/tiers/backer.svg?avatarHeight=64&width=890&button=false)](https://opencollective.com/lawnchair)
+```bash
+adb install -r "$(find build/outputs/apk/lawnWithQuickstepGithub/release -name '*.apk' | head -1)"
+```
 
-[Become a supporter](https://opencollective.com/lawnchair) to help us cover our operational costs, or become a Core Backer to be featured here!
+---
 
-## Quick links
+## Disclaimer
 
--   [Website](https://lawnchair.app)
--   [Support](https://lawnchair.app/support)
--   [News on Telegram](https://t.me/lawnchairci)
--   [Discord](https://discord.com/invite/3x8qNWxgGZ)
--   [X (formerly Twitter)](https://x.com/lawnchairapp)
--   [_XDA_ thread](https://xdaforums.com/t/lawnchair-customizable-pixel-launcher.3627137/)
-
-View all our links in the [Lawnchair Wiki](https://github.com/LawnchairLauncher/lawnchair/wiki).
-
-<!-- Download link -->
-[Nightly link]: https://nightly.link/LawnchairLauncher/lawnchair/workflows/ci/15-dev
-[Obtainium link]: https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22app.lawnchair.nightly%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Flawnchairlauncher%2Flawnchair%22%2C%22author%22%3A%22Lawnchair%20Launcher%22%2C%22name%22%3A%22Lawnchair%20(Debug)%22%2C%22preferredApkIndex%22%3A0%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Atrue%2C%5C%22fallbackToOlderReleases%5C%22%3Afalse%2C%5C%22filterReleaseTitlesByRegEx%5C%22%3A%5C%22Lawnchair%20Nightly%5C%22%2C%5C%22filterReleaseNotesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22verifyLatestTag%5C%22%3Afalse%2C%5C%22dontSortReleasesList%5C%22%3Afalse%2C%5C%22useLatestAssetDateAsReleaseDate%5C%22%3Afalse%2C%5C%22trackOnly%5C%22%3Afalse%2C%5C%22versionExtractionRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22matchGroupToUse%5C%22%3A%5C%22%5C%22%2C%5C%22versionDetection%5C%22%3Afalse%2C%5C%22releaseDateAsVersion%5C%22%3Atrue%2C%5C%22useVersionCodeAsOSVersion%5C%22%3Afalse%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22invertAPKFilter%5C%22%3Afalse%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%2C%5C%22appName%5C%22%3A%5C%22%5C%22%2C%5C%22shizukuPretendToBeGooglePlay%5C%22%3Afalse%2C%5C%22exemptFromBackgroundUpdates%5C%22%3Afalse%2C%5C%22skipUpdateNotifications%5C%22%3Afalse%2C%5C%22about%5C%22%3A%5C%22Lawnchair%20is%20a%20free%2C%20open-source%20home%20app%20for%20Android.%20(NOTE%3A%20This%20is%20the%20debug%20version%20of%20Lawnchair%2C%20for%20the%20beta%2Fstable%20versions%20see%20%5C%5C%5C%22Lawnchair%5C%5C%5C%22)%5C%22%7D%22%7D
-[GitHub link]: https://github.com/LawnchairLauncher/lawnchair/releases/tag/nightly
+This fork is totally experimental. It makes no attempt to be upstreamed or broadly maintained. The cover screen integration is built on top of accessibility service hacks and Samsung-specific internals (`com.android.systemui.subscreen.SubHomeActivity`) that may break on future One UI updates.

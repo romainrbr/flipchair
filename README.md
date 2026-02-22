@@ -4,6 +4,16 @@ This is a fully vibe-coded fork of [Lawnchair](https://github.com/LawnchairLaunc
 
 Only tested on the **Galaxy Z Flip 7** (Android 16). Your mileage may vary on other Flip models.
 
+
+---
+
+## Demo
+
+
+https://github.com/user-attachments/assets/22f4053b-9b73-446b-96e6-fd82c87a84ce
+
+
+
 ---
 
 ## Features

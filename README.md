@@ -16,6 +16,24 @@ https://github.com/user-attachments/assets/22f4053b-9b73-446b-96e6-fd82c87a84ce
 
 ---
 
+## Prerequisites
+
+### 1. Grant accessibility permission
+The cover screen integration relies on an `AccessibilityService`. After installing, go to:
+
+**Settings → Accessibility → Installed apps → Lawnchair → Use Lawnchair**
+
+Enable the toggle. Without this, auto-launch and home button interception will not work.
+
+### 2. Add apps to a Multistar Launcher
+Samsung restricts which apps can run on the cover screen. Any app you want to use within Lawnchair on the cover screen must first be added to a **Multistar** launcher entry:
+
+**Settings → Advanced features → Multi Star → Cover screen apps**
+
+Add every app you want accessible from Lawnchair on the cover screen. Apps not added here will not open (or will open on the main screen instead).
+
+---
+
 ## Features
 
 ### Auto-launch on cover screen

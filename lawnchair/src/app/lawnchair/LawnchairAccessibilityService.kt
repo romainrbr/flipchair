@@ -35,6 +35,9 @@ class LawnchairAccessibilityService : AccessibilityService() {
     private var lastLaunchTime = 0L
     private var lastForegroundPackage: String? = null
 
+    // Recent packages on the cover screen, most recent first (excluding this launcher).
+    private val recentPackages = ArrayDeque<String>()
+
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_USER_PRESENT) {
@@ -48,7 +51,10 @@ class LawnchairAccessibilityService : AccessibilityService() {
         serviceInfo = AccessibilityServiceInfo().apply {
             eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
-            flags = AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+            flags = AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS or
+                AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
+                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS or
+                AccessibilityServiceInfo.FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
             notificationTimeout = 0
             packageNames = null
         }
@@ -72,9 +78,9 @@ class LawnchairAccessibilityService : AccessibilityService() {
 
     override fun onInterrupt() {}
 
-    // Intercept the home key before Samsung's home screen appears, eliminating the ~200ms flash.
-    // Only consume when we're in a non-Lawnchair app on the cover screen — let it pass when in
-    // Lawnchair so the user can still navigate to Samsung's home intentionally.
+    /** Returns the most-recently-used packages seen on the cover screen, most recent first. */
+    fun getRecentPackages(): List<String> = recentPackages.toList()
+
     override fun onKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode != KeyEvent.KEYCODE_HOME) return false
         if (event.action != KeyEvent.ACTION_UP) return false
@@ -84,11 +90,11 @@ class LawnchairAccessibilityService : AccessibilityService() {
         if (!prefs.coverScreenAutoLaunch.firstBlocking()) return false
 
         val fg = lastForegroundPackage
-        if (fg == null || fg == packageName) return false // unknown state or in Lawnchair → pass through
+        if (fg == null || fg == packageName) return false
 
         Log.d(TAG, "  -> Home key intercepted from $fg, launching Lawnchair directly")
         launchLawnchair()
-        return true // consume: prevent Samsung home from appearing
+        return true
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -96,22 +102,23 @@ class LawnchairAccessibilityService : AccessibilityService() {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         if (!isCoverScreen()) return
 
-        val prefs = PreferenceManager2.getInstance(this) ?: return
-        if (!prefs.coverScreenAutoLaunch.firstBlocking()) return
-
         val source = event.packageName?.toString()
         val className = event.className?.toString()
         Log.d(TAG, "[STATE_CHANGED] pkg=$source class=$className lastFg=$lastForegroundPackage")
 
-        val isCoverHome = source == "com.sec.android.app.launcher" ||
-            className == SAMSUNG_COVER_HOME_CLASS ||
-            source == "com.samsung.android.app.aodservice"
+        // RecentsActivity is not Samsung's home — don't kill it when it appears.
+        val isSamsungRecents = source == SAMSUNG_LAUNCHER_PKG && className == SAMSUNG_RECENTS_CLASS
+        val isCoverHome = !isSamsungRecents && (
+            source == SAMSUNG_LAUNCHER_PKG ||
+                className == SAMSUNG_COVER_HOME_CLASS ||
+                source == "com.samsung.android.app.aodservice"
+            )
 
         if (isCoverHome) {
-            // Samsung's cover home appeared. Check where the user was:
-            // - From Lawnchair → let Samsung's home stay only if the toggle is enabled;
-            //   otherwise treat it like any other app and relaunch Lawnchair.
-            // - From any other app → launch Lawnchair.
+            // Only auto-launch when the preference is enabled.
+            val prefs = PreferenceManager2.getInstance(this) ?: return
+            if (!prefs.coverScreenAutoLaunch.firstBlocking()) return
+
             if (lastForegroundPackage == packageName &&
                 prefs.coverScreenSamsungHomeToggle.firstBlocking()) {
                 Log.d(TAG, "  -> User left Lawnchair, staying on Samsung home")
@@ -120,11 +127,22 @@ class LawnchairAccessibilityService : AccessibilityService() {
                 launchLawnchair()
             }
         } else {
-            // Track the foreground package (ignore transient systemui events)
-            if (source != "com.android.systemui") {
+            // Track foreground package for recents panel — regardless of autoLaunch pref.
+            if (source != null && source != "com.android.systemui") {
                 lastForegroundPackage = source
+                if (source != packageName) {
+                    addRecentPackage(source)
+                }
             }
             Log.d(TAG, "  -> Tracking foreground: $source")
+        }
+    }
+
+    private fun addRecentPackage(pkg: String) {
+        recentPackages.remove(pkg)
+        recentPackages.addFirst(pkg)
+        while (recentPackages.size > MAX_RECENT_APPS) {
+            recentPackages.removeLast()
         }
     }
 
@@ -166,6 +184,9 @@ class LawnchairAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "LawnchairCoverScreen"
         private const val LAUNCH_COOLDOWN_MS = 1000L
+        private const val MAX_RECENT_APPS = 10
+        private const val SAMSUNG_LAUNCHER_PKG = "com.sec.android.app.launcher"
         private const val SAMSUNG_COVER_HOME_CLASS = "com.android.systemui.subscreen.SubHomeActivity"
+        private const val SAMSUNG_RECENTS_CLASS = "com.android.quickstep.RecentsActivity"
     }
 }

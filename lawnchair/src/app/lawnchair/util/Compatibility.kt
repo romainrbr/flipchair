@@ -9,6 +9,8 @@ private const val TAG = "Compatibility"
 
 val isOnePlusStock = checkOnePlusStock()
 
+val isSamsung = checkSamsungStock()
+
 val isGestureNavContractCompatible = checkGestureNavContract()
 
 private fun checkOnePlusStock(): Boolean = when {

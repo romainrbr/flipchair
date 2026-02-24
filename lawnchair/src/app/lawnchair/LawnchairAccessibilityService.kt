@@ -18,6 +18,7 @@ package app.lawnchair
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.ActivityOptions
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -172,7 +173,13 @@ class LawnchairAccessibilityService : AccessibilityService() {
                     Intent.FLAG_ACTIVITY_NO_ANIMATION,
             )
         }
-        startActivity(intent)
+        // Explicitly target display 1 (cover screen) so the singleTask lookup
+        // runs against that display and reuses the existing task rather than
+        // creating a new one every press (which forces a full config-change redraw).
+        val options = ActivityOptions.makeBasic().apply {
+            launchDisplayId = COVER_DISPLAY_ID
+        }
+        startActivity(intent, options.toBundle())
     }
 
     private fun isCoverScreen(): Boolean {
@@ -185,6 +192,7 @@ class LawnchairAccessibilityService : AccessibilityService() {
         private const val TAG = "LawnchairCoverScreen"
         private const val LAUNCH_COOLDOWN_MS = 1000L
         private const val MAX_RECENT_APPS = 10
+        private const val COVER_DISPLAY_ID = 1
         private const val SAMSUNG_LAUNCHER_PKG = "com.sec.android.app.launcher"
         private const val SAMSUNG_COVER_HOME_CLASS = "com.android.systemui.subscreen.SubHomeActivity"
         private const val SAMSUNG_RECENTS_CLASS = "com.android.quickstep.RecentsActivity"

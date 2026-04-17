@@ -39,11 +39,46 @@ class LawnchairAccessibilityService : AccessibilityService() {
     // Recent packages on the cover screen, most recent first (excluding this launcher).
     private val recentPackages = ArrayDeque<String>()
 
+    // Set when the cover display turns off while a non-Lawnchair app is foreground.
+    // On next screen-on, that app is restored instead of launching Lawnchair.
+    private var pendingRestorePackage: String? = null
+    private var coverDisplayState = Display.STATE_UNKNOWN
+
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == Intent.ACTION_USER_PRESENT) {
                 Log.d(TAG, "ACTION_USER_PRESENT received")
                 launchIfCoverScreen()
+            }
+        }
+    }
+
+    private val coverDisplayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) {}
+        override fun onDisplayRemoved(displayId: Int) {}
+        override fun onDisplayChanged(displayId: Int) {
+            if (displayId != COVER_DISPLAY_ID && displayId != Display.DEFAULT_DISPLAY) return
+            val dm = getSystemService(DISPLAY_SERVICE) as DisplayManager
+            val display = dm.getDisplay(displayId) ?: return
+            val newState = display.state
+
+            if (displayId == COVER_DISPLAY_ID) {
+                val wasOff = coverDisplayState == Display.STATE_OFF
+                val isNowOff = newState == Display.STATE_OFF
+                if (!wasOff && isNowOff) {
+                    // Cover screen turned off — remember the foreground app so we can
+                    // restore it instead of launching Lawnchair when the screen comes back.
+                    pendingRestorePackage = lastForegroundPackage?.takeIf { it != packageName }
+                    lastLaunchTime = 0L // reset cooldown for post-wake actions
+                    Log.d(TAG, "Cover display OFF, pendingRestore=$pendingRestorePackage")
+                }
+                Log.d(TAG, "Cover display state: $coverDisplayState -> $newState")
+                coverDisplayState = newState
+            } else if (displayId == Display.DEFAULT_DISPLAY) {
+                // Main display turned on (phone opened) — clear pending restore.
+                if (newState != Display.STATE_OFF) {
+                    pendingRestorePackage = null
+                }
             }
         }
     }
@@ -65,6 +100,11 @@ class LawnchairAccessibilityService : AccessibilityService() {
             screenReceiver,
             IntentFilter(Intent.ACTION_USER_PRESENT),
         )
+
+        val displayManager = getSystemService(DISPLAY_SERVICE) as DisplayManager
+        displayManager.registerDisplayListener(coverDisplayListener, null)
+        coverDisplayState = displayManager.getDisplay(COVER_DISPLAY_ID)?.state
+            ?: Display.STATE_UNKNOWN
     }
 
     override fun onDestroy() {
@@ -72,6 +112,8 @@ class LawnchairAccessibilityService : AccessibilityService() {
         try {
             unregisterReceiver(screenReceiver)
         } catch (_: Exception) {}
+        val displayManager = getSystemService(DISPLAY_SERVICE) as DisplayManager
+        displayManager.unregisterDisplayListener(coverDisplayListener)
         super.onDestroy()
     }
 
@@ -94,6 +136,7 @@ class LawnchairAccessibilityService : AccessibilityService() {
         if (fg == null || fg == packageName) return false
 
         Log.d(TAG, "  -> Home key intercepted from $fg, launching Lawnchair directly")
+        pendingRestorePackage = null // user explicitly went home
         launchLawnchair()
         return true
     }
@@ -120,6 +163,16 @@ class LawnchairAccessibilityService : AccessibilityService() {
             val prefs = PreferenceManager2.getInstance(this) ?: return
             if (!prefs.coverScreenAutoLaunch.firstBlocking()) return
 
+            // If the cover screen just turned on and a non-Lawnchair app was running
+            // before it turned off, restore that app instead of launching Lawnchair.
+            val restore = pendingRestorePackage
+            if (restore != null) {
+                pendingRestorePackage = null
+                Log.d(TAG, "  -> Restoring previous app from isCoverHome: $restore")
+                restoreApp(restore)
+                return
+            }
+
             if (lastForegroundPackage == packageName &&
                 prefs.coverScreenSamsungHomeToggle.firstBlocking()) {
                 Log.d(TAG, "  -> User left Lawnchair, staying on Samsung home")
@@ -130,6 +183,7 @@ class LawnchairAccessibilityService : AccessibilityService() {
         } else {
             // Track foreground package for recents panel — regardless of autoLaunch pref.
             if (source != null && source != "com.android.systemui") {
+                pendingRestorePackage = null // user is using an app, no need to restore
                 lastForegroundPackage = source
                 if (source != packageName) {
                     addRecentPackage(source)
@@ -152,6 +206,14 @@ class LawnchairAccessibilityService : AccessibilityService() {
 
         val prefs = PreferenceManager2.getInstance(this) ?: return
         if (!prefs.coverScreenAutoLaunch.firstBlocking()) return
+
+        val restore = pendingRestorePackage
+        if (restore != null) {
+            pendingRestorePackage = null
+            Log.d(TAG, "  -> Restoring previous app from ACTION_USER_PRESENT: $restore")
+            restoreApp(restore)
+            return
+        }
 
         launchLawnchair()
     }
@@ -180,6 +242,33 @@ class LawnchairAccessibilityService : AccessibilityService() {
             launchDisplayId = COVER_DISPLAY_ID
         }
         startActivity(intent, options.toBundle())
+    }
+
+    private fun restoreApp(pkg: String) {
+        val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
+        if (launchIntent == null) {
+            Log.d(TAG, "  -> No launch intent for $pkg, falling back to Lawnchair")
+            launchLawnchair()
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        if (now - lastLaunchTime < LAUNCH_COOLDOWN_MS) {
+            Log.d(TAG, "  -> COOLDOWN, skipping restore")
+            return
+        }
+        lastLaunchTime = now
+
+        Log.d(TAG, ">>> RESTORING $pkg on cover screen!")
+        launchIntent.addFlags(
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
+                Intent.FLAG_ACTIVITY_NO_ANIMATION,
+        )
+        val options = ActivityOptions.makeBasic().apply {
+            launchDisplayId = COVER_DISPLAY_ID
+        }
+        startActivity(launchIntent, options.toBundle())
     }
 
     private fun isCoverScreen(): Boolean {
